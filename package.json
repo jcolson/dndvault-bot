@@ -1,0 +1,16 @@
+{
+  "name": "dndvault",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Jay <jay@karma.net> (https://karma.net/)",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "github:discordjs/discord.js",
+    "mongoose": "^5.11.8"
+  }
+}
