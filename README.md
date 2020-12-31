@@ -2,9 +2,11 @@
 
 This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from dndbeyond.com and the changes they make to them.  This allows a (multiple) DMs to ensure that the character changes that a user makes on dndbeyond are accurate for their campaigns.
 
+Invite the bot using --> https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=92224&scope=bot
+
 Workflow would work something like this.
 
-* Discord users join a server and deside to have a campaign.
+* Discord users join a server and decide to have a campaign.
 * Server owner invites BOT
 * Each user creates a character for campaign on dndbeyond.com
 * Each user 'registers' character with BOT

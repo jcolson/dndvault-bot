@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "discord.js": "github:discordjs/discord.js",
-    "mongoose": "^5.11.8"
+    "mongoose": "^5.11.8",
+    "node-fetch": "^2.6.1"
   }
 }
