@@ -1,9 +1,17 @@
 const { Schema, model } = require('mongoose');
 
 const Guild = Schema({
-    id: String,
-    prefix: {
-        default: '?',
+    "guildID": {
+        "type": "String",
+        index: true
+    },
+    "prefix": {
+        type: String
+    },
+    "arole": {
+        type: String
+    },
+    "prole": {
         type: String
     }
 })
