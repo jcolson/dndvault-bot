@@ -1,6 +1,14 @@
 const { Schema, model } = require('mongoose');
 
 const Character = Schema({
+    "guildUser": {
+        "type": "String",
+        index: true
+    },
+    "guildID": {
+        "type": "String",
+        index: true
+    },
     "id": {
         "type": "String",
         index: true
