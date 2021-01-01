@@ -34,11 +34,13 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [ ] show [CHAR_ID] - show a user's character from the vault
 - [ ] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [DNDBEYOND_URL] - remove a character from the vault
-- [ ] approve [CHAR_ID] - approve a new/updated character within vault
+- [x] approve [CHAR_ID] - approve a new/updated character within vault
 - [ ] changes [CHAR_ID] - display changes for an unapproved character update
-- [ ] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
-- [ ] prole [NEW_ROLE] - modify player role (allows user to use bot)
 - [ ] config - show BOT config
+  - [x] {no args} - show config
+  - [ ] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
+  - [ ] prole [NEW_ROLE] - modify player role (allows user to use bot)
+  - [ ] prefix [NEW_PREFIX] - modify the command prefix
 
 ## Notes
 
