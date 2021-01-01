@@ -13,6 +13,10 @@ const Character = Schema({
         "type": "String",
         index: true
     },
+    "approvalStatus": {
+        "type": "Boolean",
+        index: true
+    },
     "readonlyUrl": {
         "type": "String"
     },

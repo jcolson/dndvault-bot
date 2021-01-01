@@ -39,6 +39,8 @@ client.on('message', async (msg) => {
         handleRegister(msg);
     } else if (msg.content.startsWith(Config.prefix + 'list')) {
         handleList(msg);
+    } else if (msg.content.startsWith(Config.prefix + 'remove')) {
+        handleRemove(msg);
     }
 });
 
@@ -72,6 +74,7 @@ function handleRegister(msg) {
                 let char = new CharModel(charData);
                 char.guildUser = msg.member.id;
                 char.guildID = msg.guild.id;
+                char.approvalStatus = false;
                 await char.save();
                 await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' is now registered');
                 await msg.delete();
@@ -98,16 +101,16 @@ async function handleList(msg) {
                 .setDescription('Character List for ' + msg.member.nickname)
                 .setThumbnail(msg.guild.iconURL())
             req.forEach((char) => {
-                console.log('char' + char.id);
                 charEmbed.addFields(
                     { name: 'Name', value: char.name },
+                    { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
                     { name: 'ID', value: char.id, inline: true },
                     { name: 'Race', value: char.race.fullName, inline: true },
                     { name: 'Class', value: char.classes[0].definition.name, inline: true },
                 );
             })
             charEmbed.addFields(
-                { name: '\u200B', value: 'Add this BOT to your server. [Click here](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=92224&scope=bot)' },
+                { name: '\u200B', value: 'Add this BOT to your server. [Click here](' + Config.inviteURL + ')' },
             );
             await msg.channel.send(charEmbed);
             await msg.delete();
@@ -123,6 +126,13 @@ async function handleList(msg) {
  * 
  * @param {Message} msg 
  */
-function handleRemove(msg) {
-
+async function handleRemove(msg) {
+    try {
+        const charIdToDelete = msg.content.substr((Config.prefix + 'remove').length + 1);
+        const deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete });
+        await msg.channel.send(msg.member.nickname + ', ' + charIdToDelete + ' was (' + deleteResponse.deletedCount + ' character) removed from vault.');
+        await msg.delete();
+    } catch (error) {
+        console.error(error.message);
+    }
 }
