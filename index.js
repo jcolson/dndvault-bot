@@ -25,7 +25,7 @@ client.on('ready', () => console.info(`logged in as ${client.user.tag}`));
 
 client.on('message', async (msg) => {
     if (!msg.guild) return;
-    guildConfig = await confirmGuildConfig(msg);
+    let guildConfig = await confirmGuildConfig(msg);
     if (!msg.content.startsWith(guildConfig.prefix)) return;
     if (!hasRoleOrIsAdmin(msg, guildConfig.prole)) {
         msg.reply(msg.member.nickname + ', ' + 'please have an admin add you to the proper player role to use this bot');
@@ -38,6 +38,8 @@ client.on('message', async (msg) => {
         handleList(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'remove')) {
         handleRemove(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
+        handleConfigPrefix(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
         handleConfigArole(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
@@ -179,20 +181,24 @@ async function handleConfig(msg, guildConfig) {
  */
 async function handleConfigArole(msg, guildConfig) {
     try {
-        let configAroleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
-        if (configAroleName.startsWith('<@&')) {
-            // need to strip the tailing '>' off as well ...
-            const configAroleId = configAroleName.substr(3, configAroleName.length - 4);
-            configAroleName = retrieveRoleForID(msg, configAroleId).name;
-        }
-        configArole = retrieveRoleForName(msg, configAroleName);
-        if (configArole) {
-            guildConfig.arole = configArole.id;
-            await guildConfig.save();
-            await msg.channel.send(msg.member.nickname + ', ' + configAroleName + ' is now the `approver` role.');
-            await msg.delete();
+        if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+            let configAroleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
+            if (configAroleName.startsWith('<@&')) {
+                // need to strip the tailing '>' off as well ...
+                const configAroleId = configAroleName.substr(3, configAroleName.length - 4);
+                configAroleName = retrieveRoleForID(msg, configAroleId).name;
+            }
+            configArole = retrieveRoleForName(msg, configAroleName);
+            if (configArole) {
+                guildConfig.arole = configArole.id;
+                await guildConfig.save();
+                await msg.channel.send(msg.member.nickname + ', ' + configAroleName + ' is now the `approver` role.');
+                await msg.delete();
+            } else {
+                await msg.reply(msg.member.nickname + ', could not locate the role: ' + configAroleName);
+            }
         } else {
-            await msg.reply(msg.member.nickname + ', could not locate the role: ' + configAroleName);
+            await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
     } catch (error) {
         console.error(error.message);
@@ -206,20 +212,45 @@ async function handleConfigArole(msg, guildConfig) {
  */
 async function handleConfigProle(msg, guildConfig) {
     try {
-        let configProleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
-        if (configProleName.startsWith('<@&')) {
-            // need to strip the tailing '>' off as well ...
-            const configProleId = configProleName.substr(3, configProleName.length - 4);
-            configProleName = retrieveRoleForID(msg, configProleId).name;
+        if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+            let configProleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
+            if (configProleName.startsWith('<@&')) {
+                // need to strip the tailing '>' off as well ...
+                const configProleId = configProleName.substr(3, configProleName.length - 4);
+                configProleName = retrieveRoleForID(msg, configProleId).name;
+            }
+            configProle = retrieveRoleForName(msg, configProleName);
+            if (configProle) {
+                guildConfig.prole = configProle.id;
+                await guildConfig.save();
+                await msg.channel.send(msg.member.nickname + ', ' + configProleName + ' is now the `player` role.');
+                await msg.delete();
+            } else {
+                await msg.reply(msg.member.nickname + ', could not locate the role: ' + configProleName);
+            }
+        } else {
+            await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
-        configProle = retrieveRoleForName(msg, configProleName);
-        if (configProle) {
-            guildConfig.prole = configProle.id;
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+/**
+ * 
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleConfigPrefix(msg, guildConfig) {
+    try {
+        if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+            let configPrefix = msg.content.substr((guildConfig.prefix + 'config prefix').length + 1);
+            guildConfig.prefix = configPrefix;
             await guildConfig.save();
-            await msg.channel.send(msg.member.nickname + ', ' + configProleName + ' is now the `player` role.');
+            await msg.channel.send(msg.member.nickname + ', `  ' + guildConfig.prefix + '  `' + ` is now my prefix, don't forget!.`);
             await msg.delete();
         } else {
-            await msg.reply(msg.member.nickname + ', could not locate the role: ' + configProleName);
+            await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
     } catch (error) {
         console.error(error.message);
@@ -248,8 +279,7 @@ async function handleApprove(msg, guildConfig) {
                 await msg.delete();
             }
         } else {
-            await msg.reply(msg.member.nickname + ', please ask an approver to approve.');
-
+            await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to approve.');
         }
     } catch (error) {
         console.error(error.message);
@@ -262,23 +292,28 @@ async function handleApprove(msg, guildConfig) {
  * @returns {GuildModel}
  */
 async function confirmGuildConfig(msg) {
-    // msg.guild.roles.cache.array().forEach(role => console.log(role.name, role.id))
-    let guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
-    if (!guildConfig) {
-        guildConfig = new GuildModel({ guildID: msg.guild.id });
+    let guildConfig;
+    try {
+        // msg.guild.roles.cache.array().forEach(role => console.log(role.name, role.id))
+        guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
+        if (!guildConfig) {
+            guildConfig = new GuildModel({ guildID: msg.guild.id });
+        }
+        // console.log(guildConfig);
+        if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
+            guildConfig.arole = retrieveRoleForName(msg, Config.defaultARoleName).id;
+        }
+        if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
+            guildConfig.prole = retrieveRoleForName(msg, Config.defaultPRoleName).id;
+        }
+        if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
+            guildConfig.prefix = Config.defaultPrefix;
+        }
+        // this only works because it's a flat document
+        await guildConfig.save();
+    } catch (error) {
+        console.error(error.message);
     }
-    // console.log(guildConfig);
-    if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-        guildConfig.arole = retrieveRoleForName(msg, Config.defaultARoleName).id;
-    }
-    if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
-        guildConfig.prole = retrieveRoleForName(msg, Config.defaultPRoleName).id;
-    }
-    if (typeof guildConfig.prefix === 'undefined' || !guildConfig.refix) {
-        guildConfig.prefix = Config.defaultPrefix;
-    }
-    // this only works because it's a flat document
-    await GuildModel.updateOne({ guildID: msg.guild.id }, guildConfig, { upsert: true, setDefaultsOnInsert: true });
     return guildConfig;
 }
 
@@ -322,7 +357,9 @@ function retrieveRoleForID(msg, roleID) {
  * @param {String} roleId 
  */
 function hasRoleOrIsAdmin(msg, roleId) {
-    // return false;
+    // if (roleId == '792845390834958368') {
+    //     return false;
+    // }
     let hasRole = false;
     try {
         if (msg.member.hasPermission('ADMINISTRATOR')) {

@@ -38,9 +38,9 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [ ] changes [CHAR_ID] - display changes for an unapproved character update
 - [ ] config - show BOT config
   - [x] {no args} - show config
-  - [ ] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
-  - [ ] prole [NEW_ROLE] - modify player role (allows user to use bot)
-  - [ ] prefix [NEW_PREFIX] - modify the command prefix
+  - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
+  - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
+  - [x] prefix [NEW_PREFIX] - modify the command prefix
 
 ## Notes
 
