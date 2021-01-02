@@ -7,6 +7,7 @@ const { connect } = require('mongoose');
 const { update } = require('./models/Guild');
 const client = new Client();
 const GuildCache = {};
+const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 
 /**
  * connect to the mongodb
@@ -502,12 +503,27 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     if (change) changes.push(change);
     change = stringForRaceChange(approvedChar, updatedChar);
     if (change) changes.push(change);
-    changes = changes.concat(stringForClassChange(approvedChar, updatedChar));
+    changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
+    changes = changes.concat(arrayForAbilitiesChange(approvedChar, updatedChar));
     changesEmbed.addFields({ name: 'Changes', value: changes });
     return changesEmbed;
 }
 
-function stringForClassChange(approvedChar, updatedChar) {
+function arrayForAbilitiesChange(approvedChar, updatedChar) {
+    let abilitiesChanges = [];
+    approvedChar.stats.forEach((approvedStat) => {
+        updatedChar.stats.forEach((updatedStat) => {
+            if (approvedStat.id == updatedStat.id) {
+                if (approvedStat.value != updatedStat.value) {
+                    console.log('stat is different: ' + StatLookup[approvedStat.id] + ':' + approvedStat.value + '/' + updatedStat.value);
+                }
+            }
+        })
+    })
+    return abilitiesChanges;
+}
+
+function arrayForClassChange(approvedChar, updatedChar) {
     let classChanges = [];
     let maxClassesLength = approvedChar.classes.length > updatedChar.classes.length ? approvedChar.classes.length : updatedChar.classes.length;
     for (let i = 0; i < maxClassesLength; i++) {
