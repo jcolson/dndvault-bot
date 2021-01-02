@@ -29,7 +29,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] {no args} - list YOUR registered characters within vault
   - [ ] all - list all
   - [ ] approved - list all approved
-  - [ ] queued - list all characters queued for approval
+  - [x] queued - list all characters queued for approval
   - [ ] user [@USER_NAME] - list all characters by discord user
 - [ ] show [CHAR_ID] - show a user's character from the vault
 - [ ] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault

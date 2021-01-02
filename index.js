@@ -34,6 +34,8 @@ client.on('message', async (msg) => {
         msg.reply('help!');
     } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
         handleRegister(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'list queued')) {
+        handleListQueued(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list')) {
         handleList(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'remove')) {
@@ -100,27 +102,9 @@ function handleRegister(msg, guildConfig) {
  */
 async function handleList(msg, guildConfig) {
     try {
-        const req = await CharModel.find({ guildUser: msg.member.id });
-        if (req.length > 0) {
-            const charEmbed = new MessageEmbed()
-                .setColor('#0099ff')
-                .setTitle('Character List from the Vault')
-                // .setURL('https://discord.js.org/')
-                .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
-                .setDescription('Character List for ' + msg.member.nickname)
-                .setThumbnail(msg.guild.iconURL())
-            req.forEach((char) => {
-                charEmbed.addFields(
-                    { name: 'Name', value: char.name },
-                    { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
-                    { name: 'ID', value: char.id, inline: true },
-                    { name: 'Race', value: char.race.fullName, inline: true },
-                    { name: 'Class', value: char.classes[0].definition.name, inline: true },
-                );
-            })
-            charEmbed.addFields(
-                { name: '\u200B', value: 'Add this BOT to your server. [Click here](' + Config.inviteURL + ')' },
-            );
+        const charArray = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id });
+        if (charArray.length > 0) {
+            const charEmbed = createCharacterEmbed(msg, charArray);
             await msg.channel.send(charEmbed);
             await msg.delete();
         } else {
@@ -129,6 +113,58 @@ async function handleList(msg, guildConfig) {
     } catch (error) {
         console.error(error.message);
     }
+}
+
+/**
+ * 
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleListQueued(msg, guildConfig) {
+    try {
+        if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+            const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
+            if (charArray.length > 0) {
+                const charEmbed = createCharacterEmbed(msg, charArray);
+                await msg.channel.send(charEmbed);
+                await msg.delete();
+            } else {
+                msg.reply(msg.member.nickname + `, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
+            }
+        } else {
+            await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
+        }
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+/**
+ * 
+ * @param {CharModel[]} charArray
+ * @returns {MessageEmbed}
+ */
+function createCharacterEmbed(msg, charArray) {
+    const charEmbed = new MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle('Character List from the Vault')
+        // .setURL('https://discord.js.org/')
+        .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
+        .setDescription('Character List for ' + msg.member.nickname)
+        .setThumbnail(msg.guild.iconURL())
+    charArray.forEach((char) => {
+        charEmbed.addFields(
+            { name: 'Name', value: char.name },
+            { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
+            { name: 'ID', value: char.id, inline: true },
+            { name: 'Race', value: char.race.fullName, inline: true },
+            { name: 'Class', value: char.classes[0].definition.name, inline: true },
+        );
+    })
+    charEmbed.addFields(
+        { name: '\u200B', value: 'Add this BOT to your server. [Click here](' + Config.inviteURL + ')' },
+    );
+    return charEmbed;
 }
 
 /**
