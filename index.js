@@ -196,7 +196,7 @@ async function handleList(msg, guildConfig) {
     try {
         const charArray = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id });
         if (charArray.length > 0) {
-            const charEmbed = createCharacterEmbed(msg, charArray);
+            const charEmbed = createCharacterEmbed(msg, charArray, msg.member.nickname + '\'s Characters in the Vault');
             await msg.channel.send(charEmbed);
             await msg.delete();
         } else {
@@ -217,7 +217,7 @@ async function handleListQueued(msg, guildConfig) {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
             const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
             if (charArray.length > 0) {
-                const charEmbed = createCharacterEmbed(msg, charArray);
+                const charEmbed = createCharacterEmbed(msg, charArray, 'Characters pending approval');
                 await msg.channel.send(charEmbed);
                 await msg.delete();
             } else {
@@ -236,21 +236,23 @@ async function handleListQueued(msg, guildConfig) {
  * @param {CharModel[]} charArray
  * @returns {MessageEmbed}
  */
-function createCharacterEmbed(msg, charArray) {
+function createCharacterEmbed(msg, charArray, title) {
     const charEmbed = new MessageEmbed()
         .setColor('#0099ff')
-        .setTitle('Character List from the Vault')
+        .setTitle(title)
         // .setURL('https://discord.js.org/')
         .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
-        .setDescription('Character List for ' + msg.member.nickname)
+        // .setDescription(description)
         .setThumbnail(msg.guild.iconURL())
     charArray.forEach((char) => {
         charEmbed.addFields(
-            { name: 'Name', value: char.name },
+            { name: 'Name        ()==[:::::::::::::>', value: char.name },
+            { name: 'User', value: '<@' + char.guildUser + '>', inline: true },
             { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
             { name: 'ID', value: '[' + char.id + '](' + char.readonlyUrl + ')', inline: true },
             { name: 'Race', value: '[' + char.race.fullName + '](' + Config.dndBeyondUrl + char.race.moreDetailsUrl + ')', inline: true },
             { name: 'Class', value: char.classes.length > 0 ? '[' + char.classes[0].definition.name + '](' + Config.dndBeyondUrl + char.classes[0].definition.moreDetailsUrl + ')' : '?', inline: true },
+            // { name: '\u200B', value: '---------------------------' },
         );
     })
     charEmbed.addFields(
