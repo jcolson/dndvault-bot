@@ -17,6 +17,11 @@ const Character = Schema({
         "type": "Boolean",
         index: true
     },
+    "isUpdate": {
+        "type": "Boolean",
+        index: true,
+        default: false
+    },
     "readonlyUrl": {
         "type": "String"
     },

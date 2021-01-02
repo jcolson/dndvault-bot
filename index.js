@@ -111,7 +111,7 @@ async function handleRegister(msg, guildConfig) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
         };
         let charData = Object.assign({}, charJSON.data);
-        const req = await CharModel.findOne({ id: charData.id });
+        const req = await CharModel.findOne({ id: charData.id, isUpdate: false, guildID: msg.guild.id });
         if (req) {
             // console.log(req);
             throw new Error('Sorry, this character has already been registered, use `update` command instead.');
@@ -145,14 +145,14 @@ async function handleUpdate(msg, guildConfig) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
         };
         let charData = Object.assign({}, charJSON.data);
-        const checkRegisterStatus = await CharModel.findOne({ id: charData.id });
+        const checkRegisterStatus = await CharModel.findOne({ id: charData.id, isUpdate: false, guildID: msg.guild.id });
         if (!checkRegisterStatus) {
             throw new Error('Sorry, this character has not been registered and approved yet.  `register ' + charData.id + '` it first.');
         } else if (checkRegisterStatus.approvalStatus == false) {
             throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charData.id + '` and then re-register if you would like to replace the `register` request');
         }
-        charData.id = charData.id + '_update';
-        const req = await CharModel.findOne({ id: charData.id });
+        // charData.id = charData.id + '_update';
+        const req = await CharModel.findOne({ id: charData.id, isUpdate: true, guildID: msg.guild.id });
         if (req) {
             throw new Error('Sorry, this character has already has an update pending.  `remove ' + charData.id + '` if you would like to replace the update request');
         }
@@ -160,6 +160,7 @@ async function handleUpdate(msg, guildConfig) {
         char.guildUser = msg.member.id;
         char.guildID = msg.guild.id;
         char.approvalStatus = false;
+        char.isUpdate = true;
         await char.save();
         await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' now has an update pending.');
         await msg.delete();
@@ -246,10 +247,16 @@ function createCharacterEmbed(msg, charArray, title) {
         .setThumbnail(msg.guild.iconURL())
     charArray.forEach((char) => {
         charEmbed.addFields(
-            { name: 'Name        ()==[:::::::::::::>', value: char.name },
+            {
+                name: 'Name / ID / Approved? / UpdatePending?      ()==[:::::::::::::>',
+                value: char.name + ' / ' + '[' + char.id + '](' + char.readonlyUrl + ') / '
+                    + (char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`')
+                    + ' / '
+                    + (char.isUpdate ? '`' + char.isUpdate + '`' : char.isUpdate)
+            },
             { name: 'User', value: '<@' + char.guildUser + '>', inline: true },
-            { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
-            { name: 'ID', value: '[' + char.id + '](' + char.readonlyUrl + ')', inline: true },
+            // { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
+            // { name: 'ID', value: '[' + char.id + '](' + char.readonlyUrl + ')', inline: true },
             { name: 'Race', value: '[' + char.race.fullName + '](' + Config.dndBeyondUrl + char.race.moreDetailsUrl + ')', inline: true },
             { name: 'Class', value: char.classes.length > 0 ? '[' + char.classes[0].definition.name + '](' + Config.dndBeyondUrl + char.classes[0].definition.moreDetailsUrl + ')' : '?', inline: true },
             // { name: '\u200B', value: '---------------------------' },
@@ -269,7 +276,10 @@ function createCharacterEmbed(msg, charArray, title) {
 async function handleRemove(msg, guildConfig) {
     try {
         const charIdToDelete = msg.content.substr((guildConfig.prefix + 'remove').length + 1);
-        const deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id });
+        let deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true });
+        if (deleteResponse.deletedCount < 1) {
+            deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false });
+        }
         await msg.channel.send(msg.member.nickname + ', ' + charIdToDelete + ' was (' + deleteResponse.deletedCount + ' character) removed from vault.');
         await msg.delete();
     } catch (error) {
