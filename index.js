@@ -31,11 +31,13 @@ client.on('message', async (msg) => {
         msg.reply(msg.member.nickname + ', ' + 'please have an admin add you to the proper player role to use this bot');
         return;
     } if (msg.content === guildConfig.prefix + 'help') {
-        msg.reply('help!');
+        handleHelp(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
         handleRegister(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'update')) {
         handleUpdate(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
+        handleChanges(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list queued')) {
         handleListQueued(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list')) {
@@ -54,6 +56,42 @@ client.on('message', async (msg) => {
         handleApprove(msg, guildConfig);
     }
 });
+
+async function handleHelp(msg, guildConfig) {
+    try {
+        const charEmbed = new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Help for D&D Vault BOT')
+            .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
+            .setThumbnail(msg.guild.iconURL())
+        charEmbed.addFields(
+            {name: '[x] help', value: 'This help embed page'},
+            {name: '[x] register [DNDBEYOND_URL]', value: 'register a character in the vault from dndbeyond'},
+            {name: '[ ] list', value: '\u200B'},
+            {name: '- [x] {no args}', value: 'list YOUR registered characters within vault'},
+            {name: '- [ ] all', value: 'list all'},
+            {name: '- [ ] approved', value: 'list all approved'},
+            {name: '- [x] queued', value: 'list all characters queued for approval'},
+            {name: '- [ ] user [@USER_NAME]', value: 'list all characters by discord user'},
+            {name: '[ ] show [CHAR_ID]', value: 'show a user\'s character from the vault'},
+            {name: '[x] update [DNDBEYOND_URL]', value: 'request an update a character from dndbeyond to the vault'},
+            {name: '[x] remove [DNDBEYOND_URL]', value: 'remove a character from the vault'},
+            {name: '[x] approve [CHAR_ID]', value: 'approve a new/updated character within vault'},
+            {name: '[ ] changes [CHAR_ID]', value: 'display changes for an unapproved character update'},
+            {name: '[x] config', value: 'show BOT config'},
+            {name: '- [x] {no args}', value: 'show config'},
+            {name: '- [x] arole [NEW_ROLE]', value: 'modify approver role (allows user to approve characters)'},
+            {name: '- [x] prole [NEW_ROLE]', value: 'modify player role (allows user to use bot)'},
+            {name: '- [x] prefix [NEW_PREFIX]', value: 'modify the command prefix'},
+        );
+        charEmbed.addFields(
+            { name: '\u200B', value: 'Add this BOT to your server. [Click here](' + Config.inviteURL + ')' },
+        );
+        msg.member.send(charEmbed);
+    } catch (error) {
+        msg.reply(error.message);
+    }
+}
 
 /**
  * Parse the incoming url for the character id and then use
@@ -124,6 +162,14 @@ async function handleUpdate(msg, guildConfig) {
         await char.save();
         await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' now has an update pending.');
         await msg.delete();
+    } catch (error) {
+        msg.reply(error.message);
+    }
+}
+
+async function handleChanges(msg, guildConfig) {
+    try {
+        console.log('changes');
     } catch (error) {
         msg.reply(error.message);
     }
