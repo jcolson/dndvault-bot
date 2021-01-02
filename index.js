@@ -195,7 +195,10 @@ function parseCharIdFromURL(commandStringWithURL, command, prefix) {
  */
 async function handleList(msg, guildConfig) {
     try {
-        const charArray = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id });
+        let charArrayUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, isUpdate: true });
+        let notInIds = getIdsFromCharacterArray(charArrayUpdates);
+        let charArrayNoUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
+        let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
             const charEmbed = createCharacterEmbed(msg, charArray, msg.member.nickname + '\'s Characters in the Vault');
             await msg.channel.send(charEmbed);
@@ -206,6 +209,14 @@ async function handleList(msg, guildConfig) {
     } catch (error) {
         await msg.reply(error.message);
     }
+}
+
+function getIdsFromCharacterArray(charArray) {
+    let names = [];
+    charArray.forEach((char) => {
+        names.push(char.id);
+    });
+    return names;
 }
 
 /**
@@ -410,13 +421,18 @@ async function handleApprove(msg, guildConfig) {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
             const charIdToApprove = msg.content.substr((guildConfig.prefix + 'approve').length + 1);
             console.log('charid: ' + charIdToApprove);
-            let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id });
+            let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
                 await msg.channel.send(msg.member.nickname + ', ' + charIdToApprove + ' could not be located.');
                 await msg.delete();
             } else {
                 // console.log('char: ' + charToApprove);
                 charToApprove.approvalStatus = true;
+                // if this is an update, then remove the original - this update will become the registered character
+                if (charToApprove.isUpdate = true) {
+                    charToApprove.isUpdate = false;
+                    await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToApprove, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
+                }
                 await charToApprove.save();
                 await msg.channel.send(msg.member.nickname + ', ' + charToApprove.id + ' was approved.');
                 await msg.delete();
