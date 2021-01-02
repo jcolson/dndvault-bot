@@ -249,21 +249,22 @@ function createCharacterEmbed(msg, charArray, title) {
         charEmbed.addFields(
             {
                 name: 'Name / ID / Approved? / UpdatePending?      ()==[:::::::::::::>',
-                value: char.name + ' / ' + '[' + char.id + '](' + char.readonlyUrl + ') / '
-                    + (char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`')
+                value: `${char.name} / [${char.id}](${char.readonlyUrl}) / `
+                    + (char.approvalStatus ? char.approvalStatus : `\`${char.approvalStatus}\``)
                     + ' / '
-                    + (char.isUpdate ? '`' + char.isUpdate + '`' : char.isUpdate)
+                    + (char.isUpdate ? `\`${char.isUpdate}\`` : char.isUpdate)
             },
-            { name: 'User', value: '<@' + char.guildUser + '>', inline: true },
-            // { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
-            // { name: 'ID', value: '[' + char.id + '](' + char.readonlyUrl + ')', inline: true },
-            { name: 'Race', value: '[' + char.race.fullName + '](' + Config.dndBeyondUrl + char.race.moreDetailsUrl + ')', inline: true },
-            { name: 'Class', value: char.classes.length > 0 ? '[' + char.classes[0].definition.name + '](' + Config.dndBeyondUrl + char.classes[0].definition.moreDetailsUrl + ')' : '?', inline: true },
-            // { name: '\u200B', value: '---------------------------' },
+            { name: 'User', value: `<@${char.guildUser}>`, inline: true },
+            { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
+            {
+                name: 'Class', value: char.classes.length > 0 ?
+                    `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
+                    '?', inline: true
+            },
         );
     })
     charEmbed.addFields(
-        { name: '\u200B', value: 'Add this BOT to your server. [Click here](' + Config.inviteURL + ')' },
+        { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL} )` },
     );
     return charEmbed;
 }
@@ -276,6 +277,8 @@ function createCharacterEmbed(msg, charArray, title) {
 async function handleRemove(msg, guildConfig) {
     try {
         const charIdToDelete = msg.content.substr((guildConfig.prefix + 'remove').length + 1);
+        // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
+        // doesn't exist, then remove the actual registered character
         let deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true });
         if (deleteResponse.deletedCount < 1) {
             deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false });
