@@ -5,6 +5,7 @@ const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
 const client = new Client();
+const GuildCache = {};
 
 /**
  * connect to the mongodb
@@ -27,6 +28,7 @@ client.on('message', async (msg) => {
     if (!msg.guild) return;
     let guildConfig = await confirmGuildConfig(msg);
     if (!msg.content.startsWith(guildConfig.prefix)) return;
+    console.log('Message received: ' + msg.content);
     if (!hasRoleOrIsAdmin(msg, guildConfig.prole)) {
         await msg.reply(msg.member.nickname + ', ' + 'please have an admin add you to the proper player role to use this bot');
         return;
@@ -259,11 +261,9 @@ function createCharacterEmbed(msg, charArray, title) {
     charArray.forEach((char) => {
         charEmbed.addFields(
             {
-                name: 'Name / ID / Approved? / UpdatePending?      ()==[:::::::::::::>',
+                name: 'Name / ID / Status      ()==[:::::::::::::>',
                 value: `${char.name} / [${char.id}](${char.readonlyUrl}) / `
-                    + (char.approvalStatus ? char.approvalStatus : `\`${char.approvalStatus}\``)
-                    + ' / '
-                    + (char.isUpdate ? `\`${char.isUpdate}\`` : char.isUpdate)
+                    + stringForApprovalsAndUpdates(char)
             },
             { name: 'User', value: `<@${char.guildUser}>`, inline: true },
             { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
@@ -278,6 +278,24 @@ function createCharacterEmbed(msg, charArray, title) {
         { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL} )` },
     );
     return charEmbed;
+}
+
+/**
+ * Return a string describing the current state of the character
+ * @param {CharModel} char 
+ * @returns {String}
+ */
+function stringForApprovalsAndUpdates(char) {
+    if (char.approvalStatus && char.isUpdate) {
+        return '`Invalid Status`';
+    } else if (!char.approvalStatus && char.isUpdate) {
+        return "`Unapproved update pending`";
+    } else if (char.approvalStatus && !char.isUpdate) {
+        return `Approved by <@${char.approvedBy}>`;
+    } else if (!char.approvalStatus && !char.isUpdate) {
+        return "`Initial Character Pending`";
+    }
+
 }
 
 /**
@@ -346,6 +364,7 @@ async function handleConfigArole(msg, guildConfig) {
             if (configArole) {
                 guildConfig.arole = configArole.id;
                 await guildConfig.save();
+                GuildCache[msg.guild.id] = guildConfig;
                 await msg.channel.send(msg.member.nickname + ', ' + configAroleName + ' is now the `approver` role.');
                 await msg.delete();
             } else {
@@ -377,6 +396,7 @@ async function handleConfigProle(msg, guildConfig) {
             if (configProle) {
                 guildConfig.prole = configProle.id;
                 await guildConfig.save();
+                GuildCache[msg.guild.id] = guildConfig;
                 await msg.channel.send(msg.member.nickname + ', ' + configProleName + ' is now the `player` role.');
                 await msg.delete();
             } else {
@@ -401,6 +421,7 @@ async function handleConfigPrefix(msg, guildConfig) {
             let configPrefix = msg.content.substr((guildConfig.prefix + 'config prefix').length + 1);
             guildConfig.prefix = configPrefix;
             await guildConfig.save();
+            GuildCache[msg.guild.id] = guildConfig;
             await msg.channel.send(msg.member.nickname + ', `  ' + guildConfig.prefix + '  `' + ` is now my prefix, don't forget!.`);
             await msg.delete();
         } else {
@@ -423,11 +444,12 @@ async function handleApprove(msg, guildConfig) {
             console.log('charid: ' + charIdToApprove);
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
-                await msg.channel.send(msg.member.nickname + ', ' + charIdToApprove + ' could not be located.');
+                await msg.channel.send(`${msg.member.nickname}, an unapproved "${charIdToApprove}" could not be located.`);
                 await msg.delete();
             } else {
                 // console.log('char: ' + charToApprove);
                 charToApprove.approvalStatus = true;
+                charToApprove.approvedBy = msg.member.id;
                 // if this is an update, then remove the original - this update will become the registered character
                 if (charToApprove.isUpdate = true) {
                     charToApprove.isUpdate = false;
@@ -451,27 +473,30 @@ async function handleApprove(msg, guildConfig) {
  * @returns {GuildModel}
  */
 async function confirmGuildConfig(msg) {
-    let guildConfig;
-    try {
-        // msg.guild.roles.cache.array().forEach(role => console.log(role.name, role.id))
-        guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
-        if (!guildConfig) {
-            guildConfig = new GuildModel({ guildID: msg.guild.id });
+    let guildConfig = GuildCache[msg.guild.id];
+    if (!guildConfig) {
+        try {
+            // msg.guild.roles.cache.array().forEach(role => console.log(role.name, role.id))
+            guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
+            if (!guildConfig) {
+                guildConfig = new GuildModel({ guildID: msg.guild.id });
+            }
+            // console.log(guildConfig);
+            if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
+                guildConfig.arole = retrieveRoleForName(msg, Config.defaultARoleName).id;
+            }
+            if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
+                guildConfig.prole = retrieveRoleForName(msg, Config.defaultPRoleName).id;
+            }
+            if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
+                guildConfig.prefix = Config.defaultPrefix;
+            }
+            // this only works because it's a flat document
+            await guildConfig.save();
+            GuildCache[msg.guild.id] = guildConfig;
+        } catch (error) {
+            await msg.reply(error.message);
         }
-        // console.log(guildConfig);
-        if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-            guildConfig.arole = retrieveRoleForName(msg, Config.defaultARoleName).id;
-        }
-        if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
-            guildConfig.prole = retrieveRoleForName(msg, Config.defaultPRoleName).id;
-        }
-        if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
-            guildConfig.prefix = Config.defaultPrefix;
-        }
-        // this only works because it's a flat document
-        await guildConfig.save();
-    } catch (error) {
-        await msg.reply(error.message);
     }
     return guildConfig;
 }

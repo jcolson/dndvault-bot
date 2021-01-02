@@ -22,6 +22,9 @@ const Character = Schema({
         index: true,
         default: false
     },
+    "approvedBy": {
+        "type": "String"
+    },
     "readonlyUrl": {
         "type": "String"
     },
