@@ -60,39 +60,42 @@ client.on('message', async (msg) => {
  * @param {Message} msg 
  * @param {GuildModel} guildConfig 
  */
-function handleRegister(msg, guildConfig) {
-    const charURL = msg.content.substr((guildConfig.prefix + 'register').length + 1);
+async function handleRegister(msg, guildConfig) {
+    try {
+        const charID = parseCharIdFromURL(msg.content, 'register', guildConfig.prefix);
+        const settings = { method: "Get" };
+        let response = await fetch('https://character-service.dndbeyond.com/character/v3/character/' + charID, settings);
+        let charJSON = response.json;
+        if (response.status != 200 || charJSON.success == false) {
+            throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
+        };
+        let charData = Object.assign({}, charJSON.data);
+        const req = await CharModel.findOne({ id: charData.id });
+        if (req) {
+            // console.log(req);
+            throw new Error('Sorry, this character has already been registered, use `update` command instead.');
+        }
+        let char = new CharModel(charData);
+        char.guildUser = msg.member.id;
+        char.guildID = msg.guild.id;
+        char.approvalStatus = false;
+        await char.save();
+        await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' is now registered');
+        await msg.delete();
+    } catch (error) {
+        msg.reply(error.message);
+    }
+}
+
+function parseCharIdFromURL(commandStringWithURL, command, prefix) {
+    const charURL = commandStringWithURL.substr((prefix + command).length + 1);
     console.log('char url: ' + charURL);
     const charID = charURL.split('/').pop();
     console.log('char id: "' + charID + '"');
     if (isNaN(charID) || isNaN(parseInt(charID))) {
-        msg.reply("Invalid URL passed for your registration, it needs to be a dndbeyond character URL.");
-    } else {
-        const settings = { method: "Get" };
-        fetch('https://character-service.dndbeyond.com/character/v3/character/' + charID, settings)
-            .then(res => res.json())
-            .then(async (charJSON) => {
-                if (charJSON.success == false) {
-                    throw new Error('Sorry, that URL contains no character data');
-                };
-                let charData = Object.assign({}, charJSON.data);
-                const req = await CharModel.findOne({ id: charData.id });
-                if (req) {
-                    // console.log(req);
-                    throw new Error('Sorry, this character has already been registered, use `update` command instead.');
-                }
-                let char = new CharModel(charData);
-                char.guildUser = msg.member.id;
-                char.guildID = msg.guild.id;
-                char.approvalStatus = false;
-                await char.save();
-                await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' is now registered');
-                await msg.delete();
-            })
-            .catch(error => {
-                msg.reply('Problem registering your character: ' + error.message);
-            });
+        throw new Error("Invalid URL passed for your registration, it needs to be a dndbeyond character URL.");
     }
+    return charID;
 }
 
 /**

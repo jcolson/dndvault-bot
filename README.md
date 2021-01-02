@@ -36,7 +36,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] remove [DNDBEYOND_URL] - remove a character from the vault
 - [x] approve [CHAR_ID] - approve a new/updated character within vault
 - [ ] changes [CHAR_ID] - display changes for an unapproved character update
-- [ ] config - show BOT config
+- [x] config - show BOT config
   - [x] {no args} - show config
   - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
