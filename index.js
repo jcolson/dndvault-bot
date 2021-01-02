@@ -34,6 +34,8 @@ client.on('message', async (msg) => {
         msg.reply('help!');
     } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
         handleRegister(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'update')) {
+        handleUpdate(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list queued')) {
         handleListQueued(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list')) {
@@ -65,7 +67,7 @@ async function handleRegister(msg, guildConfig) {
         const charID = parseCharIdFromURL(msg.content, 'register', guildConfig.prefix);
         const settings = { method: "Get" };
         let response = await fetch('https://character-service.dndbeyond.com/character/v3/character/' + charID, settings);
-        let charJSON = response.json;
+        let charJSON = await response.json();
         if (response.status != 200 || charJSON.success == false) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
         };
@@ -81,6 +83,46 @@ async function handleRegister(msg, guildConfig) {
         char.approvalStatus = false;
         await char.save();
         await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' is now registered');
+        await msg.delete();
+    } catch (error) {
+        msg.reply(error.message);
+    }
+}
+
+/**
+ * Parse the incoming url for the character id and then use
+ * https://character-service.dndbeyond.com/character/v3/character/xxxxxx
+ * to retrieve the json
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleUpdate(msg, guildConfig) {
+    try {
+        const charID = parseCharIdFromURL(msg.content, 'update', guildConfig.prefix);
+        const settings = { method: "Get" };
+        let response = await fetch('https://character-service.dndbeyond.com/character/v3/character/' + charID, settings);
+        let charJSON = await response.json();
+        if (response.status != 200 || charJSON.success == false) {
+            throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
+        };
+        let charData = Object.assign({}, charJSON.data);
+        const checkRegisterStatus = await CharModel.findOne({ id: charData.id });
+        if (!checkRegisterStatus) {
+            throw new Error('Sorry, this character has not been registered and approved yet.  `register ' + charData.id + '` it first.');
+        } else if (checkRegisterStatus.approvalStatus == false) {
+            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charData.id + '` and then re-register if you would like to replace the `register` request');
+        }
+        charData.id = charData.id + '_update';
+        const req = await CharModel.findOne({ id: charData.id });
+        if (req) {
+            throw new Error('Sorry, this character has already has an update pending.  `remove ' + charData.id + '` if you would like to replace the update request');
+        }
+        let char = new CharModel(charData);
+        char.guildUser = msg.member.id;
+        char.guildID = msg.guild.id;
+        char.approvalStatus = false;
+        await char.save();
+        await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' now has an update pending.');
         await msg.delete();
     } catch (error) {
         msg.reply(error.message);
@@ -161,7 +203,7 @@ function createCharacterEmbed(msg, charArray) {
             { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
             { name: 'ID', value: char.id, inline: true },
             { name: 'Race', value: char.race.fullName, inline: true },
-            { name: 'Class', value: char.classes[0].definition.name, inline: true },
+            { name: 'Class', value: char.classes.length > 0 ? char.classes[0].definition.name : '?', inline: true },
         );
     })
     charEmbed.addFields(

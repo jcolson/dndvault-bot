@@ -32,7 +32,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] queued - list all characters queued for approval
   - [ ] user [@USER_NAME] - list all characters by discord user
 - [ ] show [CHAR_ID] - show a user's character from the vault
-- [ ] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
+- [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [DNDBEYOND_URL] - remove a character from the vault
 - [x] approve [CHAR_ID] - approve a new/updated character within vault
 - [ ] changes [CHAR_ID] - display changes for an unapproved character update
