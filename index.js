@@ -38,6 +38,10 @@ client.on('message', async (msg) => {
         handleList(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'remove')) {
         handleRemove(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
+        handleConfigArole(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
+        handleConfigProle(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'config')) {
         handleConfig(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'approve')) {
@@ -173,6 +177,60 @@ async function handleConfig(msg, guildConfig) {
  * @param {Message} msg 
  * @param {GuildModel} guildConfig 
  */
+async function handleConfigArole(msg, guildConfig) {
+    try {
+        let configAroleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
+        if (configAroleName.startsWith('<@&')) {
+            // need to strip the tailing '>' off as well ...
+            const configAroleId = configAroleName.substr(3, configAroleName.length - 4);
+            configAroleName = retrieveRoleForID(msg, configAroleId).name;
+        }
+        configArole = retrieveRoleForName(msg, configAroleName);
+        if (configArole) {
+            guildConfig.arole = configArole.id;
+            await guildConfig.save();
+            await msg.channel.send(msg.member.nickname + ', ' + configAroleName + ' is now the `approver` role.');
+            await msg.delete();
+        } else {
+            await msg.reply(msg.member.nickname + ', could not locate the role: ' + configAroleName);
+        }
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+/**
+ * 
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleConfigProle(msg, guildConfig) {
+    try {
+        let configProleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
+        if (configProleName.startsWith('<@&')) {
+            // need to strip the tailing '>' off as well ...
+            const configProleId = configProleName.substr(3, configProleName.length - 4);
+            configProleName = retrieveRoleForID(msg, configProleId).name;
+        }
+        configProle = retrieveRoleForName(msg, configProleName);
+        if (configProle) {
+            guildConfig.prole = configProle.id;
+            await guildConfig.save();
+            await msg.channel.send(msg.member.nickname + ', ' + configProleName + ' is now the `player` role.');
+            await msg.delete();
+        } else {
+            await msg.reply(msg.member.nickname + ', could not locate the role: ' + configProleName);
+        }
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+/**
+ * 
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
 async function handleApprove(msg, guildConfig) {
     try {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
@@ -233,8 +291,8 @@ async function confirmGuildConfig(msg) {
 function retrieveRoleForName(msg, roleName) {
     let roleForName;
     msg.guild.roles.cache.array().forEach((role) => {
-        // console.log("role: " + role.name);
-        if (role.name == roleName) {
+        // console.log("role: " + role.name + ' : ' + roleName);
+        if (role.name == roleName || '@' + role.name == roleName) {
             roleForName = role;
         }
     });
@@ -250,7 +308,7 @@ function retrieveRoleForName(msg, roleName) {
 function retrieveRoleForID(msg, roleID) {
     let roleForID;
     msg.guild.roles.cache.array().forEach((role) => {
-        // console.log("role: " + role.name);
+        // console.log("role: " + role.name + ' : ' + role.id);
         if (role.id == roleID) {
             roleForID = role;
         }
@@ -268,7 +326,7 @@ function hasRoleOrIsAdmin(msg, roleId) {
     let hasRole = false;
     try {
         if (msg.member.hasPermission('ADMINISTRATOR')) {
-            console.log('User is an admin.');
+            // console.log('User is an admin.');
             hasRole = true;
         } else {
             msg.member.roles.cache.array().forEach((role) => {
