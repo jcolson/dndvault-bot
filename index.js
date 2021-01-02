@@ -516,6 +516,7 @@ function arrayForAbilitiesChange(approvedChar, updatedChar) {
             if (approvedStat.id == updatedStat.id) {
                 if (approvedStat.value != updatedStat.value) {
                     console.log('stat is different: ' + StatLookup[approvedStat.id] + ':' + approvedStat.value + '/' + updatedStat.value);
+                    abilitiesChanges.push(appendStringsForEmbedChanges([StatLookup[approvedStat.id], '' + approvedStat.value, '' + updatedStat.value]));
                 }
             }
         })
