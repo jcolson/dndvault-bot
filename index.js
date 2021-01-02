@@ -4,6 +4,7 @@ const Config = require('./config.json');
 const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
+const { update } = require('./models/Guild');
 const client = new Client();
 const GuildCache = {};
 
@@ -28,7 +29,7 @@ client.on('message', async (msg) => {
     if (!msg.guild) return;
     let guildConfig = await confirmGuildConfig(msg);
     if (!msg.content.startsWith(guildConfig.prefix)) return;
-    console.log('Message received: ' + msg.content);
+    console.log(`msg: ${msg.guild.name}:${msg.member.nickname}:${msg.content}`);
     if (!hasRoleOrIsAdmin(msg, guildConfig.prole)) {
         await msg.reply(msg.member.nickname + ', ' + 'please have an admin add you to the proper player role to use this bot');
         return;
@@ -56,6 +57,8 @@ client.on('message', async (msg) => {
         handleConfig(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'approve')) {
         handleApprove(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
+        handleChanges(msg, guildConfig);
     }
 });
 
@@ -202,7 +205,7 @@ async function handleList(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = createCharacterEmbed(msg, charArray, msg.member.nickname + '\'s Characters in the Vault');
+            const charEmbed = embedForCharacter(msg, charArray, msg.member.nickname + '\'s Characters in the Vault');
             await msg.channel.send(charEmbed);
             await msg.delete();
         } else {
@@ -231,7 +234,7 @@ async function handleListQueued(msg, guildConfig) {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
             const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
             if (charArray.length > 0) {
-                const charEmbed = createCharacterEmbed(msg, charArray, 'Characters pending approval');
+                const charEmbed = embedForCharacter(msg, charArray, 'Characters pending approval');
                 await msg.channel.send(charEmbed);
                 await msg.delete();
             } else {
@@ -250,7 +253,7 @@ async function handleListQueued(msg, guildConfig) {
  * @param {CharModel[]} charArray
  * @returns {MessageEmbed}
  */
-function createCharacterEmbed(msg, charArray, title) {
+function embedForCharacter(msg, charArray, title) {
     const charEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
@@ -268,8 +271,8 @@ function createCharacterEmbed(msg, charArray, title) {
             { name: 'User', value: `<@${char.guildUser}>`, inline: true },
             { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
             {
-                name: 'Class', value: char.classes.length > 0 ?
-                    `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
+                name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
+                    // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
                     '?', inline: true
             },
         );
@@ -326,6 +329,7 @@ async function handleRemove(msg, guildConfig) {
  */
 async function handleConfig(msg, guildConfig) {
     try {
+        const guild = msg.guild.name
         const configEmbed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('BOT Config')
@@ -441,7 +445,7 @@ async function handleApprove(msg, guildConfig) {
     try {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
             const charIdToApprove = msg.content.substr((guildConfig.prefix + 'approve').length + 1);
-            console.log('charid: ' + charIdToApprove);
+            // console.log('charid: ' + charIdToApprove);
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
                 await msg.channel.send(`${msg.member.nickname}, an unapproved "${charIdToApprove}" could not be located.`);
@@ -465,6 +469,94 @@ async function handleApprove(msg, guildConfig) {
     } catch (error) {
         await msg.reply(error.message);
     }
+}
+
+async function handleChanges(msg, guildConfig) {
+    try {
+        const charId = msg.content.substr((guildConfig.prefix + 'changes').length + 1);
+        let updatedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: false });
+        let approvedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: true });
+        if (typeof updatedChar === 'undefined' || !updatedChar || typeof approvedChar === 'undefined' || !approvedChar) {
+            await msg.channel.send(`${msg.member.nickname}, an updated character "${updatedChar}" could not be located.`);
+            await msg.delete();
+        } else {
+            await msg.channel.send(embedForChanges(msg, approvedChar, updatedChar));
+            await msg.delete();
+        }
+    } catch (error) {
+        await msg.reply(error.message);
+    }
+}
+
+function embedForChanges(msg, approvedChar, updatedChar) {
+    const changesEmbed = new MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle(`Review Changes for ${approvedChar.name}`)
+        // .setURL('https://discord.js.org/')
+        .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
+        // .setDescription(description)
+        .setThumbnail(msg.guild.iconURL());
+    let changes = [];
+    changes.push(appendStringsForEmbedChanges(['FIELD', 'OLD VALUE', 'NEW VALUE']));
+    let change = stringForNameChange(approvedChar, updatedChar);
+    if (change) changes.push(change);
+    change = stringForRaceChange(approvedChar, updatedChar);
+    if (change) changes.push(change);
+    changes = changes.concat(stringForClassChange(approvedChar, updatedChar));
+    changesEmbed.addFields({ name: 'Changes', value: changes });
+    return changesEmbed;
+}
+
+function stringForClassChange(approvedChar, updatedChar) {
+    let classChanges = [];
+    let maxClassesLength = approvedChar.classes.length > updatedChar.classes.length ? approvedChar.classes.length : updatedChar.classes.length;
+    for (let i = 0; i < maxClassesLength; i++) {
+        console.log('printing class: ' + stringForClass(approvedChar.classes[i]) + ' | ' + stringForClass(updatedChar.classes[i]));
+        if (stringForClass(approvedChar.classes[i]) != stringForClass(updatedChar.classes[i])) {
+            classChanges.push(appendStringsForEmbedChanges(['Class', stringForClass(approvedChar.classes[i]), stringForClass(updatedChar.classes[i])]));
+        }
+    }
+    return classChanges;
+}
+
+function stringForClass(charClass) {
+    if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
+        return charClass.level + ' ' + charClass.definition.name + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ') ' : ' ');
+    } else {
+        return '';
+    }
+}
+
+function stringForRaceChange(approvedChar, updatedChar) {
+    if (approvedChar.race.fullName != updatedChar.race.fullName) {
+        return appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
+    }
+}
+
+function stringForNameChange(approvedChar, updatedChar) {
+    if (approvedChar.name != updatedChar.name) {
+        return appendStringsForEmbedChanges(['Character Name', approvedChar.name, updatedChar.name]);
+    }
+}
+
+function appendStringsForEmbedChanges(stringArray) {
+    let size = 15;
+    let separator = ' | ';
+    let returnValue = '';
+    stringArray.forEach((value) => {
+        returnValue = returnValue + stringOfSize(value, size) + separator;
+    })
+    return returnValue.substr(0, returnValue.length - separator.length);
+}
+
+function stringOfSize(value, size) {
+    value = value.substr(0, size);
+    // console.log(`substr: "${value}"`);
+    if (value.length < size) {
+        value = value + ' '.repeat(size - value.length);
+    }
+    // console.log(`repeat: "${value}"`);
+    return '`' + value + '`';
 }
 
 /**
