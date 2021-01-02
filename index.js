@@ -492,21 +492,84 @@ async function handleChanges(msg, guildConfig) {
 function embedForChanges(msg, approvedChar, updatedChar) {
     const changesEmbed = new MessageEmbed()
         .setColor('#0099ff')
-        .setTitle(`Review Changes for ${approvedChar.name}`)
+        .setTitle(`Review Changes for Character: ${approvedChar.name}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let changes = [];
-    changes.push(appendStringsForEmbedChanges(['FIELD', 'OLD VALUE', 'NEW VALUE']));
+    changes.push(appendStringsForEmbedChanges(['CHAR FIELD', 'OLD VALUE', 'NEW VALUE']));
     let change = stringForNameChange(approvedChar, updatedChar);
     if (change) changes.push(change);
     change = stringForRaceChange(approvedChar, updatedChar);
     if (change) changes.push(change);
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
-    changes = changes.concat(arrayForAbilitiesChange(approvedChar, updatedChar));
-    changesEmbed.addFields({ name: 'Changes', value: changes });
+    changesEmbed.addFields({ name: 'Core Changes', value: changes });
+    changes = arrayForAbilitiesChange(approvedChar, updatedChar);
+    if (changes)
+        changesEmbed.addFields({ name: 'Abilities Changes', value: changes });
+    if (changes)
+        changes = arrayForInventoryChanges(approvedChar, updatedChar);
+    changesEmbed.addFields({ name: 'Inventory Changes', value: changes });
+    if (changes)
+        changes = arrayForCurrenciesChange(approvedChar, updatedChar);
+    changesEmbed.addFields({ name: 'Currency Changes', value: changes });
     return changesEmbed;
+}
+
+function arrayForCurrenciesChange(approvedChar, updatedChar) {
+    let currenciesChanges = [];
+    if (approvedChar.currencies.cp != updatedChar.currencies.cp) {
+        currenciesChanges.push(appendStringsForEmbedChanges(['CP', '' + approvedChar.currencies.cp, '' + updatedChar.currencies.cp]));
+    }
+    if (approvedChar.currencies.ep != updatedChar.currencies.ep) {
+        currenciesChanges.push(appendStringsForEmbedChanges(['EP', '' + approvedChar.currencies.ep, '' + updatedChar.currencies.ep]));
+    }
+    if (approvedChar.currencies.gp != updatedChar.currencies.gp) {
+        currenciesChanges.push(appendStringsForEmbedChanges(['GP', '' + approvedChar.currencies.gp, '' + updatedChar.currencies.gp]));
+    }
+    if (approvedChar.currencies.pp != updatedChar.currencies.pp) {
+        currenciesChanges.push(appendStringsForEmbedChanges(['PP', '' + approvedChar.currencies.pp, '' + updatedChar.currencies.pp]));
+    }
+    if (approvedChar.currencies.sp != updatedChar.currencies.sp) {
+        currenciesChanges.push(appendStringsForEmbedChanges(['SP', '' + approvedChar.currencies.sp, '' + updatedChar.currencies.sp]));
+    }
+    return currenciesChanges;
+}
+
+function arrayForInventoryChanges(approvedChar, updatedChar) {
+    let inventoryChanges = [];
+    updatedChar.inventory.forEach((updInv) => {
+        let foundItem = false;
+        let wrongQty = 0;
+        approvedChar.inventory.forEach((appInv) => {
+            if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
+                foundItem = true;
+            } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
+                wrongQty = appInv.quantity;
+            }
+        });
+        if (!foundItem) {
+            // console.log('did not find: ' + updInv.definition.name);
+            inventoryChanges.push(appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
+        }
+    });
+    approvedChar.inventory.forEach((appInv) => {
+        let foundItem = false;
+        let wrongQty = 0;
+        updatedChar.inventory.forEach((updInv) => {
+            if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
+                foundItem = true;
+            } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
+                wrongQty = updInv.quantity;
+            }
+        });
+        if (!foundItem) {
+            console.log('did not find: ' + appInv.definition.name);
+            inventoryChanges.push(appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
+        }
+    });
+    return inventoryChanges;
 }
 
 function arrayForAbilitiesChange(approvedChar, updatedChar) {
@@ -515,7 +578,7 @@ function arrayForAbilitiesChange(approvedChar, updatedChar) {
         updatedChar.stats.forEach((updatedStat) => {
             if (approvedStat.id == updatedStat.id) {
                 if (approvedStat.value != updatedStat.value) {
-                    console.log('stat is different: ' + StatLookup[approvedStat.id] + ':' + approvedStat.value + '/' + updatedStat.value);
+                    // console.log('stat is different: ' + StatLookup[approvedStat.id] + ':' + approvedStat.value + '/' + updatedStat.value);
                     abilitiesChanges.push(appendStringsForEmbedChanges([StatLookup[approvedStat.id], '' + approvedStat.value, '' + updatedStat.value]));
                 }
             }
@@ -528,7 +591,7 @@ function arrayForClassChange(approvedChar, updatedChar) {
     let classChanges = [];
     let maxClassesLength = approvedChar.classes.length > updatedChar.classes.length ? approvedChar.classes.length : updatedChar.classes.length;
     for (let i = 0; i < maxClassesLength; i++) {
-        console.log('printing class: ' + stringForClass(approvedChar.classes[i]) + ' | ' + stringForClass(updatedChar.classes[i]));
+        // console.log('printing class: ' + stringForClass(approvedChar.classes[i]) + ' | ' + stringForClass(updatedChar.classes[i]));
         if (stringForClass(approvedChar.classes[i]) != stringForClass(updatedChar.classes[i])) {
             classChanges.push(appendStringsForEmbedChanges(['Class', stringForClass(approvedChar.classes[i]), stringForClass(updatedChar.classes[i])]));
         }
@@ -557,7 +620,7 @@ function stringForNameChange(approvedChar, updatedChar) {
 }
 
 function appendStringsForEmbedChanges(stringArray) {
-    let size = 15;
+    let size = 16;
     let separator = ' | ';
     let returnValue = '';
     stringArray.forEach((value) => {
