@@ -201,9 +201,9 @@ function createCharacterEmbed(msg, charArray) {
         charEmbed.addFields(
             { name: 'Name', value: char.name },
             { name: 'Approved?', value: char.approvalStatus ? char.approvalStatus : '`' + char.approvalStatus + '`', inline: true },
-            { name: 'ID', value: char.id, inline: true },
-            { name: 'Race', value: char.race.fullName, inline: true },
-            { name: 'Class', value: char.classes.length > 0 ? char.classes[0].definition.name : '?', inline: true },
+            { name: 'ID', value: '[' + char.id + '](' + char.readonlyUrl + ')', inline: true },
+            { name: 'Race', value: '[' + char.race.fullName + '](' + Config.dndBeyondUrl + char.race.moreDetailsUrl + ')', inline: true },
+            { name: 'Class', value: char.classes.length > 0 ? '[' + char.classes[0].definition.name + '](' + Config.dndBeyondUrl + char.classes[0].definition.moreDetailsUrl + ')' : '?', inline: true },
         );
     })
     charEmbed.addFields(
