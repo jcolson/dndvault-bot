@@ -1,6 +1,6 @@
+const path = require('path');
 const fetch = require('node-fetch');
 const { Client, DiscordAPIError, MessageEmbed, Role, Guild } = require('discord.js');
-const Config = require('./config.json');
 const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
@@ -8,6 +8,8 @@ const { update } = require('./models/Guild');
 const client = new Client();
 const GuildCache = {};
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
+const DEFAULT_CONFIGDIR = __dirname;
+const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
 /**
  * connect to the mongodb
