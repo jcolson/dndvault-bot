@@ -99,7 +99,7 @@ async function handleHelp(msg, guildConfig) {
             \`  - [ ] approved\` - \`list all approved\`
             \`  - [x] queued\` - \`list all characters queued for approval\`
             \`  - [x] user [@USER_NAME] \`- \`list all characters by discord user\`
-            \`  - [ ] campaign [CAMPAIGN_ID] - list all characters registered for a campaign\`
+            \`  - [x] campaign [CAMPAIGN_ID] - list all characters registered for a campaign\`
             `},
             {
                 name: '\u200B', value: `

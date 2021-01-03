@@ -46,6 +46,7 @@ all the while anyone on the server can 'view' any user's character ...
 !changes 41867999
 !approve 41867999
 ```
+
 ## Commands
 
 Not all commands are implemented, this is a list of commands that will **hopefully** be implemented in short order. IGNORE the brackets in the usage help below.
@@ -58,7 +59,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [ ] approved - list all approved
   - [x] queued - list all characters queued for approval
   - [x] user [@USER_NAME] - list all characters by discord user
-  - [ ] campaign [CAMPAIGN_ID] - list all characters registered for a campaign
+  - [x] campaign [CAMPAIGN_ID] - list all characters registered for a campaign
 - [ ] show [CHAR_ID] - show a user's character from the vault
 - [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [DNDBEYOND_URL] - remove a character from the vault
