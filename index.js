@@ -508,14 +508,17 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
     changesEmbed.addFields({ name: 'Core Changes', value: changes });
     changes = arrayForAbilitiesChange(approvedChar, updatedChar);
-    if (changes)
+    if (changes && changes.length > 1) {
         changesEmbed.addFields({ name: 'Abilities Changes', value: changes });
-    if (changes)
-        changes = arrayForInventoryChanges(approvedChar, updatedChar);
-    changesEmbed.addFields({ name: 'Inventory Changes', value: changes });
-    if (changes)
-        changes = arrayForCurrenciesChange(approvedChar, updatedChar);
-    changesEmbed.addFields({ name: 'Currency Changes', value: changes });
+    }
+    changes = arrayForInventoryChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 1) {
+        changesEmbed.addFields({ name: 'Inventory Changes', value: changes });
+    }
+    changes = arrayForCurrenciesChange(approvedChar, updatedChar);
+    if (changes && changes.length > 1) {
+        changesEmbed.addFields({ name: 'Currency Changes', value: changes });
+    }
     return changesEmbed;
 }
 
