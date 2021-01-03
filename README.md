@@ -1,3 +1,18 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [DND Vault Discord BOT](#dnd-vault-discord-bot)
+  - [Commands](#commands)
+  - [Screenshots](#screenshots)
+    - [list](#list)
+    - [changes](#changes)
+    - [config](#config)
+  - [Notes](#notes)
+    - [Mongodb queries](#mongodb-queries)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # DND Vault Discord BOT
 
 This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from dndbeyond.com and the changes they make to them.  This allows a (multiple) DMs to ensure that the character changes that a user makes on dndbeyond are accurate for their campaigns.
@@ -42,6 +57,19 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
 
+## Screenshots
+
+### list
+
+![list](docs/images/list.png){:width="200px" style="float: right; margin-left: 1em;"}
+
+### changes
+
+![changes](docs/images/changes.png){:width="200px" style="float: right; margin-left: 1em;"}
+
+### config
+
+![config](docs/images/config.png){:width="200px" style="float: right; margin-left: 1em;"}
 ## Notes
 
 ### Mongodb queries
