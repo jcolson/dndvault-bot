@@ -1,15 +1,16 @@
-FROM alpine:3.12.3
+FROM node:15.5.0
 
-COPY index.js /
-COPY package.json /
-COPY package-lock.json /
-COPY models /models
+# Create the directory!
+RUN mkdir -p /usr/src/bot
+WORKDIR /usr/src/bot
 
-RUN apk add nodejs
-RUN apk add npm
-RUN apk add git
+# Copy and Install our bot
+COPY package.json /usr/src/bot
 RUN npm install
 
-#HEALTHCHECK CMD wget --quiet --tries=1 --spider http://localhost:8080/metrics || exit 1
+# Our precious bot
+COPY . /usr/src/bot
 
-CMD CONFIGDIR=/config /index.js
+# Start me!
+# CMD ["node", "index.js"]
+CMD CONFIGDIR=/config node .
