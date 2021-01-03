@@ -29,14 +29,21 @@ const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, 
 client.on('ready', () => console.info(`logged in as ${client.user.tag}`));
 
 client.on('message', async (msg) => {
-    if (!msg.guild) return;
+    if (!msg.guild) {
+        console.log(`msg: DIRECT:${msg.author.nickname}:${msg.content}`);
+        if (msg.content === 'help') {
+            handleHelp(msg);
+        }
+        return;
+    }
     let guildConfig = await confirmGuildConfig(msg);
     if (!msg.content.startsWith(guildConfig.prefix)) return;
     console.log(`msg: ${msg.guild.name}:${msg.member.nickname}:${msg.content}`);
     if (!hasRoleOrIsAdmin(msg, guildConfig.prole)) {
         await msg.reply(msg.member.nickname + ', ' + 'please have an admin add you to the proper player role to use this bot');
         return;
-    } if (msg.content === guildConfig.prefix + 'help') {
+    }
+    if (msg.content === guildConfig.prefix + 'help') {
         handleHelp(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
         handleRegister(msg, guildConfig);
@@ -74,33 +81,46 @@ async function handleHelp(msg, guildConfig) {
         const charEmbed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('Help for D&D Vault BOT')
-            .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
-            .setThumbnail(msg.guild.iconURL())
+            .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot');
+        if (guildConfig) {
+            charEmbed.setDescription(`Current Command Prefix is "${guildConfig.prefix}"`);
+            charEmbed.setThumbnail(msg.guild.iconURL());
+        }
         charEmbed.addFields(
-            { name: '[x] help', value: 'This help embed page' },
-            { name: '[x] register [DNDBEYOND_URL]', value: 'register a character in the vault from dndbeyond' },
-            { name: '[ ] list', value: '\u200B' },
-            { name: '- [x] {no args}', value: 'list YOUR registered characters within vault' },
-            { name: '- [x] all', value: 'list all' },
-            { name: '- [ ] approved', value: 'list all approved' },
-            { name: '- [x] queued', value: 'list all characters queued for approval' },
-            { name: '- [x] user [@USER_NAME]', value: 'list all characters by discord user' },
-            { name: '[ ] show [CHAR_ID]', value: 'show a user\'s character from the vault' },
-            { name: '[x] update [DNDBEYOND_URL]', value: 'request an update a character from dndbeyond to the vault' },
-            { name: '[x] remove [DNDBEYOND_URL]', value: 'remove a character from the vault' },
-            { name: '[x] approve [CHAR_ID]', value: 'approve a new/updated character within vault' },
-            { name: '[x] changes [CHAR_ID]', value: 'display changes for an unapproved character update' },
-            { name: '[x] config', value: 'show BOT config' },
-            { name: '- [x] {no args}', value: 'show config' },
-            { name: '- [x] arole [NEW_ROLE]', value: 'modify approver role (allows user to approve characters)' },
-            { name: '- [x] prole [NEW_ROLE]', value: 'modify player role (allows user to use bot)' },
-            { name: '- [x] prefix [NEW_PREFIX]', value: 'modify the command prefix' },
+            {
+                name: 'Help', value: `
+            \`- [x] help\`
+            \`- [x] register [DNDBEYOND_URL]\` - \`register a character in the vault from dndbeyond\`
+            \`- [ ] list\`
+            \`  - [x] {no args}\` - \`list YOUR registered characters within vault\`
+            \`  - [x] all\` - \`list all characters\`
+            \`  - [ ] approved\` - \`list all approved\`
+            \`  - [x] queued\` - \`list all characters queued for approval\`
+            \`  - [x] user [@USER_NAME] \`- \`list all characters by discord user\`
+            `},
+            {
+                name: '\u200B', value: `
+            \`- [ ] show [CHAR_ID]\` - \`show a user's character from the vault\`
+            \`- [x] update [DNDBEYOND_URL]\` - \`request an update a character from dndbeyond to the vault\`
+            \`- [x] remove [DNDBEYOND_URL]\` - \`remove a character from the vault\`
+            \`- [x] approve [CHAR_ID]\` - \`approve a new/updated character within vault\`
+            \`- [x] changes [CHAR_ID]\` - \`display changes for an unapproved character update\`
+            \`- [x] config\`
+            \`  - [x] {no args}\` - \`show config\`
+            \`  - [x] arole [NEW_ROLE]\` - \`modify approver role (allows user to approve characters)\`
+            \`  - [x] prole [NEW_ROLE]\` - \`modify player role (allows user to use bot)\`
+            \`  - [x] prefix [NEW_PREFIX]\` - \`modify the command prefix\`
+            ` },
         );
         charEmbed.addFields(
             { name: '\u200B', value: 'Add this BOT to your server. [Click here](' + Config.inviteURL + ')' },
         );
-        await msg.member.send(charEmbed);
-        await msg.delete();
+        if (guildConfig) {
+            await msg.member.send(charEmbed);
+            await msg.delete();
+        } else {
+            await msg.channel.send(charEmbed);
+        }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
     }
@@ -518,7 +538,7 @@ async function handleChanges(msg, guildConfig) {
         let updatedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: false });
         let approvedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: true });
         if (typeof updatedChar === 'undefined' || !updatedChar || typeof approvedChar === 'undefined' || !approvedChar) {
-            await msg.channel.send(`${msg.member.nickname}, an updated character "${updatedChar}" could not be located.`);
+            await msg.channel.send(`${msg.member.nickname}, an updated character for id "${charId}" could not be located.`);
             await msg.delete();
         } else {
             await msg.channel.send(embedForChanges(msg, approvedChar, updatedChar));
@@ -663,11 +683,15 @@ function stringForNameChange(approvedChar, updatedChar) {
 }
 
 function appendStringsForEmbedChanges(stringArray) {
-    let size = 16;
+    let fieldSize = 16;
     let separator = ' | ';
+    return appendStringsForEmbed(stringArray, fieldSize, separator);
+}
+
+function appendStringsForEmbed(stringArray, fieldSize, separator) {
     let returnValue = '';
     stringArray.forEach((value) => {
-        returnValue = returnValue + stringOfSize(value, size) + separator;
+        returnValue = returnValue + stringOfSize(value, fieldSize) + separator;
     })
     return returnValue.substring(0, returnValue.length - separator.length);
 }

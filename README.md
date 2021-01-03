@@ -43,6 +43,7 @@ all the while anyone on the server can 'view' any user's character ...
 !approve 41867999
 !update https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
 !list queued
+!changes 41867999
 !approve 41867999
 ```
 ## Commands
@@ -53,7 +54,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
 - [ ] list
   - [x] {no args} - list YOUR registered characters within vault
-  - [x] all - list all
+  - [x] all - list all characters
   - [ ] approved - list all approved
   - [x] queued - list all characters queued for approval
   - [x] user [@USER_NAME] - list all characters by discord user
