@@ -42,10 +42,10 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
 - [ ] list
   - [x] {no args} - list YOUR registered characters within vault
-  - [ ] all - list all
+  - [x] all - list all
   - [ ] approved - list all approved
   - [x] queued - list all characters queued for approval
-  - [ ] user [@USER_NAME] - list all characters by discord user
+  - [x] user [@USER_NAME] - list all characters by discord user
 - [ ] show [CHAR_ID] - show a user's character from the vault
 - [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [DNDBEYOND_URL] - remove a character from the vault

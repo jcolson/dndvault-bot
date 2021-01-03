@@ -44,6 +44,10 @@ client.on('message', async (msg) => {
         handleUpdate(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
         handleChanges(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'list user')) {
+        handleListUser(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'list all')) {
+        handleListAll(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list queued')) {
         handleListQueued(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list')) {
@@ -77,15 +81,15 @@ async function handleHelp(msg, guildConfig) {
             { name: '[x] register [DNDBEYOND_URL]', value: 'register a character in the vault from dndbeyond' },
             { name: '[ ] list', value: '\u200B' },
             { name: '- [x] {no args}', value: 'list YOUR registered characters within vault' },
-            { name: '- [ ] all', value: 'list all' },
+            { name: '- [x] all', value: 'list all' },
             { name: '- [ ] approved', value: 'list all approved' },
             { name: '- [x] queued', value: 'list all characters queued for approval' },
-            { name: '- [ ] user [@USER_NAME]', value: 'list all characters by discord user' },
+            { name: '- [x] user [@USER_NAME]', value: 'list all characters by discord user' },
             { name: '[ ] show [CHAR_ID]', value: 'show a user\'s character from the vault' },
             { name: '[x] update [DNDBEYOND_URL]', value: 'request an update a character from dndbeyond to the vault' },
             { name: '[x] remove [DNDBEYOND_URL]', value: 'remove a character from the vault' },
             { name: '[x] approve [CHAR_ID]', value: 'approve a new/updated character within vault' },
-            { name: '[ ] changes [CHAR_ID]', value: 'display changes for an unapproved character update' },
+            { name: '[x] changes [CHAR_ID]', value: 'display changes for an unapproved character update' },
             { name: '[x] config', value: 'show BOT config' },
             { name: '- [x] {no args}', value: 'show config' },
             { name: '- [x] arole [NEW_ROLE]', value: 'modify approver role (allows user to approve characters)' },
@@ -186,7 +190,7 @@ async function handleChanges(msg, guildConfig) {
 }
 
 function parseCharIdFromURL(commandStringWithURL, command, prefix) {
-    const charURL = commandStringWithURL.substr((prefix + command).length + 1);
+    const charURL = commandStringWithURL.substring((prefix + command).length + 1);
     console.log('char url: ' + charURL);
     const charID = charURL.split('/').pop();
     console.log('char id: "' + charID + '"');
@@ -234,17 +238,51 @@ function getIdsFromCharacterArray(charArray) {
  */
 async function handleListQueued(msg, guildConfig) {
     try {
-        if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
-            const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
-            if (charArray.length > 0) {
-                const charEmbed = embedForCharacter(msg, charArray, 'Characters pending approval');
-                await msg.channel.send(charEmbed);
-                await msg.delete();
-            } else {
-                msg.reply(msg.member.nickname + `, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
-            }
+        const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
+        if (charArray.length > 0) {
+            const charEmbed = embedForCharacter(msg, charArray, 'Characters pending approval');
+            await msg.channel.send(charEmbed);
+            await msg.delete();
         } else {
-            await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
+            msg.reply(msg.member.nickname + `, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
+        }
+    } catch (error) {
+        await msg.reply(error.message);
+    }
+}
+
+async function handleListAll(msg, guildConfig) {
+    try {
+        let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, isUpdate: true });
+        let notInIds = getIdsFromCharacterArray(charArrayUpdates);
+        let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
+        let charArray = charArrayUpdates.concat(charArrayNoUpdates);
+        if (charArray.length > 0) {
+            const charEmbed = embedForCharacter(msg, charArray, 'All Characters in the Vault');
+            await msg.channel.send(charEmbed);
+            await msg.delete();
+        } else {
+            msg.reply(msg.member.nickname + `, I don't see any registered characters \`register\` one!`);
+        }
+    } catch (error) {
+        await msg.reply(error.message);
+    }
+}
+
+async function handleListUser(msg, guildConfig) {
+    try {
+        let userToList = msg.content.substring((guildConfig.prefix + 'list user').length + 1);
+        userToList = userToList.substring(3, userToList.length - 1)
+        let charArrayUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, isUpdate: true });
+        let notInIds = getIdsFromCharacterArray(charArrayUpdates);
+        let charArrayNoUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
+        let charArray = charArrayUpdates.concat(charArrayNoUpdates);
+        if (charArray.length > 0) {
+            const charEmbed = embedForCharacter(msg, charArray, `All Characters for <@${userToList}> in the Vault`);
+            await msg.channel.send(charEmbed);
+            await msg.delete();
+        } else {
+            msg.reply(msg.member.nickname + `, I don't see any registered characters for ${userToList}`);
         }
     } catch (error) {
         await msg.reply(error.message);
@@ -311,7 +349,7 @@ function stringForApprovalsAndUpdates(char) {
  */
 async function handleRemove(msg, guildConfig) {
     try {
-        const charIdToDelete = msg.content.substr((guildConfig.prefix + 'remove').length + 1);
+        const charIdToDelete = msg.content.substring((guildConfig.prefix + 'remove').length + 1);
         // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
         // doesn't exist, then remove the actual registered character
         let deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true });
@@ -361,10 +399,10 @@ async function handleConfig(msg, guildConfig) {
 async function handleConfigArole(msg, guildConfig) {
     try {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
-            let configAroleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
+            let configAroleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
             if (configAroleName.startsWith('<@&')) {
                 // need to strip the tailing '>' off as well ...
-                const configAroleId = configAroleName.substr(3, configAroleName.length - 4);
+                const configAroleId = configAroleName.substring(3, configAroleName.length - 4);
                 configAroleName = retrieveRoleForID(msg, configAroleId).name;
             }
             configArole = retrieveRoleForName(msg, configAroleName);
@@ -393,10 +431,10 @@ async function handleConfigArole(msg, guildConfig) {
 async function handleConfigProle(msg, guildConfig) {
     try {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
-            let configProleName = msg.content.substr((guildConfig.prefix + 'config arole').length + 1);
+            let configProleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
             if (configProleName.startsWith('<@&')) {
                 // need to strip the tailing '>' off as well ...
-                const configProleId = configProleName.substr(3, configProleName.length - 4);
+                const configProleId = configProleName.substring(3, configProleName.length - 4);
                 configProleName = retrieveRoleForID(msg, configProleId).name;
             }
             configProle = retrieveRoleForName(msg, configProleName);
@@ -425,7 +463,7 @@ async function handleConfigProle(msg, guildConfig) {
 async function handleConfigPrefix(msg, guildConfig) {
     try {
         if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
-            let configPrefix = msg.content.substr((guildConfig.prefix + 'config prefix').length + 1);
+            let configPrefix = msg.content.substring((guildConfig.prefix + 'config prefix').length + 1);
             guildConfig.prefix = configPrefix;
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
@@ -476,7 +514,7 @@ async function handleApprove(msg, guildConfig) {
 
 async function handleChanges(msg, guildConfig) {
     try {
-        const charId = msg.content.substr((guildConfig.prefix + 'changes').length + 1);
+        const charId = msg.content.substring((guildConfig.prefix + 'changes').length + 1);
         let updatedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: false });
         let approvedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: true });
         if (typeof updatedChar === 'undefined' || !updatedChar || typeof approvedChar === 'undefined' || !approvedChar) {
@@ -631,11 +669,11 @@ function appendStringsForEmbedChanges(stringArray) {
     stringArray.forEach((value) => {
         returnValue = returnValue + stringOfSize(value, size) + separator;
     })
-    return returnValue.substr(0, returnValue.length - separator.length);
+    return returnValue.substring(0, returnValue.length - separator.length);
 }
 
 function stringOfSize(value, size) {
-    value = value.substr(0, size);
+    value = value.substring(0, size);
     // console.log(`substr: "${value}"`);
     if (value.length < size) {
         value = value + ' '.repeat(size - value.length);
