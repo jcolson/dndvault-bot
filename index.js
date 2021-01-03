@@ -267,7 +267,7 @@ function embedForCharacter(msg, charArray, title) {
     charArray.forEach((char) => {
         charEmbed.addFields(
             {
-                name: 'Name / ID / Status      ()==[:::::::::::::>',
+                name: 'Name / ID / Status                                 🗡🛡🗡🛡🗡🛡',// '
                 value: `${char.name} / [${char.id}](${char.readonlyUrl}) / `
                     + stringForApprovalsAndUpdates(char)
             },
