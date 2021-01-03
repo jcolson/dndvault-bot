@@ -28,8 +28,9 @@ Workflow would work something like this.
 * DM 'approves' each character
 * Mission occurs
 * Users update characters on dndbeyond.com
-* Users 'update' character with BOT
+* Users request 'update' of character with BOT
 * DM 'lists queued' character approvals
+* DM reviews 'changes' of character
 * DM 'approves' character changes
 
 all the while anyone on the server can 'view' any user's character ...
