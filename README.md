@@ -35,9 +35,19 @@ Workflow would work something like this.
 
 all the while anyone on the server can 'view' any user's character ...
 
+## Example usage
+
+```
+!register https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
+!list queued
+!approve 41867999
+!update https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
+!list queued
+!approve 41867999
+```
 ## Commands
 
-Not all commands are implemented, this is a list of commands that will **hopefully** be implemented in short order. (if ya wanna help, let me know)
+Not all commands are implemented, this is a list of commands that will **hopefully** be implemented in short order. IGNORE the brackets in the usage help below.
 
 - [x] help
 - [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
