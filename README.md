@@ -62,15 +62,15 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 
 ### list
 
-![list](docs/images/list.png){:width="200px" style="float: right; margin-left: 1em;"}
+![list](docs/images/list.png)
 
 ### changes
 
-![changes](docs/images/changes.png){:width="200px" style="float: right; margin-left: 1em;"}
+![changes](docs/images/changes.png)
 
 ### config
 
-![config](docs/images/config.png){:width="200px" style="float: right; margin-left: 1em;"}
+![config](docs/images/config.png)
 ## Notes
 
 ### Mongodb queries
