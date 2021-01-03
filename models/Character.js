@@ -705,7 +705,8 @@ const Character = Schema({
     },
     "campaign": {
         "id": {
-            "type": "Number"
+            "type": "Number",
+            index: true
         },
         "characters": {
             "type": [

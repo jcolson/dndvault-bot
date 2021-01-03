@@ -51,6 +51,8 @@ client.on('message', async (msg) => {
         handleUpdate(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
         handleChanges(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'list campaign')) {
+        handleListCampaign(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list user')) {
         handleListUser(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list all')) {
@@ -97,6 +99,7 @@ async function handleHelp(msg, guildConfig) {
             \`  - [ ] approved\` - \`list all approved\`
             \`  - [x] queued\` - \`list all characters queued for approval\`
             \`  - [x] user [@USER_NAME] \`- \`list all characters by discord user\`
+            \`  - [ ] campaign [CAMPAIGN_ID] - list all characters registered for a campaign\`
             `},
             {
                 name: '\u200B', value: `
@@ -289,6 +292,25 @@ async function handleListAll(msg, guildConfig) {
     }
 }
 
+async function handleListCampaign(msg, guildConfig) {
+    try {
+        let campaignToList = msg.content.substring((guildConfig.prefix + 'list campaign').length + 1);
+        let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, isUpdate: true });
+        let notInIds = getIdsFromCharacterArray(charArrayUpdates);
+        let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, id: { $nin: notInIds }, isUpdate: false });
+        let charArray = charArrayUpdates.concat(charArrayNoUpdates);
+        if (charArray.length > 0) {
+            const charEmbed = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`);
+            await msg.channel.send(charEmbed);
+            await msg.delete();
+        } else {
+            msg.reply(msg.member.nickname + `, I don't see any registered characters \`register\` one!`);
+        }
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
 async function handleListUser(msg, guildConfig) {
     try {
         let userToList = msg.content.substring((guildConfig.prefix + 'list user').length + 1);
@@ -336,10 +358,13 @@ function embedForCharacter(msg, charArray, title) {
                     // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
                     '?', inline: true
             },
+            {
+                name: 'Campaign', value: char.campaign ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`
+            },
         );
     })
     charEmbed.addFields(
-        { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL} )` },
+        { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
     );
     return charEmbed;
 }
@@ -355,7 +380,7 @@ function stringForApprovalsAndUpdates(char) {
     } else if (!char.approvalStatus && char.isUpdate) {
         return "`Unapproved update pending`";
     } else if (char.approvalStatus && !char.isUpdate) {
-        return `Approved by <@${char.approvedBy}>`;
+        return `Approved by <@${char.approvedBy}> `;
     } else if (!char.approvalStatus && !char.isUpdate) {
         return "`Initial Character Pending`";
     }
@@ -379,7 +404,7 @@ async function handleRemove(msg, guildConfig) {
         await msg.channel.send(msg.member.nickname + ', ' + charIdToDelete + ' was (' + deleteResponse.deletedCount + ' character) removed from vault.');
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await msg.channel.send(`unrecoverable ...${error.message}`);
     }
 }
 
@@ -407,7 +432,7 @@ async function handleConfig(msg, guildConfig) {
         await msg.channel.send(configEmbed);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await msg.channel.send(`unrecoverable ...${error.message}`);
     }
 }
 
@@ -439,7 +464,7 @@ async function handleConfigArole(msg, guildConfig) {
             await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await msg.channel.send(`unrecoverable ...${error.message}`);
     }
 }
 
@@ -471,7 +496,7 @@ async function handleConfigProle(msg, guildConfig) {
             await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await msg.channel.send(`unrecoverable ...${error.message}`);
     }
 }
 
