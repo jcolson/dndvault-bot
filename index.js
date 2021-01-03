@@ -102,7 +102,7 @@ async function handleHelp(msg, guildConfig) {
         await msg.member.send(charEmbed);
         await msg.delete();
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -136,7 +136,7 @@ async function handleRegister(msg, guildConfig) {
         await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' is now registered');
         await msg.delete();
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -177,7 +177,7 @@ async function handleUpdate(msg, guildConfig) {
         await msg.channel.send(msg.member.nickname + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' now has an update pending.');
         await msg.delete();
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -185,7 +185,7 @@ async function handleChanges(msg, guildConfig) {
     try {
         console.log('changes');
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -219,7 +219,7 @@ async function handleList(msg, guildConfig) {
             msg.reply(msg.member.nickname + `, I don't see any registered characters for you`);
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -247,7 +247,7 @@ async function handleListQueued(msg, guildConfig) {
             msg.reply(msg.member.nickname + `, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -265,7 +265,7 @@ async function handleListAll(msg, guildConfig) {
             msg.reply(msg.member.nickname + `, I don't see any registered characters \`register\` one!`);
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -285,7 +285,7 @@ async function handleListUser(msg, guildConfig) {
             msg.reply(msg.member.nickname + `, I don't see any registered characters for ${userToList}`);
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -359,7 +359,7 @@ async function handleRemove(msg, guildConfig) {
         await msg.channel.send(msg.member.nickname + ', ' + charIdToDelete + ' was (' + deleteResponse.deletedCount + ' character) removed from vault.');
         await msg.delete();
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -387,7 +387,7 @@ async function handleConfig(msg, guildConfig) {
         await msg.channel.send(configEmbed);
         await msg.delete();
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -419,7 +419,7 @@ async function handleConfigArole(msg, guildConfig) {
             await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -451,7 +451,7 @@ async function handleConfigProle(msg, guildConfig) {
             await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -473,7 +473,7 @@ async function handleConfigPrefix(msg, guildConfig) {
             await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to configure.');
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -508,7 +508,7 @@ async function handleApprove(msg, guildConfig) {
             await msg.reply(msg.member.nickname + ', please ask someone with an approver-role to approve.');
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -525,7 +525,7 @@ async function handleChanges(msg, guildConfig) {
             await msg.delete();
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 }
 
@@ -773,7 +773,7 @@ async function hasRoleOrIsAdmin(msg, roleId) {
             })
         }
     } catch (error) {
-        await msg.reply(error.message);
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
     return hasRole;
 }
