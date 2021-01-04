@@ -227,7 +227,7 @@ async function handleList(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, msg.member.nickname + '\'s Characters in the Vault');
+            const charEmbed = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`);
             await msg.channel.send(charEmbed);
             await msg.delete();
         } else {
@@ -312,7 +312,9 @@ async function handleListUser(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, `All Characters for <@${userToList}> in the Vault`);
+            let memberGuild = await client.guilds.fetch(guildConfig.guildID);
+            let guildMember = await memberGuild.members.fetch(msg.member.id);
+            const charEmbed = embedForCharacter(msg, charArray, `All Characters for ${guildMember.displayName} in the Vault`);
             await msg.channel.send(charEmbed);
             await msg.delete();
         } else {
@@ -339,8 +341,8 @@ function embedForCharacter(msg, charArray, title) {
     charArray.forEach((char) => {
         charEmbed.addFields(
             {
-                name: 'Name / ID / Status                                 🗡🛡🗡🛡🗡🛡',// '
-                value: `${char.name} / [${char.id}](${char.readonlyUrl}) / `
+                name: 'Name | ID | Status                                 🗡🛡🗡🛡🗡🛡',
+                value: `[${char.name}](${char.readonlyUrl}) | ${char.id} | `
                     + stringForApprovalsAndUpdates(char)
             },
             { name: 'User', value: `<@${char.guildUser}>`, inline: true },
