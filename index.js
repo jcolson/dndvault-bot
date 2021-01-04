@@ -5,6 +5,7 @@ const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
 const { update } = require('./models/Guild');
+const { stat } = require('fs');
 const client = new Client();
 const GuildCache = {};
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
@@ -75,6 +76,8 @@ client.on('message', async (msg) => {
         handleApprove(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
         handleChanges(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
+        handleShow(msg, guildConfig);
     }
 });
 
@@ -105,6 +108,7 @@ async function handleHelp(msg, guildConfig) {
                 name: '\u200B', value: `
             \`- [ ] show [CHAR_ID]\` - \`show a user's character from the vault\`
             \`  - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault\`
+            \`  - [ ] campaign [CAMPAIGN_ID] - show all characters in the vault registered for a campaign\`
             \`- [x] update [DNDBEYOND_URL]\` - \`request an update a character from dndbeyond to the vault\`
             \`- [x] remove [CHAR_ID]\` - \`remove a character from the vault\`
             \`- [x] approve [CHAR_ID]\` - \`approve a new/updated character within vault\`
@@ -125,6 +129,23 @@ async function handleHelp(msg, guildConfig) {
         } else {
             await msg.channel.send(charEmbed);
         }
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
+/**
+ * Show a character
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleShow(msg, guildConfig) {
+    try {
+        const charID = parseCharIdFromURL(msg.content, 'show', guildConfig.prefix);
+        const showUser = await CharModel.findOne({ id: charID, isUpdate: false, guildID: msg.guild.id });
+        const embedChar = embedForCharacter(msg, [showUser], 'Show Character');
+        await msg.channel.send(embedChar);
+        await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
     }
@@ -371,14 +392,24 @@ function embedForCharacter(msg, charArray, title) {
                     '?', inline: true
             },
             {
-                name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`)
+                name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
+                inline: true
             },
+            { name: 'Attributes', value: stringForStats(char.stats), inline: true },
         );
     })
     charEmbed.addFields(
         { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
     );
     return charEmbed;
+}
+
+function stringForStats(charStats) {
+    let charStatsString = '';
+    charStats.forEach((stat) => {
+        charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: ${stat.value} | `;
+    });
+    return charStatsString.substring(0, charStatsString.length - 3);
 }
 
 /**
