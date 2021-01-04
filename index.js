@@ -104,6 +104,7 @@ async function handleHelp(msg, guildConfig) {
             {
                 name: '\u200B', value: `
             \`- [ ] show [CHAR_ID]\` - \`show a user's character from the vault\`
+            \`  - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault\`
             \`- [x] update [DNDBEYOND_URL]\` - \`request an update a character from dndbeyond to the vault\`
             \`- [x] remove [DNDBEYOND_URL]\` - \`remove a character from the vault\`
             \`- [x] approve [CHAR_ID]\` - \`approve a new/updated character within vault\`
@@ -551,6 +552,11 @@ async function handleApprove(msg, guildConfig) {
     }
 }
 
+/**
+ * Handler for displaying character changes
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
 async function handleChanges(msg, guildConfig) {
     try {
         const charId = msg.content.substring((guildConfig.prefix + 'changes').length + 1);
@@ -568,6 +574,13 @@ async function handleChanges(msg, guildConfig) {
     }
 }
 
+/**
+ * Create a rich embedded message with all the character changes between two characters
+ * @param {Message} msg 
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {MessageEmbed}
+ */
 function embedForChanges(msg, approvedChar, updatedChar) {
     const changesEmbed = new MessageEmbed()
         .setColor('#0099ff')
@@ -585,20 +598,54 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
     changesEmbed.addFields({ name: 'Core Changes', value: changes });
     changes = arrayForAbilitiesChange(approvedChar, updatedChar);
-    if (changes && changes.length > 1) {
+    if (changes && changes.length > 0) {
         changesEmbed.addFields({ name: 'Abilities Changes', value: changes });
     }
+    changes = arrayForBackgroundModifiersChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 0) {
+        changesEmbed.addFields({ name: 'Background Changes', value: changes });
+    }
+    changes = arrayForClassModifiersChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 0) {
+        changesEmbed.addFields({ name: 'Class Changes', value: changes });
+    }
+    changes = arrayForConditionModifiersChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 0) {
+        changesEmbed.addFields({ name: 'Condition Changes', value: changes });
+    }
+    changes = arrayForFeatModifiersChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 0) {
+        changesEmbed.addFields({ name: 'Feat Changes', value: changes });
+    }
+    changes = arrayForItemModifiersChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 0) {
+        changesEmbed.addFields({ name: 'Item Changes', value: changes });
+    }
+    changes = arrayForRaceModifiersChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 0) {
+        changesEmbed.addFields({ name: 'Race Changes', value: changes });
+    }
+    changes = arrayForTraitsChanges(approvedChar, updatedChar);
+    if (changes && changes.length > 0) {
+        changesEmbed.addFields({ name: 'Traits Changes', value: changes });
+    }
     changes = arrayForInventoryChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 1) {
+    if (changes && changes.length > 0) {
         changesEmbed.addFields({ name: 'Inventory Changes', value: changes });
     }
     changes = arrayForCurrenciesChange(approvedChar, updatedChar);
-    if (changes && changes.length > 1) {
+    if (changes && changes.length > 0) {
         changesEmbed.addFields({ name: 'Currency Changes', value: changes });
     }
     return changesEmbed;
 }
 
+/**
+ * returns an array of currency changes between characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
 function arrayForCurrenciesChange(approvedChar, updatedChar) {
     let currenciesChanges = [];
     if (approvedChar.currencies.cp != updatedChar.currencies.cp) {
@@ -619,6 +666,160 @@ function arrayForCurrenciesChange(approvedChar, updatedChar) {
     return currenciesChanges;
 }
 
+/**
+ * returns an array of all the race modifiers changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
+function arrayForRaceModifiersChanges(approvedChar, updatedChar) {
+    return arrayForModifiersChanges(approvedChar.modifiers.race, updatedChar.modifiers.race);
+}
+
+/**
+ * returns an array of all the item modifiers changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
+function arrayForItemModifiersChanges(approvedChar, updatedChar) {
+    return arrayForModifiersChanges(approvedChar.modifiers.item, updatedChar.modifiers.item);
+}
+
+/**
+ * returns an array of all the feat modifiers changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
+function arrayForFeatModifiersChanges(approvedChar, updatedChar) {
+    // console.log(' app, upd: %j, %j', approvedChar.modifiers.feat, updatedChar.modifiers.feat);
+    return arrayForModifiersChanges(approvedChar.modifiers.feat, updatedChar.modifiers.feat);
+}
+
+/**
+ * returns an array of all the condition modifiers changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
+function arrayForConditionModifiersChanges(approvedChar, updatedChar) {
+    return arrayForModifiersChanges(approvedChar.modifiers.condition, updatedChar.modifiers.condition);
+}
+
+/**
+ * returns an array of all the class modifiers changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
+function arrayForClassModifiersChanges(approvedChar, updatedChar) {
+    return arrayForModifiersChanges(approvedChar.modifiers.class, updatedChar.modifiers.class);
+}
+
+/**
+ * returns an array of all the background modifiers changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
+function arrayForBackgroundModifiersChanges(approvedChar, updatedChar) {
+    return arrayForModifiersChanges(approvedChar.modifiers.background, updatedChar.modifiers.background);
+}
+
+/**
+ * returns an array of all the modifier changes between two characters
+ * @param {Array} approvedMod 
+ * @param {Array} updatedMod 
+ * @returns {Array}
+ */
+function arrayForModifiersChanges(approvedMod, updatedMod) {
+    let modifiersChanges = [];
+    // check to see if an array of arrays got passed somehow
+    updatedMod.forEach((updTrait) => {
+        if (Array.isArray(updTrait)) {
+            modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(approvedMod, updTrait));
+        } else {
+            let foundItem = false;
+            approvedMod.forEach((appTrait) => {
+                if (Array.isArray(appTrait)) {
+                    modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(appTrait, updatedMod));
+                } else {
+                    if (updTrait.id == appTrait.id) {
+                        foundItem = true;
+                    }
+                }
+            });
+            if (!foundItem) {
+                modifiersChanges.push(appendStringsForEmbedChanges([updTrait.friendlySubtypeName, '', updTrait.friendlyTypeName + (updTrait.value ? '(' + updTrait.value + ')' : '')]));
+            }
+        }
+    });
+
+    approvedMod.forEach((appTrait) => {
+        if (Array.isArray(appTrait)) {
+            modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(appTrait, updatedMod));
+        } else {
+            let foundItem = false;
+            updatedMod.forEach((updTrait) => {
+                if (Array.isArray(updTrait)) {
+                    modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(approvedMod, updTrait));
+                } else {
+                    if (updTrait.id == appTrait.id) {
+                        foundItem = true;
+                    }
+                }
+            });
+            if (!foundItem) {
+                // console.log('approved - did not find: ' + appTrait + ' | ' + appTrait.id + ' | ' + appTrait.friendlySubtypeName + ' | ' + appTrait.friendlyTypeName);
+                modifiersChanges.push(appendStringsForEmbedChanges([appTrait.friendlySubtypeName, '', appTrait.friendlyTypeName + (appTrait.value ? '(' + appTrait.value + ')' : '')]));
+            }
+        }
+    });
+    return modifiersChanges;
+}
+
+/**
+ * returns an array of all the racial traits changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
+function arrayForTraitsChanges(approvedChar, updatedChar) {
+    let traitsChanges = [];
+    updatedChar.race.racialTraits.forEach((updTrait) => {
+        let foundItem = false;
+        approvedChar.race.racialTraits.forEach((appTrait) => {
+            if (updTrait.definition.id == appTrait.definition.id) {
+                foundItem = true;
+            }
+        });
+        if (!foundItem) {
+            // console.log('did not find: ' + updTrait.definition.name);
+            traitsChanges.push(appendStringsForEmbedChanges([updTrait.definition.snippet ? updTrait.definition.snippet : updTrait.definition.description, '', updTrait.definition.name]));
+        }
+    });
+    approvedChar.race.racialTraits.forEach((appTrait) => {
+        let foundItem = false;
+        updatedChar.race.racialTraits.forEach((updTrait) => {
+            if (updTrait.definition.id == appTrait.definition.id) {
+                foundItem = true;
+            }
+        });
+        if (!foundItem) {
+            // console.log('did not find: ' + appTrait.definition.name);
+            traitsChanges.push(appendStringsForEmbedChanges([appTrait.definition.snippet ? appTrait.definition.snippet : appTrait.definition.description, appTrait.definition.name, '']));
+        }
+    });
+    return traitsChanges;
+}
+
+/**
+ * returns an array of all the inventory changes between two characters
+ * @param {CharModel} approvedChar 
+ * @param {CharModel} updatedChar 
+ * @returns {Array}
+ */
 function arrayForInventoryChanges(approvedChar, updatedChar) {
     let inventoryChanges = [];
     updatedChar.inventory.forEach((updInv) => {
@@ -647,7 +848,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
             }
         });
         if (!foundItem) {
-            console.log('did not find: ' + appInv.definition.name);
+            // console.log('did not find: ' + appInv.definition.name);
             inventoryChanges.push(appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
         }
     });
