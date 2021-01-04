@@ -204,14 +204,6 @@ async function handleUpdate(msg, guildConfig) {
     }
 }
 
-async function handleChanges(msg, guildConfig) {
-    try {
-        console.log('changes');
-    } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
-    }
-}
-
 function parseCharIdFromURL(commandStringWithURL, command, prefix) {
     const charURL = commandStringWithURL.substring((prefix + command).length + 1);
     console.log('char url: ' + charURL);
@@ -359,7 +351,7 @@ function embedForCharacter(msg, charArray, title) {
                     '?', inline: true
             },
             {
-                name: 'Campaign', value: char.campaign ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`
+                name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`)
             },
         );
     })
