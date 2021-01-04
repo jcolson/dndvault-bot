@@ -106,7 +106,7 @@ async function handleHelp(msg, guildConfig) {
             \`- [ ] show [CHAR_ID]\` - \`show a user's character from the vault\`
             \`  - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault\`
             \`- [x] update [DNDBEYOND_URL]\` - \`request an update a character from dndbeyond to the vault\`
-            \`- [x] remove [DNDBEYOND_URL]\` - \`remove a character from the vault\`
+            \`- [x] remove [CHAR_ID]\` - \`remove a character from the vault\`
             \`- [x] approve [CHAR_ID]\` - \`approve a new/updated character within vault\`
             \`- [x] changes [CHAR_ID]\` - \`display changes for an unapproved character update\`
             \`- [x] config\`
@@ -205,13 +205,30 @@ async function handleUpdate(msg, guildConfig) {
     }
 }
 
+/**
+ * 
+ * @param {String} commandStringWithURL 
+ * @param {String} command 
+ * @param {String} prefix 
+ * @returns {String}
+ */
 function parseCharIdFromURL(commandStringWithURL, command, prefix) {
-    const charURL = commandStringWithURL.substring((prefix + command).length + 1);
-    console.log('char url: ' + charURL);
-    const charID = charURL.split('/').pop();
-    console.log('char id: "' + charID + '"');
-    if (isNaN(charID) || isNaN(parseInt(charID))) {
-        throw new Error("Invalid URL passed for your registration, it needs to be a dndbeyond character URL.");
+    let charID;
+    try {
+        const charURL = commandStringWithURL.substring((prefix + command).length + 1);
+        console.log('char url: ' + charURL);
+        let urlSplitArray = charURL.split('/');
+        charID = urlSplitArray.pop();
+        console.log('char id: "' + charID + '"');
+        if (isNaN(charID) || isNaN(parseInt(charID))) {
+            charID = urlSplitArray.pop();
+            console.log('char id: "' + charID + '"');
+            if (isNaN(charID) || isNaN(parseInt(charID))) {
+                throw new Error("Invalid URL passed for your registration, it needs to be a dndbeyond character URL.");
+            }
+        }
+    } catch (error) {
+        throw new Error('Could not locate character id in url');
     }
     return charID;
 }
@@ -373,11 +390,11 @@ function stringForApprovalsAndUpdates(char) {
     if (char.approvalStatus && char.isUpdate) {
         return '`Invalid Status`';
     } else if (!char.approvalStatus && char.isUpdate) {
-        return "`Unapproved update pending`";
+        return "`Update Pending Approval`";
     } else if (char.approvalStatus && !char.isUpdate) {
         return `Approved by <@${char.approvedBy}> `;
     } else if (!char.approvalStatus && !char.isUpdate) {
-        return "`Initial Character Pending`";
+        return "`Register Pending Approval`";
     }
 
 }
@@ -389,14 +406,25 @@ function stringForApprovalsAndUpdates(char) {
  */
 async function handleRemove(msg, guildConfig) {
     try {
+        let typeOfRemoval = 'Character Update';
         const charIdToDelete = msg.content.substring((guildConfig.prefix + 'remove').length + 1);
         // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
         // doesn't exist, then remove the actual registered character
-        let deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true });
+        let deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true, approvalStatus: false });
         if (deleteResponse.deletedCount < 1) {
-            deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false });
+            typeOfRemoval = 'Unapproved Character';
+            deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: false });
+            if (deleteResponse.deletedCount < 1) {
+                typeOfRemoval = 'Approved Character';
+                if (hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+                    deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
+                } else {
+                    msg.reply(`Please ask an approver to remove this character, as it has already been approved`);
+                    return;
+                }
+            }
         }
-        await msg.channel.send(msg.member.nickname + ', ' + charIdToDelete + ' was (' + deleteResponse.deletedCount + ' character) removed from vault.');
+        await msg.channel.send(msg.member.nickname + ', ' + charIdToDelete + '(' + typeOfRemoval + ') was (' + deleteResponse.deletedCount + ' records) removed from vault.');
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ...${error.message}`);
@@ -566,7 +594,9 @@ async function handleChanges(msg, guildConfig) {
             await msg.channel.send(`${msg.member.nickname}, an updated character for id "${charId}" could not be located.`);
             await msg.delete();
         } else {
-            await msg.channel.send(embedForChanges(msg, approvedChar, updatedChar));
+            const changesEmbed = embedForChanges(msg, approvedChar, updatedChar);
+            // console.log(changesEmbed);
+            await msg.channel.send(changesEmbed);
             await msg.delete();
         }
     } catch (error) {
@@ -683,6 +713,7 @@ function arrayForRaceModifiersChanges(approvedChar, updatedChar) {
  * @returns {Array}
  */
 function arrayForItemModifiersChanges(approvedChar, updatedChar) {
+    // console.log(' app, upd: %j\n\n %j', approvedChar.modifiers.item, updatedChar.modifiers.item);
     return arrayForModifiersChanges(approvedChar.modifiers.item, updatedChar.modifiers.item);
 }
 
@@ -734,49 +765,49 @@ function arrayForBackgroundModifiersChanges(approvedChar, updatedChar) {
  * @returns {Array}
  */
 function arrayForModifiersChanges(approvedMod, updatedMod) {
+    approvedMod = concatArrayOfArrays(approvedMod);
+    updatedMod = concatArrayOfArrays(updatedMod);
     let modifiersChanges = [];
     // check to see if an array of arrays got passed somehow
     updatedMod.forEach((updTrait) => {
-        if (Array.isArray(updTrait)) {
-            modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(approvedMod, updTrait));
-        } else {
-            let foundItem = false;
-            approvedMod.forEach((appTrait) => {
-                if (Array.isArray(appTrait)) {
-                    modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(appTrait, updatedMod));
-                } else {
-                    if (updTrait.id == appTrait.id) {
-                        foundItem = true;
-                    }
-                }
-            });
-            if (!foundItem) {
-                modifiersChanges.push(appendStringsForEmbedChanges([updTrait.friendlySubtypeName, '', updTrait.friendlyTypeName + (updTrait.value ? '(' + updTrait.value + ')' : '')]));
+        let foundItem = false;
+        approvedMod.forEach((appTrait) => {
+            if (updTrait.id == appTrait.id) {
+                foundItem = true;
             }
+        });
+        if (!foundItem) {
+            // console.log('updated - did not find: ' + updTrait.id + ' | ' + updTrait.friendlySubtypeName + ' | ' + updTrait.friendlyTypeName);
+            modifiersChanges.push(appendStringsForEmbedChanges([updTrait.friendlySubtypeName, '', updTrait.friendlyTypeName + (updTrait.value ? '(' + updTrait.value + ')' : '')]));
         }
+
     });
 
     approvedMod.forEach((appTrait) => {
-        if (Array.isArray(appTrait)) {
-            modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(appTrait, updatedMod));
-        } else {
-            let foundItem = false;
-            updatedMod.forEach((updTrait) => {
-                if (Array.isArray(updTrait)) {
-                    modifiersChanges = modifiersChanges.concat(arrayForModifiersChanges(approvedMod, updTrait));
-                } else {
-                    if (updTrait.id == appTrait.id) {
-                        foundItem = true;
-                    }
-                }
-            });
-            if (!foundItem) {
-                // console.log('approved - did not find: ' + appTrait + ' | ' + appTrait.id + ' | ' + appTrait.friendlySubtypeName + ' | ' + appTrait.friendlyTypeName);
-                modifiersChanges.push(appendStringsForEmbedChanges([appTrait.friendlySubtypeName, '', appTrait.friendlyTypeName + (appTrait.value ? '(' + appTrait.value + ')' : '')]));
+        let foundItem = false;
+        updatedMod.forEach((updTrait) => {
+            if (updTrait.id == appTrait.id) {
+                foundItem = true;
             }
+        });
+        if (!foundItem) {
+            // console.log('approved - did not find: ' + appTrait.id + ' | ' + appTrait.friendlySubtypeName + ' | ' + appTrait.friendlyTypeName);
+            modifiersChanges.push(appendStringsForEmbedChanges([appTrait.friendlySubtypeName, appTrait.friendlyTypeName + (appTrait.value ? '(' + appTrait.value + ')' : ''), '']));
         }
     });
     return modifiersChanges;
+}
+
+function concatArrayOfArrays(arrays) {
+    let returnConcatArray = [];
+    arrays.forEach((value) => {
+        if (Array.isArray(value)) {
+            returnConcatArray = returnConcatArray.concat(value);
+        } else {
+            returnConcatArray.push(value);
+        }
+    })
+    return returnConcatArray;
 }
 
 /**
