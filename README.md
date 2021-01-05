@@ -60,10 +60,12 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] queued - list all characters queued for approval
   - [x] user [@USER_NAME] - list all characters by discord user
   - [x] campaign [CAMPAIGN_ID] - list all characters registered for a campaign
-- [ ] show [CHAR_ID] - show a currently approved character from the vault
+  - [ ] campaigns - list all campaigns for server
+- [ ] show
+  - [x] [CHAR_ID] - show a user's character from the vault
   - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault
 - [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
-- [x] remove [CHAR_ID] - remove a character from the vault
+- [x] remove [CHAR_ID] - remove a character (or pending update) from the vault
 - [x] approve [CHAR_ID] - approve a new/updated character within vault
 - [x] changes [CHAR_ID] - display changes for an unapproved character update
 - [x] config - show BOT config
@@ -71,6 +73,14 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
+- [ ] timezone
+  - [ ] {no args} - view your timezone
+  - [ ] set [TIMEZONE] - set your timezone (required for interacting with events)
+- [ ] event
+  - [ ] create [EVENT_NAME] at [TIME] for [DURATION] on [DATE] with [NUMBER_PLAYER_SLOTS] for [CAMPAIGN] - creates an event that users can sign up for
+  - [ ] list - list all events
+  - [ ] list campaign [CAMPAIGN_ID] - list events for a campaign
+
 
 ## Screenshots
 

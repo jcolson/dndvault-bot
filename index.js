@@ -5,9 +5,24 @@ const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
 const { update } = require('./models/Guild');
+const { stat } = require('fs');
 const client = new Client();
 const GuildCache = {};
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
+const SkillLookup = {
+    '3': 'acrobatics', '11': 'animalHandling', '6': 'arcana', '2': 'athletics', '16': 'deception', '7': 'history',
+    '12': 'insight', '17': 'intimidation', '8': 'investigation', '13': 'medicine', '9': 'nature', '14': 'perception',
+    '18': 'performance', '19': 'persuasion', '10': 'religion', '4': 'sleightOfHand', '5': 'stealth', '15': 'survival'
+}
+const RacialBonusLookup = {
+    1: { 'Mountain dwarf': 2, 'Dragonborn': 2, 'Half-Orc': 2, 'Human': 1 },
+    2: { 'Elf': 2, 'Halfling': 2, 'Forest gnome': 1, 'Human': 1 },
+    3: { 'Dwarf': 2, 'Stout halfling': 1, 'Rock gnome': 1, 'Half-Orc': 1, 'Human': 1 },
+    4: { 'High elf': 1, 'Gnome': 2, 'Tiefling': 1, 'Human': 1 },
+    5: { 'Hill Dwarf': 1, 'Wood elf': 1, 'Human': 1 },
+    6: { 'Half-elf': 2, 'Drow': 1, 'Lightfoot halfling': 1, 'Dragonborn': 1, 'Tiefling': 2, 'Human': 1 }
+};
+
 const DEFAULT_CONFIGDIR = __dirname;
 const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
@@ -75,6 +90,8 @@ client.on('message', async (msg) => {
         handleApprove(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
         handleChanges(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
+        handleShow(msg, guildConfig);
     }
 });
 
@@ -103,10 +120,11 @@ async function handleHelp(msg, guildConfig) {
             `},
             {
                 name: '\u200B', value: `
-            \`- [ ] show [CHAR_ID]\` - \`show a user's character from the vault\`
+            \`- [ ] show\`
+            \`  - [x] {no args}[CHAR_ID]\` - \`show a user's character from the vault\`
             \`  - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault\`
             \`- [x] update [DNDBEYOND_URL]\` - \`request an update a character from dndbeyond to the vault\`
-            \`- [x] remove [CHAR_ID]\` - \`remove a character from the vault\`
+            \`- [x] remove [CHAR_ID]\` - \`remove a character (or pending update) from the vault\`
             \`- [x] approve [CHAR_ID]\` - \`approve a new/updated character within vault\`
             \`- [x] changes [CHAR_ID]\` - \`display changes for an unapproved character update\`
             \`- [x] config\`
@@ -125,6 +143,23 @@ async function handleHelp(msg, guildConfig) {
         } else {
             await msg.channel.send(charEmbed);
         }
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
+/**
+ * Show a character
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleShow(msg, guildConfig) {
+    try {
+        const charID = parseCharIdFromURL(msg.content, 'show', guildConfig.prefix);
+        const showUser = await CharModel.findOne({ id: charID, isUpdate: false, guildID: msg.guild.id });
+        const embedChar = embedForCharacter(msg, [showUser], 'Show Character', true);
+        await msg.channel.send(embedChar);
+        await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
     }
@@ -245,8 +280,10 @@ async function handleList(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`);
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`);
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters for you`);
@@ -273,8 +310,10 @@ async function handleListQueued(msg, guildConfig) {
     try {
         const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, 'Characters pending approval');
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
@@ -291,8 +330,10 @@ async function handleListAll(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, 'All Characters in the Vault');
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault');
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters \`register\` one!`);
@@ -310,8 +351,10 @@ async function handleListCampaign(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`);
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`);
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters \`register\` one!`);
@@ -332,8 +375,10 @@ async function handleListUser(msg, guildConfig) {
         if (charArray.length > 0) {
             let memberGuild = await client.guilds.fetch(guildConfig.guildID);
             let guildMember = await memberGuild.members.fetch(msg.member.id);
-            const charEmbed = embedForCharacter(msg, charArray, `All Characters for ${guildMember.displayName} in the Vault`);
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${guildMember.displayName} in the Vault`);
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters for ${userToList}`);
@@ -346,39 +391,72 @@ async function handleListUser(msg, guildConfig) {
 /**
  * 
  * @param {CharModel[]} charArray
- * @returns {MessageEmbed}
+ * @returns {MessageEmbed[]}
  */
-function embedForCharacter(msg, charArray, title) {
-    const charEmbed = new MessageEmbed()
+function embedForCharacter(msg, charArray, title, isShow) {
+    let returnEmbeds = [];
+    // return 3 characters for show and 8 characters for a list
+    let charPerEmbed = isShow ? 3 : 8;
+    let charEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
         // .setURL('https://discord.js.org/')
         .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
-        .setThumbnail(msg.guild.iconURL())
+        .setThumbnail(msg.guild.iconURL());
+    let i = 0;
     charArray.forEach((char) => {
+        if (i++ >= charPerEmbed) {
+            returnEmbeds.push(charEmbed);
+            charEmbed = new MessageEmbed()
+                .setColor('#0099ff');
+            i = 0;
+        }
         charEmbed.addFields(
             {
                 name: 'Name | ID | Status                                 🗡🛡🗡🛡🗡🛡',
                 value: `[${char.name}](${char.readonlyUrl}) | ${char.id} | `
                     + stringForApprovalsAndUpdates(char)
-            },
-            { name: 'User', value: `<@${char.guildUser}>`, inline: true },
-            { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
-            {
-                name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
-                    // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
-                    '?', inline: true
-            },
-            {
-                name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`)
-            },
+            }
         );
+        if (isShow) {
+            charEmbed.addFields(
+                { name: 'User', value: `<@${char.guildUser}>`, inline: true },
+                { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
+                {
+                    name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
+                        // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
+                        '?', inline: true
+                },
+                {
+                    name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
+                    inline: true
+                },
+                { name: 'Attributes*', value: stringForStats(char), inline: true }
+            );
+        }
     })
     charEmbed.addFields(
         { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
     );
-    return charEmbed;
+    returnEmbeds.push(charEmbed);
+    return returnEmbeds;
+}
+
+/**
+ * 
+ * @param {CharModel} char 
+ */
+function stringForStats(char) {
+    let charStatsString = '';
+    char.stats.forEach((stat) => {
+        let bonus = RacialBonusLookup[stat.id][char.race.baseRaceName] ? RacialBonusLookup[stat.id][char.race.baseRaceName] : 0;
+        bonus += RacialBonusLookup[stat.id][char.race.fullName] ? RacialBonusLookup[stat.id][char.race.fullName] : 0;
+        let indivStat = stat.value + bonus;
+        let modifier = Math.floor((indivStat - 10) / 2);
+        charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: ${indivStat}(${modifier}) | `;
+    });
+    return charStatsString.substring(0, charStatsString.length - 3);
 }
 
 /**
@@ -1051,4 +1129,23 @@ async function hasRoleOrIsAdmin(msg, roleId) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
     }
     return hasRole;
+}
+
+
+/**
+ * find the approximate size of an embed
+ * @param {MessageEmbed} embed 
+ * @returns {number}
+ */
+function lengthOfEmbed(embed) {
+    let embedLength = (embed.title ? embed.title.length : 0)
+        + (embed.url ? embed.url.length : 0)
+        + (embed.description ? embed.description.length : 0)
+        + (embed.footer && embed.footer.text ? embed.footer.text.length : 0)
+        + (embed.author && embed.author.name ? embed.author.name.length : 0);
+    embed.fields.forEach((field) => {
+        embedLength += field.name.length + field.value.length;
+    });
+    console.log('EmbedLengthCheck: %d', embedLength);
+    return embedLength;
 }
