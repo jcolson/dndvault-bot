@@ -106,7 +106,8 @@ async function handleHelp(msg, guildConfig) {
             `},
             {
                 name: '\u200B', value: `
-            \`- [ ] show [CHAR_ID]\` - \`show a user's character from the vault\`
+            \`- [ ] show\`
+            \`  - [x] {no args}[CHAR_ID]\` - \`show a user's character from the vault\`
             \`  - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault\`
             \`  - [ ] campaign [CAMPAIGN_ID] - show all characters in the vault registered for a campaign\`
             \`- [x] update [DNDBEYOND_URL]\` - \`request an update a character from dndbeyond to the vault\`
@@ -266,8 +267,10 @@ async function handleList(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`);
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`);
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters for you`);
@@ -370,14 +373,23 @@ async function handleListUser(msg, guildConfig) {
  * @returns {MessageEmbed}
  */
 function embedForCharacter(msg, charArray, title) {
-    const charEmbed = new MessageEmbed()
+    let returnEmbeds = [];
+    const charPerEmbed = 3;
+    let charEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
         // .setURL('https://discord.js.org/')
         .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
-        .setThumbnail(msg.guild.iconURL())
+        .setThumbnail(msg.guild.iconURL());
+    let i = 0;
     charArray.forEach((char) => {
+        if (i++ >= charPerEmbed) {
+            returnEmbeds.push(charEmbed);
+            charEmbed = new MessageEmbed()
+                .setColor('#0099ff');
+            i = 0;
+        }
         charEmbed.addFields(
             {
                 name: 'Name | ID | Status                                 🗡🛡🗡🛡🗡🛡',
@@ -401,7 +413,8 @@ function embedForCharacter(msg, charArray, title) {
     charEmbed.addFields(
         { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
     );
-    return charEmbed;
+    returnEmbeds.push(charEmbed);
+    return returnEmbeds;
 }
 
 function stringForStats(charStats) {
@@ -1082,4 +1095,23 @@ async function hasRoleOrIsAdmin(msg, roleId) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
     }
     return hasRole;
+}
+
+
+/**
+ * find the approximate size of an embed
+ * @param {MessageEmbed} embed 
+ * @returns {number}
+ */
+function lengthOfEmbed(embed) {
+    let embedLength = (embed.title ? embed.title.length : 0)
+        + (embed.url ? embed.url.length : 0)
+        + (embed.description ? embed.description.length : 0)
+        + (embed.footer && embed.footer.text ? embed.footer.text.length : 0)
+        + (embed.author && embed.author.name ? embed.author.name.length : 0);
+    embed.fields.forEach((field) => {
+        embedLength += field.name.length + field.value.length;
+    });
+    console.log('EmbedLengthCheck: %d', embedLength);
+    return embedLength;
 }
