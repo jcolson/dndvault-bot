@@ -9,6 +9,20 @@ const { stat } = require('fs');
 const client = new Client();
 const GuildCache = {};
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
+const SkillLookup = {
+    '3': 'acrobatics', '11': 'animalHandling', '6': 'arcana', '2': 'athletics', '16': 'deception', '7': 'history',
+    '12': 'insight', '17': 'intimidation', '8': 'investigation', '13': 'medicine', '9': 'nature', '14': 'perception',
+    '18': 'performance', '19': 'persuasion', '10': 'religion', '4': 'sleightOfHand', '5': 'stealth', '15': 'survival'
+}
+const RacialBonusLookup = {
+    1: { 'Mountain dwarf': 2, 'Dragonborn': 2, 'Half-Orc': 2, 'Human': 1 },
+    2: { 'Elf': 2, 'Halfling': 2, 'Forest gnome': 1, 'Human': 1 },
+    3: { 'Dwarf': 2, 'Stout halfling': 1, 'Rock gnome': 1, 'Half-Orc': 1, 'Human': 1 },
+    4: { 'High elf': 1, 'Gnome': 2, 'Tiefling': 1, 'Human': 1 },
+    5: { 'Hill Dwarf': 1, 'Wood elf': 1, 'Human': 1 },
+    6: { 'Half-elf': 2, 'Drow': 1, 'Lightfoot halfling': 1, 'Dragonborn': 1, 'Tiefling': 2, 'Human': 1 }
+};
+
 const DEFAULT_CONFIGDIR = __dirname;
 const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
@@ -407,7 +421,7 @@ function embedForCharacter(msg, charArray, title) {
                 name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
                 inline: true
             },
-            { name: 'Attributes', value: stringForStats(char.stats), inline: true },
+            { name: 'Attributes*', value: stringForStats(char), inline: true },
         );
     })
     charEmbed.addFields(
@@ -417,10 +431,18 @@ function embedForCharacter(msg, charArray, title) {
     return returnEmbeds;
 }
 
-function stringForStats(charStats) {
+/**
+ * 
+ * @param {CharModel} char 
+ */
+function stringForStats(char) {
     let charStatsString = '';
-    charStats.forEach((stat) => {
-        charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: ${stat.value} | `;
+    char.stats.forEach((stat) => {
+        let bonus = RacialBonusLookup[stat.id][char.race.baseRaceName] ? RacialBonusLookup[stat.id][char.race.baseRaceName] : 0;
+        bonus += RacialBonusLookup[stat.id][char.race.fullName] ? RacialBonusLookup[stat.id][char.race.fullName] : 0;
+        let indivStat = stat.value + bonus;
+        let modifier = Math.floor((indivStat - 10) / 2);
+        charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: ${indivStat}(${modifier}) | `;
     });
     return charStatsString.substring(0, charStatsString.length - 3);
 }
