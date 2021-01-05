@@ -60,6 +60,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] queued - list all characters queued for approval
   - [x] user [@USER_NAME] - list all characters by discord user
   - [x] campaign [CAMPAIGN_ID] - list all characters registered for a campaign
+  - [ ] campaigns - list all campaigns for server
 - [ ] show
   - [x] [CHAR_ID] - show a user's character from the vault
   - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault

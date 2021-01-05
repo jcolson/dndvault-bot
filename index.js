@@ -157,7 +157,7 @@ async function handleShow(msg, guildConfig) {
     try {
         const charID = parseCharIdFromURL(msg.content, 'show', guildConfig.prefix);
         const showUser = await CharModel.findOne({ id: charID, isUpdate: false, guildID: msg.guild.id });
-        const embedChar = embedForCharacter(msg, [showUser], 'Show Character');
+        const embedChar = embedForCharacter(msg, [showUser], 'Show Character', true);
         await msg.channel.send(embedChar);
         await msg.delete();
     } catch (error) {
@@ -310,8 +310,10 @@ async function handleListQueued(msg, guildConfig) {
     try {
         const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, 'Characters pending approval');
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
@@ -328,8 +330,10 @@ async function handleListAll(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, 'All Characters in the Vault');
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault');
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters \`register\` one!`);
@@ -347,8 +351,10 @@ async function handleListCampaign(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbed = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`);
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`);
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters \`register\` one!`);
@@ -369,8 +375,10 @@ async function handleListUser(msg, guildConfig) {
         if (charArray.length > 0) {
             let memberGuild = await client.guilds.fetch(guildConfig.guildID);
             let guildMember = await memberGuild.members.fetch(msg.member.id);
-            const charEmbed = embedForCharacter(msg, charArray, `All Characters for ${guildMember.displayName} in the Vault`);
-            await msg.channel.send(charEmbed);
+            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${guildMember.displayName} in the Vault`);
+            charEmbedArray.forEach(async (charEmbed) => {
+                await msg.channel.send(charEmbed);
+            })
             await msg.delete();
         } else {
             msg.reply(msg.member.nickname + `, I don't see any registered characters for ${userToList}`);
@@ -383,11 +391,12 @@ async function handleListUser(msg, guildConfig) {
 /**
  * 
  * @param {CharModel[]} charArray
- * @returns {MessageEmbed}
+ * @returns {MessageEmbed[]}
  */
-function embedForCharacter(msg, charArray, title) {
+function embedForCharacter(msg, charArray, title, isShow) {
     let returnEmbeds = [];
-    const charPerEmbed = 3;
+    // return 3 characters for show and 8 characters for a list
+    let charPerEmbed = isShow ? 3 : 8;
     let charEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
@@ -408,20 +417,24 @@ function embedForCharacter(msg, charArray, title) {
                 name: 'Name | ID | Status                                 🗡🛡🗡🛡🗡🛡',
                 value: `[${char.name}](${char.readonlyUrl}) | ${char.id} | `
                     + stringForApprovalsAndUpdates(char)
-            },
-            { name: 'User', value: `<@${char.guildUser}>`, inline: true },
-            { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
-            {
-                name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
-                    // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
-                    '?', inline: true
-            },
-            {
-                name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
-                inline: true
-            },
-            { name: 'Attributes*', value: stringForStats(char), inline: true },
+            }
         );
+        if (isShow) {
+            charEmbed.addFields(
+                { name: 'User', value: `<@${char.guildUser}>`, inline: true },
+                { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
+                {
+                    name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
+                        // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
+                        '?', inline: true
+                },
+                {
+                    name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
+                    inline: true
+                },
+                { name: 'Attributes*', value: stringForStats(char), inline: true }
+            );
+        }
     })
     charEmbed.addFields(
         { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
