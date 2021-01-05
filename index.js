@@ -123,9 +123,8 @@ async function handleHelp(msg, guildConfig) {
             \`- [ ] show\`
             \`  - [x] {no args}[CHAR_ID]\` - \`show a user's character from the vault\`
             \`  - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault\`
-            \`  - [ ] campaign [CAMPAIGN_ID] - show all characters in the vault registered for a campaign\`
             \`- [x] update [DNDBEYOND_URL]\` - \`request an update a character from dndbeyond to the vault\`
-            \`- [x] remove [CHAR_ID]\` - \`remove a character from the vault\`
+            \`- [x] remove [CHAR_ID]\` - \`remove a character (or pending update) from the vault\`
             \`- [x] approve [CHAR_ID]\` - \`approve a new/updated character within vault\`
             \`- [x] changes [CHAR_ID]\` - \`display changes for an unapproved character update\`
             \`- [x] config\`
