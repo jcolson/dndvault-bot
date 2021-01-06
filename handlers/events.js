@@ -1,5 +1,6 @@
 const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
+const CharModel = require('../models/Character');
 
 /**
  * Create an event
@@ -46,6 +47,8 @@ async function validateEvent(eventArray, msg, currUser) {
         throw new Error('You must include a description for your event.');
     } else if (eventArray.numberslots && isNaN(eventArray.numberslots)) {
         throw new Error(`The number of player slots needs to be a number, not: "${eventArray.numberslots}"`);
+    } else if (eventArray.campaign && isNaN(eventArray.campaign)) {
+        throw new Error(`The campaign id needs to be a number, not: "${eventArray.campaign}"`);
     } else if (eventArray.campaign) {
         //let campaigns = await CharModel.find().distinct('campaign.id');
         let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaign.id": eventArray.campaign });
