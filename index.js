@@ -1,11 +1,9 @@
 const path = require('path');
 const fetch = require('node-fetch');
-const { Client, DiscordAPIError, MessageEmbed, Role, Guild } = require('discord.js');
+const { Client, MessageEmbed, Role } = require('discord.js');
 const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
-const { update } = require('./models/Guild');
-const { stat } = require('fs');
 const client = new Client();
 const GuildCache = {};
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
