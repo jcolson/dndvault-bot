@@ -412,7 +412,7 @@ function embedForCharacter(msg, charArray, title, isShow) {
         }
         charEmbed.addFields(
             {
-                name: 'Name | ID | Status                                 🗡🛡🗡🛡🗡🛡',
+                name: '🗡 Name | ID | Status 🛡',
                 value: `[${char.name}](${char.readonlyUrl}) | ${char.id} | `
                     + stringForApprovalsAndUpdates(char)
             }
