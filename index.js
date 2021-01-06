@@ -1,3 +1,4 @@
+require('log-timestamp');
 const path = require('path');
 const fetch = require('node-fetch');
 const { Client, MessageEmbed, Role } = require('discord.js');
@@ -13,12 +14,12 @@ const SkillLookup = {
     '18': 'performance', '19': 'persuasion', '10': 'religion', '4': 'sleightOfHand', '5': 'stealth', '15': 'survival'
 }
 const RacialBonusLookup = {
-    1: { 'Mountain dwarf': 2, 'Dragonborn': 2, 'Half-Orc': 2, 'Human': 1 },
-    2: { 'Elf': 2, 'Halfling': 2, 'Forest gnome': 1, 'Human': 1 },
-    3: { 'Dwarf': 2, 'Stout halfling': 1, 'Rock gnome': 1, 'Half-Orc': 1, 'Human': 1 },
-    4: { 'High elf': 1, 'Gnome': 2, 'Tiefling': 1, 'Human': 1 },
-    5: { 'Hill Dwarf': 1, 'Wood elf': 1, 'Human': 1 },
-    6: { 'Half-elf': 2, 'Drow': 1, 'Lightfoot halfling': 1, 'Dragonborn': 1, 'Tiefling': 2, 'Human': 1 }
+    1: { 'Mountain Dwarf': 2, 'Dragonborn': 2, 'Half-Orc': 2, 'Human': 1 },
+    2: { 'Elf': 2, 'Halfling': 2, 'Forest Gnome': 1, 'Human': 1 },
+    3: { 'Dwarf': 2, 'Stout halfling': 1, 'Rock Gnome': 1, 'Half-Orc': 1, 'Human': 1 },
+    4: { 'High Elf': 1, 'Gnome': 2, 'Tiefling': 1, 'Human': 1 },
+    5: { 'Hill Dwarf': 1, 'Wood Elf': 1, 'Human': 1 },
+    6: { 'Half-Elf': 2, 'Drow': 1, 'Lightfoot Halfling': 1, 'Dragonborn': 1, 'Tiefling': 2, 'Human': 1 }
 };
 
 const DEFAULT_CONFIGDIR = __dirname;
@@ -28,18 +29,20 @@ const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, 
  * connect to the mongodb
  */
 (async () => {
-    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/dnd', {
-        // await connect('mongodb://docker.karma.net/dnd', {
+    console.log('mongo user: %s ... connecting', Config.mongoUser);
+    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/dnd?authSource=dnd', {
         useNewUrlParser: true,
         useFindAndModify: false,
         useUnifiedTopology: true,
         useCreateIndex: true
     });
-    console.log('user: ' + Config.mongoUser);
+    console.log('Connected to mongo.  Logging into Discord now ...');
     return client.login(Config.token);
 })();
 
-client.on('ready', () => console.info(`logged in as ${client.user.tag}`));
+client.on('ready', () => {
+    console.info(`logged in as ${client.user.tag}`)
+});
 
 client.on('message', async (msg) => {
     if (!msg.guild) {
@@ -90,6 +93,8 @@ client.on('message', async (msg) => {
         handleChanges(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
         handleShow(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
+        handleEventCreate(msg, guildConfig);
     }
 });
 
@@ -144,6 +149,34 @@ async function handleHelp(msg, guildConfig) {
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
     }
+}
+
+/**
+ * Create an event
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleEventCreate(msg, guildConfig) {
+    let eventString = msg.content.substring((guildConfig.prefix + 'list campaign').length + 1);
+    let eventArray = parseEventString(eventString);
+}
+
+function parseEventString(eventString) {
+    let eventArray = {};
+    // check if all required separators exist
+    const separators = [];
+    separators.push(eventString.toUpperCase().indexOf('@DM'));
+    separators.push(eventString.substring(separators[0]).toUpperCase().indexOf('AT'));
+    separators.push(eventString.substring(separators[1]).toUpperCase().indexOf('FOR'));
+    separators.push(eventString.substring(separators[2]).toUpperCase().indexOf('ON'));
+    separators.push(eventString.substring(separators[3]).toUpperCase().indexOf('WITH'));
+    separators.push(eventString.substring(separators[4]).toUpperCase().indexOf('PARTOF'));
+    console.log('partof %d', separators[5]);
+    separators.push(eventString.substring(separators[5]).toUpperCase().indexOf('DESC'));
+    console.log('desc %d', separators[6]);
+    eventArray['title'] = eventString.substring(0, separators[0]);
+    console.log('title %s', eventArray['title']);
+    return eventArray;
 }
 
 /**
@@ -1057,7 +1090,9 @@ async function confirmGuildConfig(msg) {
             if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
                 guildConfig.prefix = Config.defaultPrefix;
             }
-            // this only works because it's a flat document
+            if (typeof guildConfig.name === 'undefined' || !guildConfig.name) {
+                guildConfig.name = msg.guild.name;
+            }
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
         } catch (error) {

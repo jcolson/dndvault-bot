@@ -77,10 +77,15 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [ ] {no args} - view your timezone
   - [ ] set [TIMEZONE] - set your timezone (required for interacting with events)
 - [ ] event
-  - [ ] create [EVENT_NAME] at [TIME] for [DURATION] on [DATE] with [NUMBER_PLAYER_SLOTS] for [CAMPAIGN] - creates an event that users can sign up for
-  - [ ] list - list all events
-  - [ ] list campaign [CAMPAIGN_ID] - list events for a campaign
-
+  - [ ] create [MISSION_TITLE] @DM [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
+  - [ ] remove [MISSION_ID] - removes mission event
+  - [ ] deploy [MISSION_ID] [@USER_NAME] - mark an event as deployed, user will become 'DM' for event
+  - [ ] list - list all future events (PROPOSed and DEPLOYed)
+  - [ ] list proposed - list all future PROPOSED events
+  - [ ] list deployed - list all future DEPLOYED events
+  - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
+  - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
+  - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign
 
 ## Screenshots
 

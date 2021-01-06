@@ -1,6 +1,10 @@
 const { Schema, model } = require('mongoose');
 
-const Guild = Schema({
+const User = Schema({
+    "userID": {
+        "type": "String",
+        index: true
+    },
     "guildID": {
         "type": "String",
         index: true
@@ -8,14 +12,8 @@ const Guild = Schema({
     "name": {
         type: String
     },
-    "prefix": {
-        type: String
-    },
-    "arole": {
-        type: String
-    },
-    "prole": {
+    "timezone": {
         type: String
     }
 })
-module.exports = model('Guild', Guild);
+module.exports = model('User', User);
