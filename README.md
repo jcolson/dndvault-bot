@@ -75,7 +75,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] prefix [NEW_PREFIX] - modify the command prefix
 - [ ] timezone
   - [ ] {no args} - view your timezone
-  - [ ] set [TIMEZONE] - set your timezone (required for interacting with events)
+  - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
 - [ ] event
   - [ ] create [MISSION_TITLE] @DM [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
   - [ ] remove [MISSION_ID] - removes mission event
@@ -107,3 +107,14 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 {id: { $regex: /785567026512527390/i }}
 my test guild
 {guildID: '785567026512527390'}
+
+### discordjs
+
+            // let memberGuild = await client.guilds.fetch(guildConfig.guildID);
+            // let guildMember = await memberGuild.members.fetch(msg.member.id);
+
+https://discord.com/channels/745694606372503773/790521190032474112/795807490545549353
+
+
+https://discord.com/channels/785567026512527390
+

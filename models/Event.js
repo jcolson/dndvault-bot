@@ -1,10 +1,6 @@
 const { Schema, model } = require('mongoose');
 
 const Event = Schema({
-    "eventID": {
-        "type": "String",
-        index: true
-    },
     "guildID": {
         "type": "String",
         index: true
@@ -34,6 +30,12 @@ const Event = Schema({
         type: String
     },
     "description": {
+        type: String
+    },
+    "userID": {
+        type: String
+    },
+    "deployedByID": {
         type: String
     }
 })

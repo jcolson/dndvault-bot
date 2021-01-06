@@ -1,6 +1,7 @@
 const { MessageEmbed } = require('discord.js');
 async function handleHelp(msg, guildConfig, inviteURL) {
     try {
+        let goBackToServer = '';
         const charEmbed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('Help for D&D Vault BOT')
@@ -8,6 +9,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
         if (guildConfig) {
             charEmbed.setDescription(`Current Command Prefix is "${guildConfig.prefix}"`);
             charEmbed.setThumbnail(msg.guild.iconURL());
+            goBackToServer = `[Go back to your server](https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}).  `;
         }
         charEmbed.addFields(
             {
@@ -39,7 +41,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
             ` },
         );
         charEmbed.addFields(
-            { name: '\u200B', value: 'Add this BOT to your server. [Click here](' + inviteURL + ')' },
+            { name: '\u200B', value: `${goBackToServer}Add this BOT to your server. [Click here](${inviteURL})` },
         );
         if (guildConfig) {
             await msg.member.send(charEmbed);
