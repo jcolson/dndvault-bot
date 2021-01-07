@@ -15,7 +15,8 @@ const Event = Schema({
         type: Number
     },
     "date_time": {
-        type: Date
+        type: Date,
+        index: true
     },
     "number_player_slots": {
         type: Number

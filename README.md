@@ -63,6 +63,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 ```fix
 - [x] help
 - [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
+- [ ] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
 - [ ] list
   - [x] {no args} - list YOUR registered characters within vault
   - [x] all - list all characters

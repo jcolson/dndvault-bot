@@ -46,7 +46,7 @@ function isValidTimeZone(tz) {
     if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
         throw 'Time zones are not available in this environment';
     }
-    let validTZ = Intl.DateTimeFormat(undefined, { timeZone: tz, hour: undefined, timeZoneName: 'short' });
+    let validTZ = Intl.DateTimeFormat(undefined, { timeZone: tz, timeZoneName: 'short' });
     let validTZstring = validTZ.format(new Date());
     // console.log('valid tz %s', validTZstring);
     validTZstring = validTZstring.substring(validTZstring.indexOf(', ')+1);

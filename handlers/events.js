@@ -1,6 +1,7 @@
 const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
+const { MessageEmbed } = require('discord.js');
 
 /**
  * Create an event
@@ -21,7 +22,64 @@ async function handleEventCreate(msg, guildConfig) {
         await msg.channel.send(`<@${msg.member.id}>, your event was successfully saved as id: ${validatedEvent._id}`);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+    }
+}
+
+async function handleEventEdit(msg, guildConfig) {
+    try {
+        let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
+        if (!currUser || !currUser.timezone) {
+            throw new Error('Please set your timezone first using `timezone set`!');
+        }
+        let eventString = msg.content.substring((guildConfig.prefix + 'event edit').length + 1);
+        const eventID = eventString.substring(0, eventString.indexOf(' '));
+        console.log(eventID);
+        eventString = eventString.substring(eventString.indexOf(' ') + 1);
+        console.log(eventString);
+        let existingEvent;
+        try {
+            existingEvent = await EventModel.findById(eventID);
+            if (!existingEvent) {
+                throw new Error();
+            }
+        } catch (error) {
+            throw new Error('Event not found.');
+        }
+
+        let eventArray = parseEventString(eventString, existingEvent);
+
+        let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);
+        await validatedEvent.save();
+        await msg.channel.send(`<@${msg.member.id}>, the event was successfully edited.`);
+        await msg.delete();
+    } catch (error) {
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+    }
+}
+
+/**
+ * show an event
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleEventShow(msg, guildConfig) {
+    try {
+        const eventID = msg.content.substring((guildConfig.prefix + 'event show').length + 1);
+        let showEvent;
+        try {
+            showEvent = await EventModel.findById(eventID);
+            if (!showEvent) {
+                throw new Error();
+            }
+        } catch (error) {
+            throw new Error('Event not found.');
+        }
+        const embedEvent = embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
+        await msg.channel.send(embedEvent);
+        await msg.delete();
+    } catch (error) {
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }
 }
 
@@ -32,7 +90,7 @@ async function handleEventCreate(msg, guildConfig) {
  * @param {UserModel} currUser
  * @returns {EventModel}
  */
-async function validateEvent(eventArray, msg, currUser) {
+async function validateEvent(eventArray, msg, currUser, existingEvent) {
     if (!eventArray.title) {
         throw new Error('You must include a title for your event.');
     } else if (!eventArray.duration) {
@@ -64,19 +122,18 @@ async function validateEvent(eventArray, msg, currUser) {
         throw new Error('I could not understand the date and time that you included.');
     }
     let eventDate = new Date(eventMs);
-    console.log('date ', eventDate);
-    let newEvent = new EventModel({
-        guildID: msg.guild.id,
-        title: eventArray.title,
-        dm: eventArray.dm,
-        duration_hours: eventArray.duration,
-        date: eventDate,
-        number_player_slots: eventArray.numberslots,
-        campaign: eventArray.campaign,
-        description: eventArray.description,
-        userID: msg.member.id
-    });
-    return newEvent;
+    // console.log('date ', eventDate);
+    let validatedEvent = existingEvent ? existingEvent : new EventModel();
+    validatedEvent.guildID = msg.guild.id;
+    validatedEvent.title = eventArray.title;
+    validatedEvent.dm = eventArray.dm;
+    validatedEvent.duration_hours = eventArray.duration;
+    validatedEvent.date_time = eventDate;
+    validatedEvent.number_player_slots = eventArray.numberslots;
+    validatedEvent.campaign = eventArray.campaign;
+    validatedEvent.description = eventArray.description;
+    validatedEvent.userID = msg.member.id;
+    return validatedEvent;
 }
 
 /**
@@ -103,13 +160,27 @@ function parseEventString(eventString) {
     // console.log('all indexes', sepIndex);
 
     eventArray.title = eventString.substring(0, nextValidIndex(0, sepIndex));
-    eventArray.dm = sepIndex[0] != -1 ? eventString.substring(sepIndex[0] + separatorArray[0].length, nextValidIndex(1, sepIndex)) : undefined;
-    eventArray.time = sepIndex[1] != -1 ? eventString.substring(sepIndex[1] + separatorArray[1].length, nextValidIndex(2, sepIndex)) : undefined;
-    eventArray.duration = sepIndex[2] != -1 ? eventString.substring(sepIndex[2] + separatorArray[2].length, nextValidIndex(3, sepIndex)) : undefined;
-    eventArray.date = sepIndex[3] != -1 ? eventString.substring(sepIndex[3] + separatorArray[3].length, nextValidIndex(4, sepIndex)) : undefined;
-    eventArray.numberslots = sepIndex[4] != -1 ? eventString.substring(sepIndex[4] + separatorArray[4].length, nextValidIndex(5, sepIndex)) : undefined;
-    eventArray.campaign = sepIndex[5] != -1 ? eventString.substring(sepIndex[5] + separatorArray[5].length, nextValidIndex(6, sepIndex)) : undefined;
-    eventArray.description = sepIndex[6] != -1 ? eventString.substring(sepIndex[6] + separatorArray[6].length, nextValidIndex(7, sepIndex)) : undefined;
+    eventArray.dm = sepIndex[0] != -1 ?
+        eventString.substring(sepIndex[0] + separatorArray[0].length, nextValidIndex(1, sepIndex)) :
+        undefined;
+    eventArray.time = sepIndex[1] != -1 ?
+        eventString.substring(sepIndex[1] + separatorArray[1].length, nextValidIndex(2, sepIndex)) :
+        undefined;
+    eventArray.duration = sepIndex[2] != -1 ?
+        eventString.substring(sepIndex[2] + separatorArray[2].length, nextValidIndex(3, sepIndex)) :
+        undefined;
+    eventArray.date = sepIndex[3] != -1 ?
+        eventString.substring(sepIndex[3] + separatorArray[3].length, nextValidIndex(4, sepIndex)) :
+        undefined;
+    eventArray.numberslots = sepIndex[4] != -1 ?
+        eventString.substring(sepIndex[4] + separatorArray[4].length, nextValidIndex(5, sepIndex)) :
+        undefined;
+    eventArray.campaign = sepIndex[5] != -1 ?
+        eventString.substring(sepIndex[5] + separatorArray[5].length, nextValidIndex(6, sepIndex)) :
+        undefined;
+    eventArray.description = sepIndex[6] != -1 ?
+        eventString.substring(sepIndex[6] + separatorArray[6].length, nextValidIndex(7, sepIndex)) :
+        undefined;
     // console.log('array', eventArray);
     return eventArray;
 }
@@ -137,11 +208,11 @@ function nextValidIndex(startindex, sepIndexArray) {
  * 
  * @returns {MessageEmbed[]}
  */
-function embedForCharacter(msg, eventArray, title, isShow) {
+function embedForEvent(msg, eventArray, title, isShow) {
     let returnEmbeds = [];
-    // return 3 characters for show and 8 characters for a list
+    // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 3 : 8;
-    let charEmbed = new MessageEmbed()
+    let eventEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
         // .setURL('https://discord.js.org/')
@@ -149,42 +220,34 @@ function embedForCharacter(msg, eventArray, title, isShow) {
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
-    charArray.forEach((char) => {
+    eventArray.forEach((theEvent) => {
         if (i++ >= charPerEmbed) {
-            returnEmbeds.push(charEmbed);
-            charEmbed = new MessageEmbed()
+            returnEmbeds.push(eventEmbed);
+            eventEmbed = new MessageEmbed()
                 .setColor('#0099ff');
             i = 0;
         }
-        charEmbed.addFields(
-            {
-                name: '🗡 Name | ID | Status 🛡',
-                value: `[${char.name}](${char.readonlyUrl}) | ${char.id} | `
-                    + stringForApprovalsAndUpdates(char)
-            }
+        eventEmbed.addFields(
+            { name: '🗡 Title 🛡', value: `${theEvent.title}` },
+            { name: 'DM', value: `${theEvent.dm}`, inline: true },
+            { name: 'Date and Time', value: `${theEvent.date_time}`, inline: true },
+            { name: 'Duration', value: `${theEvent.duration_hours} hrs`, inline: true },
+            { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
+            { name: 'Created By', value: `<@${theEvent.userID}>`, inline: true },
         );
         if (isShow) {
-            charEmbed.addFields(
-                { name: 'User', value: `<@${char.guildUser}>`, inline: true },
-                { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
-                {
-                    name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
-                        // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
-                        '?', inline: true
-                },
-                {
-                    name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
-                    inline: true
-                },
-                { name: 'Attributes*', value: stringForStats(char), inline: true }
+            eventEmbed.addFields(
+                { name: 'Description', value: `${theEvent.description}`, inline: false },
             );
         }
     })
-    charEmbed.addFields(
+    eventEmbed.addFields(
         { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
     );
-    returnEmbeds.push(charEmbed);
+    returnEmbeds.push(eventEmbed);
     return returnEmbeds;
 }
 
 exports.handleEventCreate = handleEventCreate;
+exports.handleEventShow = handleEventShow;
+exports.handleEventEdit = handleEventEdit;

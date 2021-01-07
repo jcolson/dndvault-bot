@@ -96,6 +96,10 @@ client.on('message', async (msg) => {
         handleShow(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
         events.handleEventCreate(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
+        events.handleEventEdit(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'event show')) {
+        events.handleEventShow(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {
         users.handleTimezoneSet(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
