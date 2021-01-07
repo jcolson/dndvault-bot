@@ -20,10 +20,10 @@ async function handleEventCreate(msg, guildConfig) {
         let validatedEvent = await validateEvent(eventArray, msg, currUser);
         await validatedEvent.save();
         let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
-
         validatedEvent.channelID = sentMessage.channel.id;
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
+        await sentMessage.react('✅');
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -67,6 +67,7 @@ async function handleEventEdit(msg, guildConfig) {
         validatedEvent.channelID = sentMessage.channel.id;
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
+        await sentMessage.react('✅');
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -138,6 +139,7 @@ async function handleEventShow(msg, guildConfig) {
         showEvent.channelID = sentMessage.channel.id;
         showEvent.messageID = sentMessage.id;
         await showEvent.save();
+        await sentMessage.react('✅');
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }

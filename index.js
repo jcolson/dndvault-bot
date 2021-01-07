@@ -6,7 +6,7 @@ const { Client, MessageEmbed, Role } = require('discord.js');
 const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
-global.client = new Client();
+global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 const GuildCache = {};
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
@@ -43,6 +43,42 @@ global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR,
 
 client.on('ready', () => {
     console.info(`logged in as ${client.user.tag}`)
+});
+
+client.on('messageReactionAdd', async (reaction, user) => {
+    // When we receive a reaction we check if the reaction is partial or not
+    if (reaction.partial) {
+        // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+        try {
+            await reaction.fetch();
+        } catch (error) {
+            console.error('Something went wrong when fetching the message: ', error);
+            // Return as `reaction.message.author` may be undefined/null
+            return;
+        }
+    }
+    // Now the message has been cached and is fully available
+    console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+    // The reaction is now also fully available and the properties will be reflected accurately:
+    console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
+});
+
+client.on('messageReactionRemove', async (reaction, user) => {
+    // When we receive a reaction we check if the reaction is partial or not
+    if (reaction.partial) {
+        // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+        try {
+            await reaction.fetch();
+        } catch (error) {
+            console.error('Something went wrong when fetching the message: ', error);
+            // Return as `reaction.message.author` may be undefined/null
+            return;
+        }
+    }
+    // Now the message has been cached and is fully available
+    console.log(`${reaction.message.author}'s message "${reaction.message.id}" lost a reaction!`);
+    // The reaction is now also fully available and the properties will be reflected accurately:
+    console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
 });
 
 client.on('message', async (msg) => {
