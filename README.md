@@ -90,8 +90,8 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [ ] event
   - [x] create title [MISSION_TITLE] dmgm [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
   - [x] edit [MISSION_ID] title [MISSION_TITLE] dmgm [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
-  - [ ] show [MISSION_ID] - show a particular mission's information
-  - [ ] remove [MISSION_ID] - removes mission event
+  - [x] show [MISSION_ID] - show a particular mission's information
+  - [x] remove [MISSION_ID] - removes mission event
   - [ ] deploy [MISSION_ID] [@USER_NAME] - mark an event as deployed, user will become 'DM' for event
   - [ ] list - list all future events (PROPOSed and DEPLOYed)
   - [ ] list proposed - list all future PROPOSED events

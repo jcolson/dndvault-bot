@@ -98,6 +98,8 @@ client.on('message', async (msg) => {
         events.handleEventCreate(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
         events.handleEventEdit(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'event remove')) {
+        events.handleEventRemove(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'event show')) {
         events.handleEventShow(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {

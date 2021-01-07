@@ -34,9 +34,8 @@ async function handleEventEdit(msg, guildConfig) {
         }
         let eventString = msg.content.substring((guildConfig.prefix + 'event edit').length + 1);
         const eventID = eventString.substring(0, eventString.indexOf(' '));
-        console.log(eventID);
+        // console.log(eventID);
         eventString = eventString.substring(eventString.indexOf(' ') + 1);
-        console.log(eventString);
         let existingEvent;
         try {
             existingEvent = await EventModel.findById(eventID);
@@ -51,6 +50,26 @@ async function handleEventEdit(msg, guildConfig) {
         let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);
         await validatedEvent.save();
         await msg.channel.send(`<@${msg.member.id}>, the event, ${eventID} , was successfully edited.`);
+        await msg.delete();
+    } catch (error) {
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+    }
+}
+
+async function handleEventRemove(msg, guildConfig) {
+    try {
+        let eventID = msg.content.substring((guildConfig.prefix + 'event remove').length + 1);
+        // console.log(eventID);
+        let deleteResponse;
+        try {
+            deleteResponse = await EventModel.findByIdAndDelete(eventID);
+            if (deleteResponse.deletedCount < 1) {
+                throw new Error();
+            }
+        } catch (error) {
+            throw new Error('Event not found.');
+        }
+        await msg.channel.send(`<@${msg.member.id}>, the event, ${eventID} , was successfully removed.`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -246,3 +265,4 @@ function embedForEvent(msg, eventArray, title, isShow) {
 exports.handleEventCreate = handleEventCreate;
 exports.handleEventShow = handleEventShow;
 exports.handleEventEdit = handleEventEdit;
+exports.handleEventRemove = handleEventRemove;
