@@ -83,8 +83,8 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
-- [ ] timezone
-  - [ ] {no args} - view your timezone
+- [x] timezone
+  - [x] {no args} - view your timezone
   - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
 - [ ] event
   - [x] create [MISSION_TITLE] DMGM [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for

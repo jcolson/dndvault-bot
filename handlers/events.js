@@ -18,7 +18,7 @@ async function handleEventCreate(msg, guildConfig) {
 
         let validatedEvent = await validateEvent(eventArray, msg, currUser);
         await validatedEvent.save();
-        await msg.channel.send(`${msg.member.displayName}, your event was successfully saved as id: ${validatedEvent._id}`);
+        await msg.channel.send(`<@${msg.member.id}>, your event was successfully saved as id: ${validatedEvent._id}`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
