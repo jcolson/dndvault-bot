@@ -60,6 +60,7 @@ all the while anyone on the server can 'view' any user's character ...
 
 Not all commands are implemented, this is a list of commands that will **hopefully** be implemented in short order. IGNORE the brackets in the usage help below.
 
+```fix
 - [x] help
 - [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
 - [ ] list
@@ -86,7 +87,9 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [ ] {no args} - view your timezone
   - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
 - [ ] event
-  - [ ] create [MISSION_TITLE] @DM [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
+  - [x] create [MISSION_TITLE] DMGM [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
+  - [x] edit [MISSION_ID] [MISSION_TITLE] DMGM [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
+  - [ ] show [MISSION_ID] - show a particular mission's information
   - [ ] remove [MISSION_ID] - removes mission event
   - [ ] deploy [MISSION_ID] [@USER_NAME] - mark an event as deployed, user will become 'DM' for event
   - [ ] list - list all future events (PROPOSed and DEPLOYed)
@@ -95,6 +98,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
   - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
   - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign
+```
 
 ## Screenshots
 

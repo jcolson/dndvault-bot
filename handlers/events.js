@@ -86,7 +86,7 @@ async function validateEvent(eventArray, msg, currUser) {
  * @param {String} eventString 
  */
 function parseEventString(eventString) {
-    const separatorArray = [' @DM ', ' AT ', ' FOR ', ' ON ', ' WITH ', ' PARTOF ', ' DESC '];
+    const separatorArray = [' DMGM ', ' AT ', ' FOR ', ' ON ', ' WITH ', ' PARTOF ', ' DESC '];
     const eventArray = {};
 
     // check if all required separators exist
@@ -114,7 +114,11 @@ function parseEventString(eventString) {
     return eventArray;
 }
 
-
+/**
+ * for the indexes passed, starting at startindex, find the next index value that isn't a -1
+ * @param {Number} startindex 
+ * @param {Array} sepIndexArray 
+ */
 function nextValidIndex(startindex, sepIndexArray) {
     for (let i = startindex; i < sepIndexArray.length; i++) {
         if (sepIndexArray[i] != -1) {
@@ -122,4 +126,65 @@ function nextValidIndex(startindex, sepIndexArray) {
         }
     }
 }
+
+/**
+ * returns the MessageEmbed(s) for an array of events passed
+ * 
+ * @param {Message} msg
+ * @param {EventModel[]} charArray
+ * @param {String} title
+ * @param {Boolean} isShow
+ * 
+ * @returns {MessageEmbed[]}
+ */
+function embedForCharacter(msg, eventArray, title, isShow) {
+    let returnEmbeds = [];
+    // return 3 characters for show and 8 characters for a list
+    let charPerEmbed = isShow ? 3 : 8;
+    let charEmbed = new MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle(title)
+        // .setURL('https://discord.js.org/')
+        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        // .setDescription(description)
+        .setThumbnail(msg.guild.iconURL());
+    let i = 0;
+    charArray.forEach((char) => {
+        if (i++ >= charPerEmbed) {
+            returnEmbeds.push(charEmbed);
+            charEmbed = new MessageEmbed()
+                .setColor('#0099ff');
+            i = 0;
+        }
+        charEmbed.addFields(
+            {
+                name: '🗡 Name | ID | Status 🛡',
+                value: `[${char.name}](${char.readonlyUrl}) | ${char.id} | `
+                    + stringForApprovalsAndUpdates(char)
+            }
+        );
+        if (isShow) {
+            charEmbed.addFields(
+                { name: 'User', value: `<@${char.guildUser}>`, inline: true },
+                { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
+                {
+                    name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
+                        // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
+                        '?', inline: true
+                },
+                {
+                    name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
+                    inline: true
+                },
+                { name: 'Attributes*', value: stringForStats(char), inline: true }
+            );
+        }
+    })
+    charEmbed.addFields(
+        { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
+    );
+    returnEmbeds.push(charEmbed);
+    return returnEmbeds;
+}
+
 exports.handleEventCreate = handleEventCreate;

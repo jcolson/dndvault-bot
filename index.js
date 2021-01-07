@@ -24,7 +24,7 @@ const RacialBonusLookup = {
 };
 
 const DEFAULT_CONFIGDIR = __dirname;
-const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
+global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
 /**
  * connect to the mongodb
@@ -57,7 +57,7 @@ client.on('message', async (msg) => {
     if (!msg.content.startsWith(guildConfig.prefix)) return;
     console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
     if (!await hasRoleOrIsAdmin(msg, guildConfig.prole)) {
-        await msg.reply(msg.member.displayName + ', ' + 'please have an admin add you to the proper player role to use this bot');
+        await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
         return;
     }
     if (msg.content === guildConfig.prefix + 'help') {
@@ -98,6 +98,8 @@ client.on('message', async (msg) => {
         events.handleEventCreate(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {
         users.handleTimezoneSet(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
+        users.handleTimezone(msg, guildConfig);
     }
 });
 
@@ -129,7 +131,7 @@ async function handleRegister(msg, guildConfig) {
     try {
         const charID = parseCharIdFromURL(msg.content, 'register', guildConfig.prefix);
         const settings = { method: "Get" };
-        let response = await fetch('https://character-service.dndbeyond.com/character/v3/character/' + charID, settings);
+        let response = await fetch(Config.dndBeyondCharServiceUrl + charID, settings);
         let charJSON = await response.json();
         if (response.status != 200 || charJSON.success == false) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
@@ -145,7 +147,7 @@ async function handleRegister(msg, guildConfig) {
         char.guildID = msg.guild.id;
         char.approvalStatus = false;
         await char.save();
-        await msg.channel.send(msg.member.displayName + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' is now registered');
+        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -186,7 +188,7 @@ async function handleUpdate(msg, guildConfig) {
         char.approvalStatus = false;
         char.isUpdate = true;
         await char.save();
-        await msg.channel.send(msg.member.displayName + ', ' + char.name + '/' + char.race.fullName + '/' + char.classes[0].definition.name + ' now has an update pending.');
+        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} now has an update pending.`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -239,7 +241,7 @@ async function handleList(msg, guildConfig) {
             })
             await msg.delete();
         } else {
-            msg.reply(msg.member.displayName + `, I don't see any registered characters for you`);
+            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for you`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -269,7 +271,7 @@ async function handleListQueued(msg, guildConfig) {
             })
             await msg.delete();
         } else {
-            msg.reply(msg.member.displayName + `, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
+            await msg.reply(`<@${msg.member.id}>, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -289,7 +291,7 @@ async function handleListAll(msg, guildConfig) {
             })
             await msg.delete();
         } else {
-            msg.reply(msg.member.displayName + `, I don't see any registered characters \`register\` one!`);
+            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters \`register\` one!`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -310,7 +312,7 @@ async function handleListCampaign(msg, guildConfig) {
             })
             await msg.delete();
         } else {
-            msg.reply(msg.member.displayName + `, I don't see any registered characters \`register\` one!`);
+            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters \`register\` one!`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -332,7 +334,7 @@ async function handleListUser(msg, guildConfig) {
             })
             await msg.delete();
         } else {
-            msg.reply(msg.member.displayName + `, I don't see any registered characters for ${userToList}`);
+            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for ${userToList}`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -340,8 +342,13 @@ async function handleListUser(msg, guildConfig) {
 }
 
 /**
+ * returns the MessageEmbed(s) for an array of characters passed
  * 
+ * @param {Message} msg
  * @param {CharModel[]} charArray
+ * @param {String} title
+ * @param {Boolean} isShow
+ * 
  * @returns {MessageEmbed[]}
  */
 function embedForCharacter(msg, charArray, title, isShow) {
@@ -352,7 +359,7 @@ function embedForCharacter(msg, charArray, title, isShow) {
         .setColor('#0099ff')
         .setTitle(title)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
@@ -453,7 +460,7 @@ async function handleRemove(msg, guildConfig) {
                 }
             }
         }
-        await msg.channel.send(msg.member.displayName + ', ' + charIdToDelete + '(' + typeOfRemoval + ') was (' + deleteResponse.deletedCount + ' records) removed from vault.');
+        await msg.channel.send(`<@${msg.member.id}>, ${charIdToDelete} (${typeOfRemoval}) was (${deleteResponse.deletedCount} records) removed from vault.`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ...${error.message}`);
@@ -472,7 +479,7 @@ async function handleConfig(msg, guildConfig) {
             .setColor('#0099ff')
             .setTitle('BOT Config')
             // .setURL('https://discord.js.org/')
-            .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
+            .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
             .setDescription('BOT Config for the server: ' + msg.guild.name)
             .setThumbnail(msg.guild.iconURL())
         configEmbed.addFields(
@@ -507,13 +514,13 @@ async function handleConfigArole(msg, guildConfig) {
                 guildConfig.arole = configArole.id;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
-                await msg.channel.send(msg.member.displayName + ', ' + configAroleName + ' is now the `approver` role.');
+                await msg.channel.send(`<@${msg.member.id}>, ${configAroleName} is now the \`approver\` role.`);
                 await msg.delete();
             } else {
-                await msg.reply(msg.member.displayName + ', could not locate the role: ' + configAroleName);
+                await msg.reply(`<@${msg.member.id}>, could not locate the role: ${configAroleName}`);
             }
         } else {
-            await msg.reply(msg.member.displayName + ', please ask someone with an approver-role to configure.');
+            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to configure.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ...${error.message}`);
@@ -539,13 +546,13 @@ async function handleConfigProle(msg, guildConfig) {
                 guildConfig.prole = configProle.id;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
-                await msg.channel.send(msg.member.displayName + ', ' + configProleName + ' is now the `player` role.');
+                await msg.channel.send(`<@${msg.member.id}>, ${configProleName} is now the \`player\` role.`);
                 await msg.delete();
             } else {
-                await msg.reply(msg.member.displayName + ', could not locate the role: ' + configProleName);
+                await msg.reply(`<@${msg.member.id}>, could not locate the role: ${configProleName}`);
             }
         } else {
-            await msg.reply(msg.member.displayName + ', please ask someone with an approver-role to configure.');
+            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to configure.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ...${error.message}`);
@@ -564,10 +571,10 @@ async function handleConfigPrefix(msg, guildConfig) {
             guildConfig.prefix = configPrefix;
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
-            await msg.channel.send(msg.member.displayName + ', `  ' + guildConfig.prefix + '  `' + ` is now my prefix, don't forget!.`);
+            await msg.channel.send(`<@${msg.member.id}>, \`${guildConfig.prefix}\` is now my prefix, don't forget!.`);
             await msg.delete();
         } else {
-            await msg.reply(msg.member.displayName + ', please ask someone with an approver-role to configure.');
+            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to configure.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -586,7 +593,7 @@ async function handleApprove(msg, guildConfig) {
             // console.log('charid: ' + charIdToApprove);
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
-                await msg.channel.send(`${msg.member.displayName}, an unapproved "${charIdToApprove}" could not be located.`);
+                await msg.channel.send(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`);
                 await msg.delete();
             } else {
                 // console.log('char: ' + charToApprove);
@@ -598,11 +605,11 @@ async function handleApprove(msg, guildConfig) {
                     await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToApprove, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 }
                 await charToApprove.save();
-                await msg.channel.send(msg.member.displayName + ', ' + charToApprove.id + ' was approved.');
+                await msg.channel.send(`<@${msg.member.id}>, "${charToApprove.id}" was approved.`);
                 await msg.delete();
             }
         } else {
-            await msg.reply(msg.member.displayName + ', please ask someone with an approver-role to approve.');
+            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to approve.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -620,7 +627,7 @@ async function handleChanges(msg, guildConfig) {
         let updatedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: false });
         let approvedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: true });
         if (typeof updatedChar === 'undefined' || !updatedChar || typeof approvedChar === 'undefined' || !approvedChar) {
-            await msg.channel.send(`${msg.member.displayName}, an updated character for id "${charId}" could not be located.`);
+            await msg.channel.send(`<@${msg.member.id}>, an updated character for id "${charId}" could not be located.`);
             await msg.delete();
         } else {
             const changesEmbed = embedForChanges(msg, approvedChar, updatedChar);
@@ -645,7 +652,7 @@ function embedForChanges(msg, approvedChar, updatedChar) {
         .setColor('#0099ff')
         .setTitle(`Review Changes for Character: ${approvedChar.name}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', 'https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no', 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let changes = [];
