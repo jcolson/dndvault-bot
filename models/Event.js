@@ -38,6 +38,12 @@ const Event = Schema({
     },
     "deployedByID": {
         type: String
+    },
+    "channelID": {
+        type: String
+    },
+    "messageID": {
+        type: String
     }
 })
 module.exports = model('Event', Event);

@@ -6,7 +6,7 @@ const { Client, MessageEmbed, Role } = require('discord.js');
 const GuildModel = require('./models/Guild');
 const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
-const client = new Client();
+global.client = new Client();
 const GuildCache = {};
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
@@ -102,6 +102,8 @@ client.on('message', async (msg) => {
         events.handleEventRemove(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'event show')) {
         events.handleEventShow(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
+        events.handleEventList(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {
         users.handleTimezoneSet(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {

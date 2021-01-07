@@ -19,7 +19,11 @@ async function handleEventCreate(msg, guildConfig) {
 
         let validatedEvent = await validateEvent(eventArray, msg, currUser);
         await validatedEvent.save();
-        await msg.channel.send(`<@${msg.member.id}>, your event was successfully saved as id: ${validatedEvent._id}`);
+        let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
+
+        validatedEvent.channelID = sentMessage.channel.id;
+        validatedEvent.messageID = sentMessage.id;
+        await validatedEvent.save();
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -49,7 +53,20 @@ async function handleEventEdit(msg, guildConfig) {
         let eventArray = parseEventString(eventString, existingEvent);
         let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);
         await validatedEvent.save();
-        await msg.channel.send(`<@${msg.member.id}>, the event, ${eventID} , was successfully edited.`);
+        try {
+            const eventMessage = await (
+                await (
+                    await client.guilds.fetch(validatedEvent.guildID)
+                ).channels.resolve(validatedEvent.channelID)
+            ).messages.fetch(validatedEvent.messageID);
+            await eventMessage.delete();
+        } catch (error) {
+            console.log(`couldn't delete old event message on edit: ${error.message}`);
+        }
+        let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
+        validatedEvent.channelID = sentMessage.channel.id;
+        validatedEvent.messageID = sentMessage.id;
+        await validatedEvent.save();
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -60,17 +77,28 @@ async function handleEventRemove(msg, guildConfig) {
     try {
         let eventID = msg.content.substring((guildConfig.prefix + 'event remove').length + 1);
         // console.log(eventID);
-        let deleteResponse;
+        let existingEvent;
         try {
-            deleteResponse = await EventModel.findByIdAndDelete(eventID);
-            if (deleteResponse.deletedCount < 1) {
+            existingEvent = await EventModel.findById(eventID);
+            if (!existingEvent) {
                 throw new Error();
             }
         } catch (error) {
             throw new Error('Event not found.');
         }
+        await existingEvent.delete();
         await msg.channel.send(`<@${msg.member.id}>, the event, ${eventID} , was successfully removed.`);
         await msg.delete();
+        try {
+            const eventMessage = await (
+                await (
+                    await client.guilds.fetch(existingEvent.guildID)
+                ).channels.resolve(existingEvent.channelID)
+            ).messages.fetch(existingEvent.messageID);
+            await eventMessage.delete();
+        } catch (error) {
+            console.log(`couldn't delete old event message on edit: ${error.message}`);
+        }
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }
@@ -94,8 +122,44 @@ async function handleEventShow(msg, guildConfig) {
             throw new Error('Event not found.');
         }
         const embedEvent = embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
-        await msg.channel.send(embedEvent);
+        const sentMessage = await msg.channel.send(embedEvent);
         await msg.delete();
+        try {
+            // remove old event message
+            const eventMessage = await (
+                await (
+                    await client.guilds.fetch(showEvent.guildID)
+                ).channels.resolve(showEvent.channelID)
+            ).messages.fetch(showEvent.messageID);
+            await eventMessage.delete();
+        } catch (error) {
+            console.log(`couldn't delete old event message on edit: ${error.message}`);
+        }
+        showEvent.channelID = sentMessage.channel.id;
+        showEvent.messageID = sentMessage.id;
+        await showEvent.save();
+    } catch (error) {
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+    }
+}
+
+/**
+ * list event
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleEventList(msg, guildConfig) {
+    try {
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id }).sort({ date_time: 'asc' });
+        if (eventsArray.length > 0) {
+            const embedEvents = embedForEvent(msg, eventsArray, `All Events`, false);
+            embedEvents.forEach(async (eventEmbed) => {
+                await msg.channel.send(eventEmbed);
+            })
+            await msg.delete();
+        } else {
+            await msg.reply(`<@${msg.member.id}>, I don't see any events yet.`);
+        }
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }
@@ -139,6 +203,7 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
 
     let eventDate;
     if (eventArray.ON && eventArray.AT) {
+        // console.log('on %s at %s', eventArray.ON, eventArray.AT);
         // the date parser let's me slap a year on the end and ignores it if it encounters a year prior
         let eventMs = Date.parse(eventArray.ON + ' '
             + new Date().getFullYear() + ' '
@@ -225,7 +290,7 @@ function nextValidIndex(startindex, sepIndexArray) {
 function embedForEvent(msg, eventArray, title, isShow) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
-    let charPerEmbed = isShow ? 3 : 8;
+    let charPerEmbed = isShow ? 1 : 4;
     let eventEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
@@ -242,15 +307,15 @@ function embedForEvent(msg, eventArray, title, isShow) {
             i = 0;
         }
         eventEmbed.addFields(
-            { name: '🗡 Title 🛡', value: `${theEvent.title}` },
+            { name: '🗡 Title 🛡', value: `[${theEvent.title} id: ${theEvent._id}](https://discordapp.com/channels/${theEvent.guildID}/${theEvent.channelID}/${theEvent.messageID})`, inline: false },
             { name: 'DM', value: `${theEvent.dm}`, inline: true },
-            { name: 'Date and Time', value: `${theEvent.date_time}`, inline: true },
+            { name: 'Date and Time', value: `${formatDate(theEvent.date_time)}`, inline: true },
             { name: 'Duration', value: `${theEvent.duration_hours} hrs`, inline: true },
-            { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
-            { name: 'Created By', value: `<@${theEvent.userID}>`, inline: true },
         );
         if (isShow) {
             eventEmbed.addFields(
+                { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
+                { name: 'Created By', value: `<@${theEvent.userID}>`, inline: true },
                 { name: 'Description', value: `${theEvent.description}`, inline: false },
             );
         }
@@ -262,7 +327,26 @@ function embedForEvent(msg, eventArray, title, isShow) {
     return returnEmbeds;
 }
 
+function formatDate(date) {
+    if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
+        console.log('Intl.DateTimeFormat not available in this environment');
+        return date;
+    }
+    let validTZ = Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: 'numeric',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        timeZoneName: 'short'
+    });
+    let validDateString = validTZ.format(date);
+    // console.log('valid tz %s', validDateString);
+    return validDateString;
+}
+
 exports.handleEventCreate = handleEventCreate;
 exports.handleEventShow = handleEventShow;
 exports.handleEventEdit = handleEventEdit;
 exports.handleEventRemove = handleEventRemove;
+exports.handleEventList = handleEventList;
