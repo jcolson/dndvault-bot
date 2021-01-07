@@ -3,35 +3,43 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [DND Vault Discord BOT](#dnd-vault-discord-bot)
+  - [Invite the BOT to your server](#invite-the-bot-to-your-server)
+  - [Example workflow with the BOT](#example-workflow-with-the-bot)
+  - [Example usage](#example-usage)
   - [Commands](#commands)
   - [Screenshots](#screenshots)
     - [list](#list)
     - [changes](#changes)
     - [config](#config)
-  - [Notes](#notes)
+  - [Notes (can be safely ignored)](#notes-can-be-safely-ignored)
     - [Mongodb queries](#mongodb-queries)
+    - [discordjs](#discordjs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # DND Vault Discord BOT
 
-This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from dndbeyond.com and the changes they make to them.  This allows a (multiple) DMs to ensure that the character changes that a user makes on dndbeyond are accurate for their campaigns.
+This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
 
-Invite the bot using --> https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=92224&scope=bot
+## Invite the BOT to your server
+
+[Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=92224&scope=bot)
+
+## Example workflow with the BOT
 
 Workflow would work something like this.
 
-* Discord users join a server and decide to have a campaign.
-* Server owner invites BOT
-* Each user creates a character for campaign on dndbeyond.com
-* Each user 'registers' character with BOT
-* DM 'approves' each character
-* Mission occurs
-* Users update characters on dndbeyond.com
-* Users request 'update' of character with BOT
-* DM 'lists queued' character approvals
-* DM reviews 'changes' of character
-* DM 'approves' character changes
+- Discord users join a server and decide to have a campaign.
+- Server owner invites BOT
+- Each user creates a character for campaign on [DND Beyond](https://dndbeyond.com/my-characters)
+- Each user 'registers' character with BOT
+- DM 'approves' each character
+- Mission occurs
+- Users update characters on [DND Beyond](https://dndbeyond.com/my-characters)
+- Users request 'update' of character with BOT
+- DM 'lists queued' character approvals
+- DM reviews 'changes' of character
+- DM 'approves' character changes
 
 all the while anyone on the server can 'view' any user's character ...
 
@@ -100,21 +108,30 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 ### config
 
 ![config](docs/images/config.png)
-## Notes
+
+## Notes (can be safely ignored)
 
 ### Mongodb queries
 
+```mongodb
 {id: { $regex: /785567026512527390/i }}
-my test guild
+#my test guild
 {guildID: '785567026512527390'}
+```
 
 ### discordjs
 
-            // let memberGuild = await client.guilds.fetch(guildConfig.guildID);
-            // let guildMember = await memberGuild.members.fetch(msg.member.id);
+retrieve a guild member:
 
-https://discord.com/channels/745694606372503773/790521190032474112/795807490545549353
+```nodejs
+let memberGuild = await client.guilds.fetch(guildConfig.guildID);
+let guildMember = await memberGuild.members.fetch(msg.member.id);
+```
 
+example urls that can be linked:
 
-https://discord.com/channels/785567026512527390
+```html
+https://discordapp.com/channels/745694606372503773/790521190032474112/795807490545549353
 
+https://discordapp.com/channels/785567026512527390
+```

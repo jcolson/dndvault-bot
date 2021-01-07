@@ -163,7 +163,7 @@ async function handleUpdate(msg, guildConfig) {
     try {
         const charID = parseCharIdFromURL(msg.content, 'update', guildConfig.prefix);
         const settings = { method: "Get" };
-        let response = await fetch('https://character-service.dndbeyond.com/character/v3/character/' + charID, settings);
+        let response = await fetch(Config.dndBeyondCharServiceUrl + charID, settings);
         let charJSON = await response.json();
         if (response.status != 200 || charJSON.success == false) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');

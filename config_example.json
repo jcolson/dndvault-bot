@@ -7,5 +7,7 @@
     "inviteURL": "https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=92224&scope=bot",
     "defaultPrefix": "!",
     "defaultARoleName": "@everyone",
-    "defaultPRoleName": "@everyone"
+    "defaultPRoleName": "@everyone",
+    "dndBeyondUrl": "https://www.dndbeyond.com",
+    "dndBeyondCharServiceUrl": "https://character-service.dndbeyond.com/character/v3/character/"
 }
