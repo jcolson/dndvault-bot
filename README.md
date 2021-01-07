@@ -45,9 +45,10 @@ all the while anyone on the server can 'view' any user's character ...
 
 ## Example usage
 
-```
+```diff
 !register https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
 !list queued
+!changes 41867999
 !approve 41867999
 !update https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
 !list queued
