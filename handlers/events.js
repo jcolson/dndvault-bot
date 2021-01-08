@@ -248,13 +248,13 @@ function parseEventString(eventString) {
     sepIndex.push(eventString.toUpperCase().indexOf(separatorArray[6], sepIndex[5]));
     sepIndex.push(eventString.toUpperCase().indexOf(separatorArray[7], sepIndex[6]));
     // add last index as the length of the string
-    sepIndex.push(eventString.length);
+    sepIndex.push(eventString.length+1);
     // console.log('all indexes', sepIndex);
 
     for (let i = 0; i < separatorArray.length; i++) {
         // console.log('sepind %d, separray %s, separraylen %d, nextValid %d', sepIndex[i], separatorArray[i], separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex));
         let param = sepIndex[i] != -1 ?
-            eventString.substring(sepIndex[i] + separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex)) :
+            eventString.substring(sepIndex[i] + separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex)-1) :
             undefined;
         // allow the 'unsetting' of parameters
         if (sepIndex[i] != -1 && !param) {
