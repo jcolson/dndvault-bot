@@ -2,6 +2,8 @@ const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
 const { MessageEmbed } = require('discord.js');
+const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
+// const dayjs = require('dayjs');
 
 /**
  * Create an event
@@ -18,7 +20,6 @@ async function handleEventCreate(msg, guildConfig) {
         let eventArray = parseEventString(eventString);
 
         let validatedEvent = await validateEvent(eventArray, msg, currUser);
-        await validatedEvent.save();
         let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
         validatedEvent.channelID = sentMessage.channel.id;
         validatedEvent.messageID = sentMessage.id;
@@ -52,7 +53,6 @@ async function handleEventEdit(msg, guildConfig) {
 
         let eventArray = parseEventString(eventString, existingEvent);
         let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);
-        await validatedEvent.save();
         try {
             const eventMessage = await (
                 await (
@@ -152,7 +152,7 @@ async function handleEventShow(msg, guildConfig) {
  */
 async function handleEventList(msg, guildConfig) {
     try {
-        let eventsArray = await EventModel.find({ guildID: msg.guild.id }).sort({ date_time: 'asc' });
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: new Date().getDate() - 5 } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
             const embedEvents = embedForEvent(msg, eventsArray, `All Events`, false);
             embedEvents.forEach(async (eventEmbed) => {
@@ -203,17 +203,33 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
 
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: msg.guild.id, userID: msg.member.id });
 
-    let eventDate;
-    if (eventArray.ON && eventArray.AT) {
-        // console.log('on %s at %s', eventArray.ON, eventArray.AT);
-        // the date parser let's me slap a year on the end and ignores it if it encounters a year prior
-        let eventMs = Date.parse(eventArray.ON + ' '
-            + new Date().getFullYear() + ' '
-            + currUser.timezone + ' ' + eventArray.AT);
-        if (isNaN(eventMs)) {
-            throw new Error(`I could not understand the date and time that you included: ${eventArray.ON} and ${eventArray.AT}`);
+    if (eventArray.ON || eventArray.AT) {
+        let timezoneOffset = getTimeZoneOffset(currUser.timezone);
+        console.log('tz offset: ' + timezoneOffset);
+
+        // convert to user's time if this exists already
+        let usersOriginalEventDate;
+        if (existingEvent && existingEvent.date_time) {
+            usersOriginalEventDate = new Date(existingEvent.date_time.toLocaleString("en-US", {timeZone: currUser.timezone}));
+            console.log('GMToriginaleventdate %s', existingEvent.date_time);
+            console.log('usersoriginaleventdate %s', usersOriginalEventDate);
         }
-        eventDate = new Date(eventMs);
+        let onDate = eventArray.ON ? eventArray.ON : formatJustDate(usersOriginalEventDate);
+        let atTime = eventArray.AT ? eventArray.AT : formatJustTime(usersOriginalEventDate);
+        // let dateTimeStringToParse = eventArray.ON ? eventArray.ON + ' ' : '' + eventArray.AT ? eventArray.AT : '';
+        let dateTimeStringToParse = onDate + ' ' + atTime;
+        let refDate = usersOriginalEventDate ? usersOriginalEventDate : new Date();
+        console.log('refDate %s then - on %s at %s resulting in %s', refDate, onDate, atTime, dateTimeStringToParse);
+
+        let eventDate = parse(dateTimeStringToParse, refDate, { timezoneOffset: timezoneOffset }).start.date();
+        console.log('parsed date %s', eventDate);
+
+        // let eventUTCdateString = eventDate.toUTCString();
+        // // convert time to user's timezone
+        // let eventDateString = eventUTCdateString.substring(0, eventUTCdateString.length - 3) + currUser.timezone;
+        // console.log('before formatDate %s', eventDateString);
+        // eventDate = new Date(eventDateString);
+        console.log('and finally %s', eventDate);
         validatedEvent.date_time = eventDate;
     }
 
@@ -225,6 +241,14 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
     validatedEvent.campaign = eventArray.PARTOF === null ? undefined : (eventArray.PARTOF ? eventArray.PARTOF : validatedEvent.campaign);;
     validatedEvent.description = eventArray.DESC === null ? undefined : (eventArray.DESC ? eventArray.DESC : validatedEvent.description);;
     return validatedEvent;
+}
+
+function getTimeZoneOffset(timezone) {
+    let utcDate = new Date();
+    let utcDateString = utcDate.toUTCString();
+    let userDateString = utcDateString.substring(0, utcDateString.length - 3) + timezone;
+    let userDate = new Date(userDateString);
+    return -Math.ceil((userDate - utcDate) / 60 / 1000);
 }
 
 /**
@@ -248,13 +272,13 @@ function parseEventString(eventString) {
     sepIndex.push(eventString.toUpperCase().indexOf(separatorArray[6], sepIndex[5]));
     sepIndex.push(eventString.toUpperCase().indexOf(separatorArray[7], sepIndex[6]));
     // add last index as the length of the string
-    sepIndex.push(eventString.length+1);
+    sepIndex.push(eventString.length + 1);
     // console.log('all indexes', sepIndex);
 
     for (let i = 0; i < separatorArray.length; i++) {
         // console.log('sepind %d, separray %s, separraylen %d, nextValid %d', sepIndex[i], separatorArray[i], separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex));
         let param = sepIndex[i] != -1 ?
-            eventString.substring(sepIndex[i] + separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex)-1) :
+            eventString.substring(sepIndex[i] + separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex) - 1) :
             undefined;
         // allow the 'unsetting' of parameters
         if (sepIndex[i] != -1 && !param) {
@@ -308,8 +332,11 @@ function embedForEvent(msg, eventArray, title, isShow) {
                 .setColor('#0099ff');
             i = 0;
         }
+        let messageTitleAndUrl = isShow
+            ? `${theEvent.title} id: ${theEvent._id}`
+            : `[${theEvent.title} id: ${theEvent._id}](https://discordapp.com/channels/${theEvent.guildID}/${theEvent.channelID}/${theEvent.messageID})`;
         eventEmbed.addFields(
-            { name: '🗡 Title 🛡', value: `[${theEvent.title} id: ${theEvent._id}](https://discordapp.com/channels/${theEvent.guildID}/${theEvent.channelID}/${theEvent.messageID})`, inline: false },
+            { name: '🗡 Title 🛡', value: messageTitleAndUrl, inline: false },
             { name: 'DM', value: `${theEvent.dm}`, inline: true },
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time)}`, inline: true },
             { name: 'Duration', value: `${theEvent.duration_hours} hrs`, inline: true },
@@ -331,8 +358,7 @@ function embedForEvent(msg, eventArray, title, isShow) {
 
 function formatDate(date) {
     if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
-        console.log('Intl.DateTimeFormat not available in this environment');
-        return date;
+        throw Error('Intl.DateTimeFormat not available in this environment');
     }
     let validTZ = Intl.DateTimeFormat(undefined, {
         hour: 'numeric',
@@ -343,7 +369,35 @@ function formatDate(date) {
         timeZoneName: 'short'
     });
     let validDateString = validTZ.format(date);
+    // console.log('formatDate %s', validDateString);
+    return validDateString;
+}
+
+function formatJustDate(date) {
+    if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
+        throw Error('Intl.DateTimeFormat not available in this environment');
+    }
+    let validTZ = Intl.DateTimeFormat(undefined, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+    });
+    let validDateString = validTZ.format(date);
     // console.log('valid tz %s', validDateString);
+    return validDateString;
+}
+
+function formatJustTime(date) {
+    if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
+        throw Error('Intl.DateTimeFormat not available in this environment');
+    }
+    let validTZ = Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: 'numeric'
+    });
+    console.log('b4formatJustTime: %s', date);
+    let validDateString = validTZ.format(date);
+    console.log('formatJustTime: %s', validDateString);
     return validDateString;
 }
 

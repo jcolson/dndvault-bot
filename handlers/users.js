@@ -13,7 +13,7 @@ async function handleTimezoneSet(msg, guildConfig) {
         if (!currUser) {
             currUser = new UserModel({ guildID: msg.guild.id, userID: msg.member.id, timezone: timeZoneString });
         } else {
-            // console.log('setting timezone to %s', timeZoneString);
+            console.log('setting timezone to "%s"', timeZoneString);
             currUser.timezone = timeZoneString;
         }
         await currUser.save();
@@ -46,12 +46,12 @@ function isValidTimeZone(tz) {
     if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
         throw 'Time zones are not available in this environment';
     }
-    let validTZ = Intl.DateTimeFormat(undefined, { timeZone: tz, timeZoneName: 'short' });
+    let validTZ = Intl.DateTimeFormat(undefined, { timeZone: tz, timeZoneName: 'long' });
     let validTZstring = validTZ.format(new Date());
     // console.log('valid tz %s', validTZstring);
-    validTZstring = validTZstring.substring(validTZstring.indexOf(', ')+1);
+    validTZstring = validTZstring.substring(validTZstring.indexOf(', ')+2);
     // console.log('valid tz %s', validTZstring);
-    return validTZstring;
+    return tz;
 }
 
 exports.handleTimezoneSet = handleTimezoneSet;

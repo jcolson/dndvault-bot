@@ -10,6 +10,8 @@
   "author": "Jay <jay@karma.net> (https://karma.net/)",
   "license": "ISC",
   "dependencies": {
+    "@holistics/date-parser": "^2.7.2",
+    "dayjs": "^1.10.2",
     "discord.js": "github:discordjs/discord.js",
     "log-timestamp": "^0.3.0",
     "mongoose": "^5.11.8",
