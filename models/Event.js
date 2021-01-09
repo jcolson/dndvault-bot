@@ -28,7 +28,8 @@ const Event = Schema({
         }]
     },
     "campaign": {
-        type: String
+        type: String,
+        index: true
     },
     "description": {
         type: String
@@ -40,10 +41,12 @@ const Event = Schema({
         type: String
     },
     "channelID": {
-        type: String
+        type: String,
+        index: true
     },
     "messageID": {
-        type: String
+        type: String,
+        index: true
     }
 })
 module.exports = model('Event', Event);

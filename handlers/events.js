@@ -187,9 +187,9 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
         throw new Error('You must include a duration for your event.');
     } else if (eventArray['!FOR'] && isNaN(eventArray['!FOR'])) {
         throw new Error(`The duration hours needs to be a number, not: "${eventArray['!FOR']}"`);
-    } else if ((!eventArray['!ON'] && eventArray['!ON']  === null && !existingEvent && !existingEvent.date_time) || eventArray['!ON']  === null) {
+    } else if ((!eventArray['!ON'] && eventArray['!ON'] === null && !existingEvent && !existingEvent.date_time) || eventArray['!ON'] === null) {
         throw new Error('You must include a date for your event.');
-    } else if ((!eventArray['!AT']  && eventArray['!AT']  === null && !existingEvent && !existingEvent.date_time) || eventArray['!AT']  === null) {
+    } else if ((!eventArray['!AT'] && eventArray['!AT'] === null && !existingEvent && !existingEvent.date_time) || eventArray['!AT'] === null) {
         throw new Error('You must include a time for your event.');
     } else if ((!eventArray['!WITH'] && eventArray['!WITH'] === null && !existingEvent && !existingEvent.number_player_slots) || eventArray['!WITH'] === null) {
         throw new Error('You must include a number of player slots for your event.');
@@ -209,7 +209,7 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
 
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: msg.guild.id, userID: msg.member.id });
 
-    if (eventArray['!ON']  || eventArray['!AT'] ) {
+    if (eventArray['!ON'] || eventArray['!AT']) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
         // console.log('tz offset: ' + timezoneOffset);
 
@@ -238,7 +238,7 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
     validatedEvent.duration_hours = eventArray['!FOR'] === null ? undefined : (eventArray['!FOR'] ? eventArray['!FOR'] : validatedEvent.duration_hours);;
     validatedEvent.number_player_slots = eventArray['!WITH'] === null ? undefined : (eventArray['!WITH'] ? eventArray['!WITH'] : validatedEvent.number_player_slots);;
     validatedEvent.campaign = eventArray['!PARTOF'] === null ? undefined : (eventArray['!PARTOF'] ? eventArray['!PARTOF'] : validatedEvent.campaign);;
-    validatedEvent.description = eventArray['!DESC'] === null ? undefined : (eventArray['!DESC']  ? eventArray['!DESC']  : validatedEvent.description);;
+    validatedEvent.description = eventArray['!DESC'] === null ? undefined : (eventArray['!DESC'] ? eventArray['!DESC'] : validatedEvent.description);;
     return validatedEvent;
 }
 
@@ -404,8 +404,22 @@ function formatJustTime(date) {
     return validDateString;
 }
 
+function processReaction(reaction) {
+    // The reaction is now also fully available and the properties will be reflected accurately:
+    console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
+
+    let eventForMessage = EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
+    if (!eventForMessage) {
+        console.log('Did not find event for reaction.');
+        return;
+    }
+
+    
+}
+
 exports.handleEventCreate = handleEventCreate;
 exports.handleEventShow = handleEventShow;
 exports.handleEventEdit = handleEventEdit;
 exports.handleEventRemove = handleEventRemove;
 exports.handleEventList = handleEventList;
+exports.processReaction = processReaction;

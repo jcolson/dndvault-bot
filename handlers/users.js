@@ -54,5 +54,34 @@ function isValidTimeZone(tz) {
     return tz;
 }
 
+/**
+ * Check to see if the user that sent the message is in the role or an admin (so it is automatically authorized)
+ * @param {Message} msg 
+ * @param {String} roleId 
+ */
+async function hasRoleOrIsAdmin(msg, roleId) {
+    // if (roleId == '792845390834958368') {
+    //     return false;
+    // }
+    let hasRole = false;
+    try {
+        if (msg.member.hasPermission('ADMINISTRATOR')) {
+            // console.log('User is an admin.');
+            hasRole = true;
+        } else {
+            msg.member.roles.cache.array().forEach((role) => {
+                // console.log('role check: ' + role.id + " : " + roleId);
+                if (role.id == roleId) {
+                    hasRole = true;
+                }
+            })
+        }
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+    return hasRole;
+}
+
 exports.handleTimezoneSet = handleTimezoneSet;
 exports.handleTimezone = handleTimezone;
+exports.hasRoleOrIsAdmin = hasRoleOrIsAdmin;

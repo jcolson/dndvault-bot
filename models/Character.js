@@ -15,12 +15,17 @@ const Character = Schema({
     },
     "approvalStatus": {
         "type": "Boolean",
-        index: true
+        index: true,
+        default: false
     },
     "isUpdate": {
         "type": "Boolean",
         index: true,
         default: false
+    },
+    "campaignOverride": {
+        "type": "String",
+        index: true
     },
     "approvedBy": {
         "type": "String"
