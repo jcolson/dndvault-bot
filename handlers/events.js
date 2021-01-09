@@ -59,15 +59,21 @@ async function handleEventEdit(msg, guildConfig) {
                     await client.guilds.fetch(validatedEvent.guildID)
                 ).channels.resolve(validatedEvent.channelID)
             ).messages.fetch(validatedEvent.messageID);
-            await eventMessage.delete();
+            await eventMessage.edit(embedForEvent(msg, [validatedEvent], `Event`, true));
+            // await eventMessage.delete();
         } catch (error) {
-            console.log(`couldn't delete old event message on edit: ${error.message}`);
+            console.log(`couldn't edit old event message on edit: ${error.message}`);
+            let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
+            validatedEvent.channelID = sentMessage.channel.id;
+            validatedEvent.messageID = sentMessage.id;
+            await sentMessage.react('✅');
         }
-        let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
-        validatedEvent.channelID = sentMessage.channel.id;
-        validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
-        await sentMessage.react('✅');
+        let responseMessage = new MessageEmbed();
+        responseMessage.addFields({ name: '🗡 You 🛡', value: `<@${msg.member.id}>`, inline: true },
+            { name: `Successfully Edited`, value: getLinkForEvent(validatedEvent), inline: true });
+        await msg.channel.send(responseMessage);
+        // await msg.channel.send(`<@${msg.member.id}> ... Successfully edited: ${getLinkForEvent(validatedEvent)}`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -175,71 +181,64 @@ async function handleEventList(msg, guildConfig) {
  * @returns {EventModel}
  */
 async function validateEvent(eventArray, msg, currUser, existingEvent) {
-    if ((!eventArray.TITLE && !existingEvent && !existingEvent.title) || eventArray.TITLE === null) {
+    if ((!eventArray['!TITLE'] && !existingEvent && !existingEvent.title) || eventArray['!TITLE'] === null) {
         throw new Error('You must include a title for your event.');
-    } else if ((!eventArray.FOR && eventArray.FOR === null && !existingEvent && !existingEvent.duration) || eventArray.FOR === null) {
+    } else if ((!eventArray['!FOR'] && eventArray['!FOR'] === null && !existingEvent && !existingEvent.duration) || eventArray['!FOR'] === null) {
         throw new Error('You must include a duration for your event.');
-    } else if (eventArray.FOR && isNaN(eventArray.FOR)) {
-        throw new Error(`The duration hours needs to be a number, not: "${eventArray.duration}"`);
-    } else if ((!eventArray.ON && eventArray.ON === null && !existingEvent && !existingEvent.date_time) || eventArray.ON === null) {
+    } else if (eventArray['!FOR'] && isNaN(eventArray['!FOR'])) {
+        throw new Error(`The duration hours needs to be a number, not: "${eventArray['!FOR']}"`);
+    } else if ((!eventArray['!ON'] && eventArray['!ON']  === null && !existingEvent && !existingEvent.date_time) || eventArray['!ON']  === null) {
         throw new Error('You must include a date for your event.');
-    } else if ((!eventArray.AT && eventArray.AT === null && !existingEvent && !existingEvent.date_time) || eventArray.AT === null) {
+    } else if ((!eventArray['!AT']  && eventArray['!AT']  === null && !existingEvent && !existingEvent.date_time) || eventArray['!AT']  === null) {
         throw new Error('You must include a time for your event.');
-    } else if ((!eventArray.WITH && eventArray.WITH === null && !existingEvent && !existingEvent.number_player_slots) || eventArray.WITH === null) {
+    } else if ((!eventArray['!WITH'] && eventArray['!WITH'] === null && !existingEvent && !existingEvent.number_player_slots) || eventArray['!WITH'] === null) {
         throw new Error('You must include a number of player slots for your event.');
-    } else if ((!eventArray.DESC && eventArray.DESC === null && !existingEvent && !existingEvent.description) || eventArray.DESC === null) {
+    } else if ((!eventArray['!DESC'] && eventArray['!DESC'] === null && !existingEvent && !existingEvent.description) || eventArray['!DESC'] === null) {
         throw new Error('You must include a description for your event.');
-    } else if (eventArray.WITH && isNaN(eventArray.WITH)) {
-        throw new Error(`The number of player slots needs to be a number, not: "${eventArray.WITH}"`);
-    } else if (eventArray.PARTOF && isNaN(eventArray.PARTOF)) {
-        throw new Error(`The campaign id needs to be a number, not: "${eventArray.PARTOF}"`);
-    } else if (eventArray.PARTOF) {
+    } else if (eventArray['!WITH'] && isNaN(eventArray['!WITH'])) {
+        throw new Error(`The number of player slots needs to be a number, not: "${eventArray['!WITH']}"`);
+    } else if (eventArray['!PARTOF'] && isNaN(eventArray['!PARTOF'])) {
+        throw new Error(`The campaign id needs to be a number, not: "${eventArray['!PARTOF']}"`);
+    } else if (eventArray['!PARTOF']) {
         //let campaigns = await CharModel.find().distinct('campaign.id');
-        let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaign.id": eventArray.PARTOF });
+        let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaign.id": eventArray['!PARTOF'] });
         if (!campaignCharExample) {
-            throw new Error(`The campaign id "${eventArray.PARTOF}" is not being used by any characters on this server.`);
+            throw new Error(`The campaign id "${eventArray['!PARTOF']}" is not being used by any characters on this server.`);
         }
     }
 
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: msg.guild.id, userID: msg.member.id });
 
-    if (eventArray.ON || eventArray.AT) {
+    if (eventArray['!ON']  || eventArray['!AT'] ) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
-        console.log('tz offset: ' + timezoneOffset);
+        // console.log('tz offset: ' + timezoneOffset);
 
         // convert to user's time if this exists already
         let usersOriginalEventDate;
         if (existingEvent && existingEvent.date_time) {
             usersOriginalEventDate = new Date(existingEvent.date_time.toLocaleString("en-US", { timeZone: currUser.timezone }));
-            console.log('GMToriginaleventdate %s', existingEvent.date_time);
-            console.log('usersoriginaleventdate %s', usersOriginalEventDate);
+            // console.log('GMToriginaleventdate %s', existingEvent.date_time);
+            // console.log('usersoriginaleventdate %s', usersOriginalEventDate);
         }
-        let onDate = eventArray.ON ? eventArray.ON : formatJustDate(usersOriginalEventDate);
-        let atTime = eventArray.AT ? eventArray.AT : formatJustTime(usersOriginalEventDate);
-        // let dateTimeStringToParse = eventArray.ON ? eventArray.ON + ' ' : '' + eventArray.AT ? eventArray.AT : '';
+        //@todo: figure out a way to get the fuzzy parsing per date and per time working
+        let onDate = eventArray['!ON'] ? eventArray['!ON'] : formatJustDate(usersOriginalEventDate);
+        let atTime = eventArray['!AT'] ? eventArray['!AT'] : formatJustTime(usersOriginalEventDate);
         let dateTimeStringToParse = onDate + ' ' + atTime;
         let refDate = usersOriginalEventDate ? usersOriginalEventDate : new Date();
-        console.log('refDate %s then - on %s at %s resulting in %s', refDate, onDate, atTime, dateTimeStringToParse);
+        // console.log('refDate %s then - on %s at %s resulting in %s', refDate, onDate, atTime, dateTimeStringToParse);
 
         let eventDate = parse(dateTimeStringToParse, refDate, { timezoneOffset: timezoneOffset }).start.date();
-        console.log('parsed date %s', eventDate);
-
-        // let eventUTCdateString = eventDate.toUTCString();
-        // // convert time to user's timezone
-        // let eventDateString = eventUTCdateString.substring(0, eventUTCdateString.length - 3) + currUser.timezone;
-        // console.log('before formatDate %s', eventDateString);
-        // eventDate = new Date(eventDateString);
-        console.log('and finally %s', eventDate);
+        // console.log('parsed date %s', eventDate);
         validatedEvent.date_time = eventDate;
     }
 
     // console.log(eventArray);
-    validatedEvent.title = eventArray.TITLE === null ? undefined : (eventArray.TITLE ? eventArray.TITLE : validatedEvent.title);
-    validatedEvent.dm = eventArray.DMGM === null ? undefined : (eventArray.DMGM ? eventArray.DMGM : validatedEvent.dm);;
-    validatedEvent.duration_hours = eventArray.FOR === null ? undefined : (eventArray.FOR ? eventArray.FOR : validatedEvent.duration_hours);;
-    validatedEvent.number_player_slots = eventArray.WITH === null ? undefined : (eventArray.WITH ? eventArray.WITH : validatedEvent.number_player_slots);;
-    validatedEvent.campaign = eventArray.PARTOF === null ? undefined : (eventArray.PARTOF ? eventArray.PARTOF : validatedEvent.campaign);;
-    validatedEvent.description = eventArray.DESC === null ? undefined : (eventArray.DESC ? eventArray.DESC : validatedEvent.description);;
+    validatedEvent.title = eventArray['!TITLE'] === null ? undefined : (eventArray['!TITLE'] ? eventArray['!TITLE'] : validatedEvent.title);
+    validatedEvent.dm = eventArray['!DMGM'] === null ? undefined : (eventArray['!DMGM'] ? eventArray['!DMGM'] : validatedEvent.dm);;
+    validatedEvent.duration_hours = eventArray['!FOR'] === null ? undefined : (eventArray['!FOR'] ? eventArray['!FOR'] : validatedEvent.duration_hours);;
+    validatedEvent.number_player_slots = eventArray['!WITH'] === null ? undefined : (eventArray['!WITH'] ? eventArray['!WITH'] : validatedEvent.number_player_slots);;
+    validatedEvent.campaign = eventArray['!PARTOF'] === null ? undefined : (eventArray['!PARTOF'] ? eventArray['!PARTOF'] : validatedEvent.campaign);;
+    validatedEvent.description = eventArray['!DESC'] === null ? undefined : (eventArray['!DESC']  ? eventArray['!DESC']  : validatedEvent.description);;
     return validatedEvent;
 }
 
@@ -258,9 +257,9 @@ function getTimeZoneOffset(timezone) {
  * @param {String} eventString 
  */
 function parseEventString(eventString) {
-    const separatorArray = ['TITLE', 'DMGM', 'AT', 'FOR', 'ON', 'WITH', 'PARTOF', 'DESC'];
+    const separatorArray = ['!TITLE', '!DMGM', '!AT', '!FOR', '!ON', '!WITH', '!PARTOF', '!DESC'];
     const eventArray = {};
-    console.log(`"${eventString}`);
+    // console.log(`"${eventString}`);
     // check if all required separators exist
     const sepIndex = [];
     sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[0] + ' '));
@@ -273,7 +272,7 @@ function parseEventString(eventString) {
     sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[7] + ' ', sepIndex[6]));
     // add last index as the length of the string
     sepIndex.push(eventString.length + 1);
-    console.log('all indexes', sepIndex);
+    // console.log('all indexes', sepIndex);
 
     for (let i = 0; i < separatorArray.length; i++) {
         // console.log('sepind %d, separray %s, separraylen %d, nextValid %d', sepIndex[i], separatorArray[i], separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex));
@@ -286,7 +285,7 @@ function parseEventString(eventString) {
         }
         eventArray[separatorArray[i]] = param;
     }
-    console.log('array', eventArray);
+    // console.log('array', eventArray);
     return eventArray;
 }
 
@@ -334,7 +333,7 @@ function embedForEvent(msg, eventArray, title, isShow) {
         }
         let messageTitleAndUrl = isShow
             ? `${theEvent.title} id: ${theEvent._id}`
-            : `[${theEvent.title} id: ${theEvent._id}](https://discordapp.com/channels/${theEvent.guildID}/${theEvent.channelID}/${theEvent.messageID})`;
+            : `${getLinkForEvent(theEvent)}`;
         eventEmbed.addFields(
             { name: '🗡 Title 🛡', value: messageTitleAndUrl, inline: false },
             { name: 'DM', value: `${theEvent.dm}`, inline: true },
@@ -354,6 +353,10 @@ function embedForEvent(msg, eventArray, title, isShow) {
     );
     returnEmbeds.push(eventEmbed);
     return returnEmbeds;
+}
+
+function getLinkForEvent(theEvent) {
+    return `[${theEvent.title}](https://discordapp.com/channels/${theEvent.guildID}/${theEvent.channelID}/${theEvent.messageID}) (id: ${theEvent._id})`;
 }
 
 function formatDate(date) {

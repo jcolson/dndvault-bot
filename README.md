@@ -88,9 +88,9 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] {no args} - view your timezone
   - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
 - [ ] event
-  - [x] create title [MISSION_TITLE] dmgm [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
-  - [x] edit [MISSION_ID] title [MISSION_TITLE] dmgm [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] {partof [CAMPAIGN]} desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
-  - [x] show [MISSION_ID] - show a particular mission's information
+  - [x] create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] {!partof [CAMPAIGN]} !desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
+  - [x] edit [MISSION_ID] !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !partof [CAMPAIGN] !desc [MISSION_DESC_REGION_PLAYSTYLE] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
+  - [x] show [MISSION_ID] - replace the posting for an event (for instance if it got deleted by accident)
   - [x] remove [MISSION_ID] - removes mission event
   - [ ] deploy [MISSION_ID] [@USER_NAME] - mark an event as deployed, user will become 'DM' for event
   - [ ] list - list all future events (PROPOSed and DEPLOYed)
@@ -143,7 +143,7 @@ https://discordapp.com/channels/785567026512527390
 ```
 
 ```
-!event create title Test Mission DMGM @D&D Vault Test at 9:00 pm for 3.5 on Jan 17 2030 with 5 desc Starting Region # according to Region Map Mode (mandatory, can be more specific, bonus points for googling real life names, extra points if historic names): Christchurch
+!event create !title Test Mission !DMGM @D&D Vault Test !at 9:00 pm !for 3.5 !on Jan 17 2030 !with 5 !desc Starting Region # according to Region Map Mode (mandatory, can be more specific, bonus points for googling real life names, extra points if historic names): Christchurch
 
 Mission Description/Goal: Your initiation. Are you ready?
 OR
