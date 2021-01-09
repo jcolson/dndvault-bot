@@ -25,6 +25,7 @@ async function handleEventCreate(msg, guildConfig) {
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
         await sentMessage.react('✅');
+        await sentMessage.react('❎');
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -67,6 +68,7 @@ async function handleEventEdit(msg, guildConfig) {
             validatedEvent.channelID = sentMessage.channel.id;
             validatedEvent.messageID = sentMessage.id;
             await sentMessage.react('✅');
+            await sentMessage.react('❎');
         }
         await validatedEvent.save();
         let responseMessage = new MessageEmbed();
@@ -146,6 +148,7 @@ async function handleEventShow(msg, guildConfig) {
         showEvent.messageID = sentMessage.id;
         await showEvent.save();
         await sentMessage.react('✅');
+        await sentMessage.react('❎');
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }
@@ -197,13 +200,14 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
         throw new Error('You must include a description for your event.');
     } else if (eventArray['!WITH'] && isNaN(eventArray['!WITH'])) {
         throw new Error(`The number of player slots needs to be a number, not: "${eventArray['!WITH']}"`);
-    } else if (eventArray['!PARTOF'] && isNaN(eventArray['!PARTOF'])) {
-        throw new Error(`The campaign id needs to be a number, not: "${eventArray['!PARTOF']}"`);
-    } else if (eventArray['!PARTOF']) {
+    } else if (eventArray['!CAMPAIGN']) {
         //let campaigns = await CharModel.find().distinct('campaign.id');
-        let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaign.id": eventArray['!PARTOF'] });
+        let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaignOverride": eventArray['!CAMPAIGN'] });
         if (!campaignCharExample) {
-            throw new Error(`The campaign id "${eventArray['!PARTOF']}" is not being used by any characters on this server.`);
+            campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaign.id": eventArray['!CAMPAIGN'] });
+            if (!campaignCharExample) {
+                throw new Error(`The campaign id "${eventArray['!CAMPAIGN']}" is not being used by any characters on this server.`);
+            }
         }
     }
 
@@ -234,11 +238,11 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
 
     // console.log(eventArray);
     validatedEvent.title = eventArray['!TITLE'] === null ? undefined : (eventArray['!TITLE'] ? eventArray['!TITLE'] : validatedEvent.title);
-    validatedEvent.dm = eventArray['!DMGM'] === null ? undefined : (eventArray['!DMGM'] ? eventArray['!DMGM'] : validatedEvent.dm);;
-    validatedEvent.duration_hours = eventArray['!FOR'] === null ? undefined : (eventArray['!FOR'] ? eventArray['!FOR'] : validatedEvent.duration_hours);;
-    validatedEvent.number_player_slots = eventArray['!WITH'] === null ? undefined : (eventArray['!WITH'] ? eventArray['!WITH'] : validatedEvent.number_player_slots);;
-    validatedEvent.campaign = eventArray['!PARTOF'] === null ? undefined : (eventArray['!PARTOF'] ? eventArray['!PARTOF'] : validatedEvent.campaign);;
-    validatedEvent.description = eventArray['!DESC'] === null ? undefined : (eventArray['!DESC'] ? eventArray['!DESC'] : validatedEvent.description);;
+    validatedEvent.dm = eventArray['!DMGM'] === null ? undefined : (eventArray['!DMGM'] ? eventArray['!DMGM'] : validatedEvent.dm);
+    validatedEvent.duration_hours = eventArray['!FOR'] === null ? undefined : (eventArray['!FOR'] ? eventArray['!FOR'] : validatedEvent.duration_hours);
+    validatedEvent.number_player_slots = eventArray['!WITH'] === null ? undefined : (eventArray['!WITH'] ? eventArray['!WITH'] : validatedEvent.number_player_slots);
+    validatedEvent.campaign = eventArray['!CAMPAIGN'] === null ? undefined : (eventArray['!CAMPAIGN'] ? eventArray['!CAMPAIGN'] : validatedEvent.campaign);
+    validatedEvent.description = eventArray['!DESC'] === null ? undefined : (eventArray['!DESC'] ? eventArray['!DESC'] : validatedEvent.description);
     return validatedEvent;
 }
 
@@ -252,12 +256,12 @@ function getTimeZoneOffset(timezone) {
 
 /**
  * parse a message like
- * !event create [MISSION_TITLE] @DM [@USER_NAME] at [TIME] for [DURATION_HOURS] on [DATE] with [NUMBER_PLAYER_SLOTS] partof [CAMPAIGN] desc [test]
+ * !event create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [test]
  * in order to create a mission
  * @param {String} eventString 
  */
 function parseEventString(eventString) {
-    const separatorArray = ['!TITLE', '!DMGM', '!AT', '!FOR', '!ON', '!WITH', '!PARTOF', '!DESC'];
+    const separatorArray = ['!TITLE', '!DMGM', '!AT', '!FOR', '!ON', '!WITH', '!CAMPAIGN', '!DESC'];
     const eventArray = {};
     // console.log(`"${eventString}`);
     // check if all required separators exist
@@ -340,19 +344,36 @@ function embedForEvent(msg, eventArray, title, isShow) {
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time)}`, inline: true },
             { name: 'Duration', value: `${theEvent.duration_hours} hrs`, inline: true },
         );
+        if (theEvent.campaign) {
+            eventEmbed.addField('Campaign', theEvent.campaign, true);
+        }
         if (isShow) {
             eventEmbed.addFields(
+                { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
                 { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
                 { name: 'Created By', value: `<@${theEvent.userID}>`, inline: true },
+                { name: 'Attendees', value: `${getStringForAttendees(theEvent)}`, inline: true },
                 { name: 'Description', value: `${theEvent.description}`, inline: false },
             );
         }
-    })
+    });
     eventEmbed.addFields(
-        { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
+        {
+            name: '\u200B', value: `
+✅ - Sign up for event | ❎ - Remove yourself from event\n
+Add this BOT to your server. [Click here](${Config.inviteURL})`
+        },
     );
     returnEmbeds.push(eventEmbed);
     return returnEmbeds;
+}
+
+function getStringForAttendees(event) {
+    let attendees = '';
+    event.attendees.forEach((attendee) => {
+        attendees += `<@${attendee.userID}>,`;
+    });
+    return attendees;
 }
 
 function getLinkForEvent(theEvent) {
@@ -404,17 +425,68 @@ function formatJustTime(date) {
     return validDateString;
 }
 
-function processReaction(reaction) {
-    // The reaction is now also fully available and the properties will be reflected accurately:
-    console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
+async function handleReaction(reaction, user) {
+    try {
+        // The reaction is now also fully available and the properties will be reflected accurately:
+        console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
 
-    let eventForMessage = EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
-    if (!eventForMessage) {
-        console.log('Did not find event for reaction.');
-        return;
+        let eventForMessage = EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
+        if (!eventForMessage) {
+            console.log('Did not find event for reaction.');
+            return;
+        }
+        // console.log(reaction.emoji);
+        if (reaction.emoji && reaction.emoji.name == '✅') {
+            attendeeAdd(reaction, user, eventForMessage);
+        } else if (reaction.emoji && reaction.emoji.name == '❎') {
+            attendeeRemove(reaction, user, eventForMessage);
+        } else {
+            console.log('Unknown reaction');
+        }
+        console.log('after check attendee');
+    } catch (error) {
+        await reaction.message.channel.send(`<@${user.id}> ... ${error.message}`);
+    } finally {
+        await reaction.users.remove(user.id);
     }
+}
 
-    
+async function attendeeAdd(reaction, user, eventForMessage) {
+    console.log('in attendeeAdd');
+    let charParams = { guildID: reaction.message.guild.id, guildUser: user.id, approvalStatus: true, isUpdate: false };
+    if (eventForMessage.campaign) {
+        charParams = {
+            "$and": [
+                {
+                    "guildID": reaction.message.guild.id,
+                    "guildUser": user.id,
+                    "approvalStatus": true,
+                    "isUpdate": false
+                },
+                {
+                    "$or": [
+                        {
+                            "campaignOverride": eventForMessage.campaign
+                        },
+                        {
+                            "campaign.id": eventForMessage.campaign
+                        }
+                    ]
+                }
+            ]
+        };
+    }
+    let character = await CharModel.findOne(charParams);
+    if (!character) {
+        console.log(error.message);
+        throw new Error(`Could not locate en eligible character to join the mission.`)
+    }
+    console.log('Character will be playing: ' + character.name);
+
+}
+
+function attendeeRemove(reaction, user) {
+
 }
 
 exports.handleEventCreate = handleEventCreate;
@@ -422,4 +494,4 @@ exports.handleEventShow = handleEventShow;
 exports.handleEventEdit = handleEventEdit;
 exports.handleEventRemove = handleEventRemove;
 exports.handleEventList = handleEventList;
-exports.processReaction = processReaction;
+exports.handleReaction = handleReaction;

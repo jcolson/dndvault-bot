@@ -21,9 +21,10 @@ const Event = Schema({
     "number_player_slots": {
         type: Number
     },
-    "users_signed_up": {
+    "attendees": {
         type: [{
             "userID": String,
+            "characterID": String,
             "date_time": Date
         }]
     },

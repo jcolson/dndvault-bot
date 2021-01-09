@@ -597,7 +597,7 @@ function embedForCharacter(msg, charArray, title, isShow) {
                         '?', inline: true
                 },
                 {
-                    name: 'Campaign', value: (char.campaign && char.campaign.name ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})` : `N/A`),
+                    name: 'Campaign', value: stringForCampaign(char),
                     inline: true
                 },
                 { name: 'Attributes*', value: stringForStats(char), inline: true }
@@ -609,6 +609,21 @@ function embedForCharacter(msg, charArray, title, isShow) {
     );
     returnEmbeds.push(charEmbed);
     return returnEmbeds;
+}
+
+function stringForCampaign(char) {
+    const dndCampaign = (char.campaign && char.campaign.name
+        ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
+        : undefined);
+    let returnCampaign = '';
+    if (dndCampaign && char.campaignOverride) {
+        returnCampaign = char.campaignOverride + ' DDB:' + dndCampaign;
+    } else if (char.campaignOverride) {
+        returnCampaign = char.campaignOverride;
+    } else if (dndCampaign) {
+        returnCampaign = dndCampaign;
+    }
+    return returnCampaign;
 }
 
 /**
@@ -795,6 +810,33 @@ async function handleShow(msg, guildConfig) {
     }
 }
 
+/**
+ * allow editing of campaign to override dndbeyond
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleCampaign(msg, guildConfig) {
+    try {
+        const parameterString = msg.content.substr((guildConfig.prefix + 'campaign').length + 1);
+        const charID = parameterString.substring(0, parameterString.indexOf(' '));
+        const campaignID = parameterString.substring(parameterString.indexOf(' ') + 1);
+        console.log(`charid: ${charID} campaignID: ${campaignID}`);
+        if (!charID || !campaignID) {
+            throw new Error('Please pass the character id and the campaign id.');
+        }
+        const charToEdit = await CharModel.findOne({ guildUser: msg.member.id, id: charID, isUpdate: false, guildID: msg.guild.id });
+        if (!charToEdit) {
+            throw new Error(`No (approved) character (${charID}) found for your id.`);
+        }
+        charToEdit.campaignOverride = campaignID;
+        await charToEdit.save();
+        await msg.channel.send(`Character ${charID} campaign changed to ${campaignID}`);
+        await msg.delete();
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
 exports.handleRegister = handleRegister;
 exports.handleUpdate = handleUpdate;
 exports.handleListCampaign = handleListCampaign;
@@ -806,3 +848,4 @@ exports.handleRemove = handleRemove;
 exports.handleApprove = handleApprove;
 exports.handleShow = handleShow;
 exports.handleChanges = handleChanges;
+exports.handleCampaign = handleCampaign;

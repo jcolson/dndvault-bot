@@ -42,9 +42,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
             return;
         }
     }
-    // Now the message has been cached and is fully available
-    console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-    await events.processReaction(reaction);
+    if (!user.bot) {
+        // Now the message has been cached and is fully available
+        console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+        await events.handleReaction(reaction, user);
+    } else {
+        console.log('bot reacted');
+    }
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
@@ -87,6 +91,8 @@ client.on('message', async (msg) => {
         characters.handleUpdate(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
         characters.handleChanges(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'campaign')) {
+        characters.handleCampaign(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list campaign')) {
         characters.handleListCampaign(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'list user')) {
