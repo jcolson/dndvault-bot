@@ -470,6 +470,10 @@ async function handleReactionRemove(reaction, user) {
         // console.log(reaction.emoji);
         if (reaction.emoji && reaction.emoji.name == '✅') {
             attendeeRemove(reaction, user, eventForMessage);
+
+
+
+
         } else {
             console.log('Unknown reaction');
         }
@@ -513,7 +517,16 @@ async function attendeeAdd(reaction, user, eventForMessage) {
         throw new Error(`Could not locate en eligible character to join the mission.`)
     }
     console.log('Character will be playing: ' + character.name);
+    console.log('attendees: ', eventForMessage.attendees);
+    //@todo WIP
+    
+    if (!eventForMessage.attendees) {
+        eventForMessage.attendees = [];
+    }
+    eventForMessage.attendees.push({ userID: user.id, characterID: character.id, date_time: new Date() });
 
+    await eventForMessage.save();
+    await reaction.message.edit(embedForEvent(reaction.message, [eventForMessage], `Event`, true));
 }
 
 function attendeeRemove(reaction, user) {
