@@ -1,9 +1,11 @@
 require('log-timestamp');
-const { characters, events, help, users } = require('./handlers');
+const characters = require('./handlers/characters.js');
+const events = require('./handlers/events.js');
+const help = require('./handlers/help.js');
+const users = require('./handlers/users.js');
 const path = require('path');
 const { Client, MessageEmbed, Role } = require('discord.js');
 const GuildModel = require('./models/Guild');
-const CharModel = require('./models/Character');
 const { connect } = require('mongoose');
 global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 const GuildCache = {};
@@ -45,7 +47,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     if (!user.bot) {
         // Now the message has been cached and is fully available
         console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-        await events.handleReaction(reaction, user);
+        await events.handleReactionAdd(reaction, user);
     } else {
         console.log('bot reacted');
     }
@@ -63,9 +65,13 @@ client.on('messageReactionRemove', async (reaction, user) => {
             return;
         }
     }
-    // Now the message has been cached and is fully available
-    console.log(`${reaction.message.author}'s message "${reaction.message.id}" lost a reaction!`);
-    // await events.processReaction(reaction);
+    if (!user.bot) {
+        // Now the message has been cached and is fully available
+        console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+        await events.handleReactionRemove(reaction, user);
+    } else {
+        console.log('bot reacted');
+    }
 });
 
 client.on('message', async (msg) => {

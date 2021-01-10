@@ -3,7 +3,7 @@ const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
 const { MessageEmbed } = require('discord.js');
 const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
-// const dayjs = require('dayjs');
+const users = require('../handlers/users.js');
 
 /**
  * Create an event
@@ -25,7 +25,7 @@ async function handleEventCreate(msg, guildConfig) {
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
         await sentMessage.react('✅');
-        await sentMessage.react('❎');
+        // await sentMessage.react('❎');
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -40,7 +40,10 @@ async function handleEventEdit(msg, guildConfig) {
         }
         let eventString = msg.content.substring((guildConfig.prefix + 'event edit').length + 1);
         const eventID = eventString.substring(0, eventString.indexOf(' '));
-        // console.log(eventID);
+        console.log(eventID);
+        if (eventID.length < 1) {
+            throw new Error('Not enough parameters');
+        }
         eventString = eventString.substring(eventString.indexOf(' '));
         let existingEvent;
         try {
@@ -68,7 +71,7 @@ async function handleEventEdit(msg, guildConfig) {
             validatedEvent.channelID = sentMessage.channel.id;
             validatedEvent.messageID = sentMessage.id;
             await sentMessage.react('✅');
-            await sentMessage.react('❎');
+            // await sentMessage.react('❎');
         }
         await validatedEvent.save();
         let responseMessage = new MessageEmbed();
@@ -120,6 +123,7 @@ async function handleEventRemove(msg, guildConfig) {
  */
 async function handleEventShow(msg, guildConfig) {
     try {
+
         const eventID = msg.content.substring((guildConfig.prefix + 'event show').length + 1);
         let showEvent;
         try {
@@ -129,6 +133,9 @@ async function handleEventShow(msg, guildConfig) {
             }
         } catch (error) {
             throw new Error('Event not found.');
+        }
+        if (!users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+            throw new Error(`Please ask an approver to re-show this event if needed, it should be available here: ${getLinkForEvent(showEvent)}`);
         }
         const embedEvent = embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
         const sentMessage = await msg.channel.send(embedEvent);
@@ -148,7 +155,7 @@ async function handleEventShow(msg, guildConfig) {
         showEvent.messageID = sentMessage.id;
         await showEvent.save();
         await sentMessage.react('✅');
-        await sentMessage.react('❎');
+        // await sentMessage.react('❎');
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }
@@ -360,7 +367,7 @@ function embedForEvent(msg, eventArray, title, isShow) {
     eventEmbed.addFields(
         {
             name: '\u200B', value: `
-✅ - Sign up for event | ❎ - Remove yourself from event\n
+✅ - Sign up/remove for event\n
 Add this BOT to your server. [Click here](${Config.inviteURL})`
         },
     );
@@ -373,7 +380,7 @@ function getStringForAttendees(event) {
     event.attendees.forEach((attendee) => {
         attendees += `<@${attendee.userID}>,`;
     });
-    return attendees;
+    return attendees != '' ? attendees : 'None yet';
 }
 
 function getLinkForEvent(theEvent) {
@@ -425,7 +432,7 @@ function formatJustTime(date) {
     return validDateString;
 }
 
-async function handleReaction(reaction, user) {
+async function handleReactionAdd(reaction, user) {
     try {
         // The reaction is now also fully available and the properties will be reflected accurately:
         console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
@@ -438,7 +445,30 @@ async function handleReaction(reaction, user) {
         // console.log(reaction.emoji);
         if (reaction.emoji && reaction.emoji.name == '✅') {
             attendeeAdd(reaction, user, eventForMessage);
-        } else if (reaction.emoji && reaction.emoji.name == '❎') {
+        } else {
+            console.log('Unknown reaction');
+        }
+        console.log('after check attendee');
+    } catch (error) {
+        await reaction.message.channel.send(`<@${user.id}> ... ${error.message}`);
+    }
+    // finally {
+    //     await reaction.users.remove(user.id);
+    // }
+}
+
+async function handleReactionRemove(reaction, user) {
+    try {
+        // The reaction is now also fully available and the properties will be reflected accurately:
+        console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
+
+        let eventForMessage = EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
+        if (!eventForMessage) {
+            console.log('Did not find event for reaction.');
+            return;
+        }
+        // console.log(reaction.emoji);
+        if (reaction.emoji && reaction.emoji.name == '✅') {
             attendeeRemove(reaction, user, eventForMessage);
         } else {
             console.log('Unknown reaction');
@@ -446,9 +476,10 @@ async function handleReaction(reaction, user) {
         console.log('after check attendee');
     } catch (error) {
         await reaction.message.channel.send(`<@${user.id}> ... ${error.message}`);
-    } finally {
-        await reaction.users.remove(user.id);
     }
+    //finally {
+    //     await reaction.users.remove(user.id);
+    // }
 }
 
 async function attendeeAdd(reaction, user, eventForMessage) {
@@ -494,4 +525,5 @@ exports.handleEventShow = handleEventShow;
 exports.handleEventEdit = handleEventEdit;
 exports.handleEventRemove = handleEventRemove;
 exports.handleEventList = handleEventList;
-exports.handleReaction = handleReaction;
+exports.handleReactionAdd = handleReactionAdd;
+exports.handleReactionRemove = handleReactionRemove;

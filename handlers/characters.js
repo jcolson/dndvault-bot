@@ -2,7 +2,8 @@
 const { Client, MessageEmbed, Role } = require('discord.js');
 const fetch = require('node-fetch');
 const CharModel = require('../models/Character');
-const { users } = require('../handlers');
+const users = require('../handlers/users.js');
+
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
     '3': 'acrobatics', '11': 'animalHandling', '6': 'arcana', '2': 'athletics', '16': 'deception', '7': 'history',
