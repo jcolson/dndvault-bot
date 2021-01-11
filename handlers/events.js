@@ -123,7 +123,6 @@ async function handleEventRemove(msg, guildConfig) {
  */
 async function handleEventShow(msg, guildConfig) {
     try {
-
         const eventID = msg.content.substring((guildConfig.prefix + 'event show').length + 1);
         let showEvent;
         try {
@@ -134,7 +133,7 @@ async function handleEventShow(msg, guildConfig) {
         } catch (error) {
             throw new Error('Event not found.');
         }
-        if (!users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+        if (!await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
             throw new Error(`Please ask an approver to re-show this event if needed, it should be available here: ${getLinkForEvent(showEvent)}`);
         }
         const embedEvent = embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
@@ -364,11 +363,14 @@ function embedForEvent(msg, eventArray, title, isShow) {
             );
         }
     });
+    let signUpInfo = '';
+    if (isShow) {
+        signUpInfo = `✅ - Sign up for event | ❎ - Remove yourself\n`;
+    }
     eventEmbed.addFields(
         {
             name: '\u200B', value: `
-✅ - Sign up for event | ❎ - Remove yourself\n
-Add this BOT to your server. [Click here](${Config.inviteURL})`
+${signUpInfo}Add this BOT to your server. [Click here](${Config.inviteURL})`
         },
     );
     returnEmbeds.push(eventEmbed);
@@ -468,11 +470,12 @@ async function handleReactionAdd(reaction, user) {
 async function attendeeAdd(reaction, user, eventForMessage) {
     let charParams;
     if (!eventForMessage.campaign) {
-        let user = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
-        if (user) {
-            charParams = { guildID: reaction.message.guild.id, guildUser: user.id, id: user.defaultCharacter, approvalStatus: true };
+        console.log('guildid %s and userid %s', reaction.message.guild.id, user.id);
+        let vaultUser = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
+        if (vaultUser) {
+            charParams = { guildID: reaction.message.guild.id, guildUser: user.id, id: vaultUser.defaultCharacter, approvalStatus: true };
         } else {
-            throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have set \`!default\` character for events with no campaign set.`);
+            throw new Error(`Make sure you have set \`!default\` character for events with no campaign set.`);
         }
     } else {
         charParams = {
@@ -498,7 +501,11 @@ async function attendeeAdd(reaction, user, eventForMessage) {
     }
     let character = await CharModel.findOne(charParams);
     if (!character) {
-        throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have an approved character and that it's campaign is set to ${eventForMessage.campaign}.`);
+        if (eventForMessage.campaign) {
+            throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have an approved character and that it's campaign is set to ${eventForMessage.campaign}.`);
+        } else {
+            throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have set \`!default\` character for events with no campaign set.`);
+        }
     }
     console.log('Character will be playing: ' + character.name);
     console.log('attendees: ', eventForMessage.attendees);

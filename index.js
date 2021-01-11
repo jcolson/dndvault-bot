@@ -308,17 +308,13 @@ async function confirmGuildConfig(msg) {
     let guildConfig = GuildCache[msg.guild.id];
     if (!guildConfig) {
         try {
-            // msg.guild.roles.cache.array().forEach(role => console.log(role.name, role.id))
             guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
             if (!guildConfig) {
                 guildConfig = new GuildModel({ guildID: msg.guild.id });
             }
             // console.log(guildConfig);
-            console.log('just about at arole');
             if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-                console.log('made it inside arole');
                 guildConfig.arole = await retrieveRoleIdForName(msg, Config.defaultARoleName);
-                console.log('set arole to ', guildConfig.arole);
             }
             if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
                 guildConfig.prole = await retrieveRoleIdForName(msg, Config.defaultPRoleName);

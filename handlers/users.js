@@ -98,11 +98,11 @@ async function hasRoleOrIsAdmin(msg, roleId) {
     let hasRole = false;
     try {
         if (msg.member.hasPermission('ADMINISTRATOR')) {
-            // console.log('User is an admin.');
+            console.log('User is an admin.');
             hasRole = true;
         } else {
             msg.member.roles.cache.array().forEach((role) => {
-                // console.log('role check: ' + role.id + " : " + roleId);
+                console.log('role check: ' + role.id + " : " + roleId);
                 if (role.id == roleId) {
                     hasRole = true;
                 }
@@ -111,6 +111,7 @@ async function hasRoleOrIsAdmin(msg, roleId) {
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
     }
+    console.log('permission check: ' + hasRole);
     return hasRole;
 }
 
