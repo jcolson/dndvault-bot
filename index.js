@@ -344,12 +344,13 @@ async function retrieveRoleIdForName(msg, roleName) {
     let roleForName;
     let roles = await msg.guild.roles.fetch();
     // console.log('roles', roles);
-    roles.array().forEach((role) => {
+    for (let role of roles.array()) {
+        // roles.array().forEach((role) => {
         // console.log("role: " + role.name + ' : ' + roleName);
         if (role.name == roleName || '@' + role.name == roleName) {
             roleForName = role;
         }
-    });
+    }
     console.log("found rolename: " + roleForName.id);
     return roleForName.id;
 }
@@ -377,9 +378,10 @@ function lengthOfEmbed(embed) {
         + (embed.description ? embed.description.length : 0)
         + (embed.footer && embed.footer.text ? embed.footer.text.length : 0)
         + (embed.author && embed.author.name ? embed.author.name.length : 0);
-    embed.fields.forEach((field) => {
+    for (let field of embed.fields) {
+        // embed.fields.forEach((field) => {
         embedLength += field.name.length + field.value.length;
-    });
+    }
     console.log('EmbedLengthCheck: %d', embedLength);
     return embedLength;
 }

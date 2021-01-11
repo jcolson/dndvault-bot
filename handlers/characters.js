@@ -458,7 +458,7 @@ function arrayForClassChange(approvedChar, updatedChar) {
 
 function stringForClass(charClass) {
     if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
-        return charClass.level + ' ' + charClass.definition.name + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ') ' : ' ');
+        return charClass.level + ' ' + charClass.definition.name + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : ' ');
     } else {
         return '';
     }
@@ -510,9 +510,10 @@ async function handleListCampaign(msg, guildConfig) {
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`);
-            charEmbedArray.forEach(async (charEmbed) => {
+            for (let charEmbed of charEmbedArray) {
+                // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
-            })
+            }
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for that campaign, \`register\` one!`);
@@ -540,9 +541,10 @@ async function handleListUser(msg, guildConfig) {
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${msg.member.displayName} in the Vault`);
-            charEmbedArray.forEach(async (charEmbed) => {
+            for (let charEmbed of charEmbedArray) {
+                // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
-            })
+            }
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for ${userToList}`);
@@ -612,6 +614,14 @@ function embedForCharacter(msg, charArray, title, isShow) {
     return returnEmbeds;
 }
 
+function stringForCharacter(char) {
+    let classes = '';
+    char.classes.forEach((theClass) => {
+        classes += stringForClass(theClass);
+    });
+    return `${char.name} / ${char.race.fullName} / ${classes}`;
+}
+
 function stringForCampaign(char) {
     const dndCampaign = (char.campaign && char.campaign.name
         ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
@@ -668,9 +678,10 @@ async function handleListAll(msg, guildConfig) {
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault');
-            charEmbedArray.forEach(async (charEmbed) => {
+            for (let charEmbed of charEmbedArray) {
+                // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
-            })
+            }
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, I don't see any registered characters \`register\` one!`);
@@ -690,9 +701,10 @@ async function handleListQueued(msg, guildConfig) {
         const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
-            charEmbedArray.forEach(async (charEmbed) => {
+            for (let charEmbed of charEmbedArray) {
+                // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
-            })
+            }
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
@@ -715,9 +727,10 @@ async function handleList(msg, guildConfig) {
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`);
-            charEmbedArray.forEach(async (charEmbed) => {
+            for (let charEmbed of charEmbedArray) {
+                // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
-            })
+            }
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for you`);
@@ -860,3 +873,4 @@ exports.handleApprove = handleApprove;
 exports.handleShow = handleShow;
 exports.handleChanges = handleChanges;
 exports.handleCampaign = handleCampaign;
+exports.stringForCharacter = stringForCharacter;

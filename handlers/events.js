@@ -4,6 +4,7 @@ const CharModel = require('../models/Character');
 const { MessageEmbed } = require('discord.js');
 const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
 const users = require('../handlers/users.js');
+const characters = require('../handlers/characters.js');
 
 /**
  * Create an event
@@ -20,7 +21,7 @@ async function handleEventCreate(msg, guildConfig) {
         let eventArray = parseEventString(eventString);
 
         let validatedEvent = await validateEvent(eventArray, msg, currUser);
-        let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
+        let sentMessage = await msg.channel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
         validatedEvent.channelID = sentMessage.channel.id;
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
@@ -63,11 +64,11 @@ async function handleEventEdit(msg, guildConfig) {
                     await client.guilds.fetch(validatedEvent.guildID)
                 ).channels.resolve(validatedEvent.channelID)
             ).messages.fetch(validatedEvent.messageID);
-            await eventMessage.edit(embedForEvent(msg, [validatedEvent], `Event`, true));
+            await eventMessage.edit(await embedForEvent(msg, [validatedEvent], `Event`, true));
             // await eventMessage.delete();
         } catch (error) {
             console.log(`couldn't edit old event message on edit: ${error.message}`);
-            let sentMessage = await msg.channel.send(embedForEvent(msg, [validatedEvent], `Event`, true));
+            let sentMessage = await msg.channel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
             validatedEvent.channelID = sentMessage.channel.id;
             validatedEvent.messageID = sentMessage.id;
             await sentMessage.react('✅');
@@ -136,7 +137,7 @@ async function handleEventShow(msg, guildConfig) {
         if (!await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
             throw new Error(`Please ask an approver to re-show this event if needed, it should be available here: ${getLinkForEvent(showEvent)}`);
         }
-        const embedEvent = embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
+        const embedEvent = await embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
         const sentMessage = await msg.channel.send(embedEvent);
         await msg.delete();
         try {
@@ -169,10 +170,11 @@ async function handleEventList(msg, guildConfig) {
     try {
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: new Date().getDate() - 5 } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = embedForEvent(msg, eventsArray, `All Events`, false);
-            embedEvents.forEach(async (eventEmbed) => {
+            const embedEvents = await embedForEvent(msg, eventsArray, `All Events`, false);
+            for (let eventEmbed of embedEvents) {
+                // await embedEvents.forEach(async (eventEmbed) => {
                 await msg.channel.send(eventEmbed);
-            })
+            }
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, I don't see any events yet.`);
@@ -322,7 +324,7 @@ function nextValidIndex(startindex, sepIndexArray) {
  * 
  * @returns {MessageEmbed[]}
  */
-function embedForEvent(msg, eventArray, title, isShow) {
+async function embedForEvent(msg, eventArray, title, isShow) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 1 : 4;
@@ -334,7 +336,7 @@ function embedForEvent(msg, eventArray, title, isShow) {
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
-    eventArray.forEach((theEvent) => {
+    for (let theEvent of eventArray) {
         if (i++ >= charPerEmbed) {
             returnEmbeds.push(eventEmbed);
             eventEmbed = new MessageEmbed()
@@ -353,16 +355,17 @@ function embedForEvent(msg, eventArray, title, isShow) {
         if (theEvent.campaign) {
             eventEmbed.addField('Campaign', theEvent.campaign, true);
         }
+        let attendees = await getStringForAttendees(theEvent);
         if (isShow) {
             eventEmbed.addFields(
                 { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
                 { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
                 { name: 'Created By', value: `<@${theEvent.userID}>`, inline: true },
-                { name: 'Attendees', value: `${getStringForAttendees(theEvent)}`, inline: true },
+                { name: 'Attendees', value: `${attendees}`, inline: true },
                 { name: 'Description', value: `${theEvent.description}`, inline: false },
             );
         }
-    });
+    }
     let signUpInfo = '';
     if (isShow) {
         signUpInfo = `✅ - Sign up for event | ❎ - Remove yourself\n`;
@@ -377,12 +380,21 @@ ${signUpInfo}Add this BOT to your server. [Click here](${Config.inviteURL})`
     return returnEmbeds;
 }
 
-function getStringForAttendees(event) {
+async function getStringForAttendees(event) {
     let attendees = '';
-    event.attendees.forEach((attendee) => {
-        attendees += `<@${attendee.userID}>,`;
-    });
-    return attendees != '' ? attendees : 'None yet';
+    for (let attendee of event.attendees) {
+        console.log('attendee: ' + attendee);
+        // await event.attendees.forEach(async (attendee) => {
+        console.log('guildid %s charid %s guilduser %s', event.guildID, attendee.characterID, attendee.userID);
+        let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
+        console.log(char.name);
+        let charString = '';
+        if (char) {
+            charString = ' (' + characters.stringForCharacter(char) + ')';
+        }
+        attendees += `<@${attendee.userID}>${charString},`;
+    }
+    return attendees != '' ? attendees.substring(0, attendees.length - 1) : 'None yet';
 }
 
 function getEmbedLinkForEvent(theEvent) {
@@ -507,9 +519,6 @@ async function attendeeAdd(reaction, user, eventForMessage) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have set \`!default\` character for events with no campaign set.`);
         }
     }
-    console.log('Character will be playing: ' + character.name);
-    console.log('attendees: ', eventForMessage.attendees);
-
     if (!eventForMessage.attendees) {
         eventForMessage.attendees = [];
     }
@@ -524,9 +533,10 @@ async function attendeeAdd(reaction, user, eventForMessage) {
     if (!alreadySignedUp) {
         eventForMessage.attendees.push({ userID: user.id, characterID: character.id, date_time: new Date() });
     }
-    // console.log(eventForMessage);
+    console.log('Character will be playing: ' + character.name);
+    console.log('attendees: ', eventForMessage.attendees);
     await eventForMessage.save();
-    await reaction.message.edit(embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
 }
 
 async function attendeeRemove(reaction, user, eventForMessage) {
@@ -542,7 +552,7 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     });
     // console.log(eventForMessage);
     await eventForMessage.save();
-    await reaction.message.edit(embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
 }
 
 exports.handleEventCreate = handleEventCreate;
