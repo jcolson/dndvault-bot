@@ -735,17 +735,27 @@ async function handleList(msg, guildConfig) {
 async function handleRemove(msg, guildConfig) {
     try {
         let typeOfRemoval = 'Character Update';
-        const charIdToDelete = msg.content.substring((guildConfig.prefix + 'remove').length + 1);
+        const arguments = msg.content.substring((guildConfig.prefix + 'remove').length + 1);
+        let charIdToDelete, forUser;
+        let indexToSplit = arguments.indexOf(' ');
+        if (indexToSplit != -1) {
+            charIdToDelete = arguments.substring(0, indexToSplit);
+            forUser = arguments.substring(indexToSplit + 4, arguments.length - 1);
+        } else {
+            charIdToDelete = arguments;
+            forUser = msg.member.id;
+        }
+        console.log('about to remove charid %s for user %s', charIdToDelete, forUser);
         // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
         // doesn't exist, then remove the actual registered character
-        let deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true, approvalStatus: false });
+        let deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true, approvalStatus: false });
         if (deleteResponse.deletedCount < 1) {
             typeOfRemoval = 'Unapproved Character';
-            deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: false });
+            deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: false });
             if (deleteResponse.deletedCount < 1) {
                 typeOfRemoval = 'Approved Character';
                 if (await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
-                    deleteResponse = await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
+                    deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 } else {
                     msg.reply(`Please ask an approver to remove this character, as it has already been approved`);
                     return;

@@ -1,4 +1,35 @@
 const UserModel = require('../models/User');
+const CharModel = require('../models/Character');
+
+/**
+ * set user's timezone
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleDefault(msg, guildConfig) {
+    try {
+        let defaultChar = msg.content.substring((guildConfig.prefix + 'default').length + 1);
+        let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
+        if (defaultChar == '') {
+            await msg.channel.send(`<@${msg.member.id}>, your default character is currently set to: ${currUser.defaultCharacter}`);
+        } else {
+            let character = CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: defaultChar, approvalStatus: true });
+            if (!character) {
+                throw new Error(`No approved character (${defaultChar}) found.`);
+            }
+            if (!currUser) {
+                currUser = new UserModel({ guildID: msg.guild.id, userID: msg.member.id, defaultCharacter: defaultChar });
+            } else {
+                currUser.defaultCharacter = defaultChar;
+            }
+            await currUser.save();
+            await msg.channel.send(`<@${msg.member.id}>, your default character was successfully set to: ${currUser.defaultCharacter}`);
+        }
+        await msg.delete();
+    } catch (error) {
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+    }
+}
 
 /**
  * set user's timezone
@@ -23,6 +54,7 @@ async function handleTimezoneSet(msg, guildConfig) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }
 }
+
 /**
  * show user's timezone
  * @param {Message} msg 
@@ -49,7 +81,7 @@ function isValidTimeZone(tz) {
     let validTZ = Intl.DateTimeFormat(undefined, { timeZone: tz, timeZoneName: 'long' });
     let validTZstring = validTZ.format(new Date());
     // console.log('valid tz %s', validTZstring);
-    validTZstring = validTZstring.substring(validTZstring.indexOf(', ')+2);
+    validTZstring = validTZstring.substring(validTZstring.indexOf(', ') + 2);
     // console.log('valid tz %s', validTZstring);
     return tz;
 }
@@ -85,3 +117,4 @@ async function hasRoleOrIsAdmin(msg, roleId) {
 exports.handleTimezoneSet = handleTimezoneSet;
 exports.handleTimezone = handleTimezone;
 exports.hasRoleOrIsAdmin = hasRoleOrIsAdmin;
+exports.handleDefault = handleDefault;

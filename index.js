@@ -34,15 +34,18 @@ client.on('ready', () => {
 
 client.on('messageReactionAdd', async (reaction, user) => {
     // When we receive a reaction we check if the reaction is partial or not
-    if (reaction.partial) {
-        // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-        try {
+    try {
+        if (reaction.partial) {
+            // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
             await reaction.fetch();
-        } catch (error) {
-            console.error('Something went wrong when fetching the message: ', error);
-            // Return as `reaction.message.author` may be undefined/null
-            return;
         }
+        if (reaction.message.partial) {
+            await reaction.message.fetch();
+        }
+    } catch (error) {
+        console.error('Something went wrong when fetching the message: ', error);
+        // Return as `reaction.message.author` may be undefined/null
+        return;
     }
     if (!user.bot) {
         // Now the message has been cached and is fully available
@@ -53,28 +56,69 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
 });
 
-client.on('messageReactionRemove', async (reaction, user) => {
-    // When we receive a reaction we check if the reaction is partial or not
-    if (reaction.partial) {
+// client.on('messageReactionRemove', async (reaction, user) => {
+//     console.log('messageReactionRemove');
+//     // When we receive a reaction we check if the reaction is partial or not
+//     try {
+//         if (reaction.partial) {
+//             // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+//             await reaction.fetch();
+//         }
+//         if (reaction.message.partial) {
+//             await reaction.message.fetch();
+//         }
+//     } catch (error) {
+//         console.error('Something went wrong when fetching the message: ', error);
+//         // Return as `reaction.message.author` may be undefined/null
+//         return;
+//     }
+//     if (!user.bot) {
+//         // Now the message has been cached and is fully available
+//         console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+//         await events.handleReactionRemove(reaction, user);
+//     } else {
+//         console.log('bot reacted');
+//     }
+// });
+
+// client.on('raw', packet => {
+//     // We don't want this to run on unrelated packets
+//     if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) return;
+//     console.log('received raw event for reaction');
+//     // Grab the channel to check the message from
+//     const channel = client.channels.get(packet.d.channel_id);
+//     // There's no need to emit if the message is cached, because the event will fire anyway for that
+//     if (channel.messages.has(packet.d.message_id)) return;
+//     // Since we have confirmed the message is not cached, let's fetch it
+//     console.log('fetching message for reaction');
+//     channel.fetchMessage(packet.d.message_id).then(message => {
+//         // Emojis can have identifiers of name:id format, so we have to account for that case as well
+//         const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
+//         // This gives us the reaction we need to emit the event properly, in top of the message object
+//         const reaction = message.reactions.get(emoji);
+//         // Adds the currently reacting user to the reaction's users collection.
+//         if (reaction) reaction.users.set(packet.d.user_id, client.users.get(packet.d.user_id));
+//         // Check which type of event it is before emitting
+//         if (packet.t === 'MESSAGE_REACTION_ADD') {
+//             client.emit('messageReactionAdd', reaction, client.users.get(packet.d.user_id));
+//         }
+//         if (packet.t === 'MESSAGE_REACTION_REMOVE') {
+//             client.emit('messageReactionRemove', reaction, client.users.get(packet.d.user_id));
+//         }
+//     });
+// });
+
+client.on('message', async (msg) => {
+    if (msg.partial) {
         // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
         try {
-            await reaction.fetch();
+            await msg.fetch();
         } catch (error) {
             console.error('Something went wrong when fetching the message: ', error);
             // Return as `reaction.message.author` may be undefined/null
             return;
         }
     }
-    if (!user.bot) {
-        // Now the message has been cached and is fully available
-        console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-        await events.handleReactionRemove(reaction, user);
-    } else {
-        console.log('bot reacted');
-    }
-});
-
-client.on('message', async (msg) => {
     if (!msg.guild) {
         console.log(`msg: DIRECT:${msg.author.nickname}:${msg.content}`);
         if (msg.content === 'help') {
@@ -115,6 +159,8 @@ client.on('message', async (msg) => {
         characters.handleApprove(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
         characters.handleShow(msg, guildConfig);
+    } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
+        users.handleDefault(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
         events.handleEventCreate(msg, guildConfig);
     } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
@@ -147,7 +193,6 @@ client.on('message', async (msg) => {
  */
 async function handleConfig(msg, guildConfig) {
     try {
-        const guild = msg.guild.name
         const configEmbed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('BOT Config')
@@ -179,12 +224,12 @@ async function handleConfigArole(msg, guildConfig) {
             let configAroleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
             if (configAroleName.startsWith('<@&')) {
                 // need to strip the tailing '>' off as well ...
-                const configAroleId = configAroleName.substring(3, configAroleName.length - 4);
+                const configAroleId = configAroleName.substring(3, configAroleName.length - 1);
                 configAroleName = retrieveRoleForID(msg, configAroleId).name;
             }
-            configArole = retrieveRoleForName(msg, configAroleName);
+            configArole = await retrieveRoleIdForName(msg, configAroleName);
             if (configArole) {
-                guildConfig.arole = configArole.id;
+                guildConfig.arole = configArole;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
                 await msg.channel.send(`<@${msg.member.id}>, ${configAroleName} is now the \`approver\` role.`);
@@ -211,12 +256,12 @@ async function handleConfigProle(msg, guildConfig) {
             let configProleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
             if (configProleName.startsWith('<@&')) {
                 // need to strip the tailing '>' off as well ...
-                const configProleId = configProleName.substring(3, configProleName.length - 4);
+                const configProleId = configProleName.substring(3, configProleName.length - 1);
                 configProleName = retrieveRoleForID(msg, configProleId).name;
             }
-            configProle = retrieveRoleForName(msg, configProleName);
+            configProle = await retrieveRoleIdForName(msg, configProleName);
             if (configProle) {
-                guildConfig.prole = configProle.id;
+                guildConfig.prole = configProle;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
                 await msg.channel.send(`<@${msg.member.id}>, ${configProleName} is now the \`player\` role.`);
@@ -269,11 +314,14 @@ async function confirmGuildConfig(msg) {
                 guildConfig = new GuildModel({ guildID: msg.guild.id });
             }
             // console.log(guildConfig);
+            console.log('just about at arole');
             if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-                guildConfig.arole = retrieveRoleForName(msg, Config.defaultARoleName).id;
+                console.log('made it inside arole');
+                guildConfig.arole = await retrieveRoleIdForName(msg, Config.defaultARoleName);
+                console.log('set arole to ', guildConfig.arole);
             }
             if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
-                guildConfig.prole = retrieveRoleForName(msg, Config.defaultPRoleName).id;
+                guildConfig.prole = await retrieveRoleIdForName(msg, Config.defaultPRoleName);
             }
             if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
                 guildConfig.prefix = Config.defaultPrefix;
@@ -296,15 +344,18 @@ async function confirmGuildConfig(msg) {
  * @param {String} roleName 
  * @returns {Role}
  */
-function retrieveRoleForName(msg, roleName) {
+async function retrieveRoleIdForName(msg, roleName) {
     let roleForName;
-    msg.guild.roles.cache.array().forEach((role) => {
+    let roles = await msg.guild.roles.fetch();
+    // console.log('roles', roles);
+    roles.array().forEach((role) => {
         // console.log("role: " + role.name + ' : ' + roleName);
         if (role.name == roleName || '@' + role.name == roleName) {
             roleForName = role;
         }
     });
-    return roleForName;
+    console.log("found rolename: " + roleForName.id);
+    return roleForName.id;
 }
 
 /**
@@ -314,13 +365,8 @@ function retrieveRoleForName(msg, roleName) {
  * @returns {Role}
  */
 function retrieveRoleForID(msg, roleID) {
-    let roleForID;
-    msg.guild.roles.cache.array().forEach((role) => {
-        // console.log("role: " + role.name + ' : ' + role.id);
-        if (role.id == roleID) {
-            roleForID = role;
-        }
-    });
+    console.log('retrieveRoleID: ' + roleID);
+    let roleForID = msg.guild.roles.resolve(roleID);
     return roleForID;
 }
 

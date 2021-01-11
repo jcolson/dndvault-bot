@@ -64,6 +64,9 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] help
 - [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
 - [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
+- [x] default
+  - [x] {no args} - show current default character
+  - [x] [CHAR_ID] - set your default character id to be used for events/missions with no campaign
 - [ ] list
   - [x] {no args} - list YOUR registered characters within vault
   - [x] all - list all characters
@@ -76,7 +79,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] [CHAR_ID] - show a user's character from the vault
   - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault
 - [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
-- [x] remove [CHAR_ID] - remove a character (or pending update) from the vault
+- [x] remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
 - [x] approve [CHAR_ID] - approve a new/updated character within vault
 - [x] changes [CHAR_ID] - display changes for an unapproved character update
 - [x] config - show BOT config

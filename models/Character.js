@@ -710,7 +710,7 @@ const Character = Schema({
     },
     "campaign": {
         "id": {
-            "type": "Number",
+            "type": "String",
             index: true
         },
         "characters": {
