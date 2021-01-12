@@ -5,6 +5,7 @@ const { MessageEmbed } = require('discord.js');
 const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
 const users = require('../handlers/users.js');
 const characters = require('../handlers/characters.js');
+const utils = require('../utils/utils.js');
 
 /**
  * Create an event
@@ -28,6 +29,7 @@ async function handleEventCreate(msg, guildConfig) {
         await sentMessage.react('✅');
         await sentMessage.react('❎');
         await sentMessage.react('▶️');
+        await sentMessage.react('🕟');
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -77,6 +79,7 @@ async function handleEventEdit(msg, guildConfig) {
             await sentMessage.react('✅');
             await sentMessage.react('❎');
             await sentMessage.react('▶️');
+            await sentMessage.react('🕟');
         }
         await validatedEvent.save();
         let responseMessage = new MessageEmbed();
@@ -164,13 +167,14 @@ async function handleEventShow(msg, guildConfig) {
         await sentMessage.react('✅');
         await sentMessage.react('❎');
         await sentMessage.react('▶️');
+        await sentMessage.react('🕟');
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
     }
 }
 
 /**
- * list events that are in the future or 5 days old
+ * list events that are in the future or n days old
  * @param {Message} msg 
  * @param {GuildModel} guildConfig 
  */
@@ -188,6 +192,56 @@ async function handleEventList(msg, guildConfig) {
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, I don't see any events yet.`);
+        }
+    } catch (error) {
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+    }
+}
+
+/**
+ * list PROPOSED (not deployed) events that are in the future or n days old
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleEventListProposed(msg, guildConfig) {
+    try {
+        let cutOffDate = new Date();
+        cutOffDate.setDate(cutOffDate.getDate() - 1);
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: null }).sort({ date_time: 'asc' });
+        if (eventsArray.length > 0) {
+            const embedEvents = await embedForEvent(msg, eventsArray, `PROPOSED Events`, false);
+            for (let eventEmbed of embedEvents) {
+                // await embedEvents.forEach(async (eventEmbed) => {
+                await msg.channel.send(eventEmbed);
+            }
+            await msg.delete();
+        } else {
+            await msg.reply(`<@${msg.member.id}>, I don't see any PROPOSED events yet.`);
+        }
+    } catch (error) {
+        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+    }
+}
+
+/**
+ * list DEPLOYED events that are in the future or n days old
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleEventListDeployed(msg, guildConfig) {
+    try {
+        let cutOffDate = new Date();
+        cutOffDate.setDate(cutOffDate.getDate() - 1);
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $ne: null } }).sort({ date_time: 'asc' });
+        if (eventsArray.length > 0) {
+            const embedEvents = await embedForEvent(msg, eventsArray, `DEPLOYED Events`, false);
+            for (let eventEmbed of embedEvents) {
+                // await embedEvents.forEach(async (eventEmbed) => {
+                await msg.channel.send(eventEmbed);
+            }
+            await msg.delete();
+        } else {
+            await msg.reply(`<@${msg.member.id}>, I don't see any DEPLOYED events yet.`);
         }
     } catch (error) {
         await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
@@ -361,8 +415,8 @@ async function embedForEvent(msg, eventArray, title, isShow) {
         eventEmbed.addFields(
             { name: '🗡 Title 🛡', value: messageTitleAndUrl, inline: false },
             { name: 'DMGM', value: `${dmgmString}`, inline: true },
-            { name: 'Date and Time', value: `${formatDate(theEvent.date_time)}`, inline: true },
-            { name: 'Duration', value: `${theEvent.duration_hours} hrs`, inline: true },
+            { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs`, inline: true },
+            { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
         );
         if (theEvent.campaign) {
             eventEmbed.addField('Campaign', theEvent.campaign, true);
@@ -370,7 +424,6 @@ async function embedForEvent(msg, eventArray, title, isShow) {
         let attendees = await getStringForAttendees(theEvent);
         if (isShow) {
             eventEmbed.addFields(
-                { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
                 { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
                 { name: 'Author', value: `<@${theEvent.userID}>`, inline: true },
                 { name: 'Attendees', value: `${attendees}`, inline: true },
@@ -421,49 +474,28 @@ function getLinkForEvent(theEvent) {
     return `https://discordapp.com/channels/${theEvent.guildID}/${theEvent.channelID}/${theEvent.messageID}`;
 }
 
-function formatDate(date) {
-    if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
-        throw Error('Intl.DateTimeFormat not available in this environment');
+function formatDate(theDate, includeGMTstring) {
+    let hours = theDate.getHours();
+    let amOrPm = hours >= 12 ? 'pm' : 'am';
+    hours = (hours % 12) || 12;
+    let returnString = `${theDate.getMonth() + 1}/${theDate.getDate()}/${theDate.getFullYear()}, ${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)} ${amOrPm}`;
+    if (includeGMTstring) {
+        returnString += ` GMT`;
     }
-    let validTZ = Intl.DateTimeFormat(undefined, {
-        hour: 'numeric',
-        minute: 'numeric',
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        timeZoneName: 'short'
-    });
-    let validDateString = validTZ.format(date);
-    // console.log('formatDate %s', validDateString);
-    return validDateString;
+    return returnString;
 }
 
-function formatJustDate(date) {
-    if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
-        throw Error('Intl.DateTimeFormat not available in this environment');
-    }
-    let validTZ = Intl.DateTimeFormat(undefined, {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric'
-    });
-    let validDateString = validTZ.format(date);
-    // console.log('valid tz %s', validDateString);
-    return validDateString;
+function formatJustDate(theDate) {
+    let returnString = `${theDate.getMonth() + 1}/${theDate.getDate()}/${theDate.getFullYear()}`;
+    return returnString;
 }
 
-function formatJustTime(date) {
-    if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
-        throw Error('Intl.DateTimeFormat not available in this environment');
-    }
-    let validTZ = Intl.DateTimeFormat(undefined, {
-        hour: 'numeric',
-        minute: 'numeric'
-    });
-    console.log('b4formatJustTime: %s', date);
-    let validDateString = validTZ.format(date);
-    console.log('formatJustTime: %s', validDateString);
-    return validDateString;
+function formatJustTime(theDate) {
+    let hours = theDate.getHours();
+    let amOrPm = hours >= 12 ? 'pm' : 'am';
+    hours = (hours % 12) || 12;
+    let returnString = `${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)} ${amOrPm}`;
+    return returnString;
 }
 
 async function handleReactionAdd(reaction, user, guildConfig) {
@@ -488,6 +520,9 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         } else if (reaction.emoji && reaction.emoji.name == '▶️') {
             // console.log(eventForMessage);
             await deployEvent(reaction, user, eventForMessage, guildConfig);
+        } else if (reaction.emoji && reaction.emoji.name == '🕟') {
+            // console.log(eventForMessage);
+            await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
         } else {
             console.log('Unknown reaction');
         }
@@ -498,12 +533,38 @@ async function handleReactionAdd(reaction, user, guildConfig) {
     }
 }
 
+async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
+    let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
+    if (!userModel || !userModel.timezone) {
+        let responseMessage = embedWithEventLink(eventForMessage);
+        responseMessage.addFields({ name: 'Error', value: `You must set your timezone via \`timezone set\` in order to convert to your own timezone.`, inline: true });
+        await user.send(responseMessage);
+    } else {
+        let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
+        let responseMessage = embedWithEventLink(eventForMessage);
+        responseMessage.addFields({ name: 'Converted time', value: `${usersTimeString} ${userModel.timezone}`, inline: true });
+        await user.send(responseMessage);
+    }
+}
+
+
+function embedWithEventLink(eventForMessage) {
+    let responseMessage = new MessageEmbed();
+    responseMessage.addFields({ name: `Back to event`, value: getEmbedLinkForEvent(eventForMessage), inline: true });
+    return responseMessage;
+}
+
+function getDateStringInDifferentTimezone(date, tzString) {
+    let convertedDate = new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
+    return formatDate(convertedDate, false);
+}
+
 async function deployEvent(reaction, user, eventForMessage, guildConfig) {
     let dmgmID;
     if (eventForMessage.dm) {
         dmgmID = eventForMessage.dm.substring(3, eventForMessage.dm.length - 1);
     }
-    console.log('dmgm', dmgmID);
+    // console.log('dmgm', dmgmID);
     let userMember = await reaction.message.guild.members.fetch(user.id);
     if (!await users.hasRoleOrIsAdmin(userMember, guildConfig.arole) && user.id != eventForMessage.userID && user.id != dmgmID) {
         throw new Error(`Please have <@${eventForMessage.userID}> deploy, or ask an <@&${guildConfig.arole}> to deploy.`);
@@ -606,3 +667,5 @@ exports.handleEventEdit = handleEventEdit;
 exports.handleEventRemove = handleEventRemove;
 exports.handleEventList = handleEventList;
 exports.handleReactionAdd = handleReactionAdd;
+exports.handleEventListProposed = handleEventListProposed;
+exports.handleEventListDeployed = handleEventListDeployed;

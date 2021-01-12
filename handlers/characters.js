@@ -4,6 +4,7 @@ const fetch = require('node-fetch');
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const users = require('../handlers/users.js');
+const utils = require('../utils/utils.js');
 
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
@@ -494,21 +495,10 @@ function appendStringsForEmbedChanges(stringArray) {
 function appendStringsForEmbed(stringArray, fieldSize, separator) {
     let returnValue = '';
     stringArray.forEach((value) => {
-        returnValue = returnValue + stringOfSize(value, fieldSize) + separator;
+        returnValue = returnValue + '`' + utils.stringOfSize(value, fieldSize) + '`' + separator;
     })
     return returnValue.substring(0, returnValue.length - separator.length);
 }
-
-function stringOfSize(value, size) {
-    value = value.substring(0, size);
-    // console.log(`substr: "${value}"`);
-    if (value.length < size) {
-        value = value + ' '.repeat(size - value.length);
-    }
-    // console.log(`repeat: "${value}"`);
-    return '`' + value + '`';
-}
-
 
 async function handleListCampaign(msg, guildConfig) {
     try {

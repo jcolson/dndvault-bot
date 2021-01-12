@@ -175,6 +175,10 @@ client.on('message', async (msg) => {
             events.handleEventRemove(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event show')) {
             events.handleEventShow(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'event list proposed')) {
+            events.handleEventListProposed(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'event list deployed')) {
+            events.handleEventListDeployed(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
             events.handleEventList(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {

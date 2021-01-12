@@ -63,6 +63,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 ```fix
 - [x] help
 - [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
+- [ ] campaigns - list all campaigns for server
 - [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
 - [x] default
   - [x] {no args} - show current default character
@@ -74,7 +75,6 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] queued - list all characters queued for approval
   - [x] user [@USER_NAME] - list all characters by discord user
   - [x] campaign [CAMPAIGN_ID] - list all characters registered for a campaign
-  - [ ] campaigns - list all campaigns for server
 - [ ] show
   - [x] [CHAR_ID] - show a user's character from the vault
   - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault
@@ -97,8 +97,8 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] remove [MISSION_ID] - removes mission event
   - [x] list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
   - [ ] list past [DAYS] - list past events for the last DAYS (PROPOSed and DEPLOYed)
-  - [ ] list proposed - list all future PROPOSED events
-  - [ ] list deployed - list all future DEPLOYED events
+  - [x] list proposed - list all future PROPOSED events
+  - [x] list deployed - list all future DEPLOYED events
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
   - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
   - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign

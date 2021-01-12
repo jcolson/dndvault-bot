@@ -1,4 +1,5 @@
 const { MessageEmbed } = require('discord.js');
+
 async function handleHelp(msg, guildConfig, inviteURL) {
     try {
         let goBackToServer = '';
