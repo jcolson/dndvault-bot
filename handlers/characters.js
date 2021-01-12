@@ -2,6 +2,7 @@
 const { Client, MessageEmbed, Role } = require('discord.js');
 const fetch = require('node-fetch');
 const CharModel = require('../models/Character');
+const UserModel = require('../models/User');
 const users = require('../handlers/users.js');
 
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
@@ -464,6 +465,14 @@ function stringForClass(charClass) {
     }
 }
 
+function stringForClassShort(charClass) {
+    if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
+        return charClass.level + ' ' + charClass.definition.name;
+    } else {
+        return '';
+    }
+}
+
 function stringForRaceChange(approvedChar, updatedChar) {
     if (approvedChar.race.fullName != updatedChar.race.fullName) {
         return appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
@@ -509,7 +518,7 @@ async function handleListCampaign(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`);
+            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`, false);
             for (let charEmbed of charEmbedArray) {
                 // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
@@ -540,7 +549,7 @@ async function handleListUser(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${msg.member.displayName} in the Vault`);
+            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${msg.member.displayName} in the Vault`, false);
             for (let charEmbed of charEmbedArray) {
                 // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
@@ -561,10 +570,11 @@ async function handleListUser(msg, guildConfig) {
  * @param {CharModel[]} charArray
  * @param {String} title
  * @param {Boolean} isShow
+ * @param {UserModel} vaultUser
  * 
  * @returns {MessageEmbed[]}
  */
-function embedForCharacter(msg, charArray, title, isShow) {
+function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
     let returnEmbeds = [];
     // return 3 characters for show and 8 characters for a list
     let charPerEmbed = isShow ? 3 : 8;
@@ -583,10 +593,13 @@ function embedForCharacter(msg, charArray, title, isShow) {
                 .setColor('#0099ff');
             i = 0;
         }
+        console.log('vaultuser', vaultUser);
+        let defCharString = (vaultUser && vaultUser.defaultCharacter && vaultUser.defaultCharacter == char.id) ? `\:asterisk: ` : '';
+        console.log('defCharString "%s" and "%s"', vaultUser.defaultCharacter, char.id);
         charEmbed.addFields(
             {
-                name: '🗡 Name | ID | Status 🛡',
-                value: `[${char.name}](${char.readonlyUrl}) | ${char.id} | `
+                name: `\:dagger: Name | ID | Status \:shield:`,
+                value: `${defCharString}[${char.name}](${char.readonlyUrl}) | ${char.id} | `
                     + stringForApprovalsAndUpdates(char)
             }
         );
@@ -599,14 +612,14 @@ function embedForCharacter(msg, charArray, title, isShow) {
                         // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
                         '?', inline: true
                 },
-                {
-                    name: 'Campaign', value: stringForCampaign(char),
-                    inline: true
-                },
                 { name: 'Attributes*', value: stringForStats(char), inline: true }
             );
+            let campaignString = stringForCampaign(char);
+            if (campaignString) {
+                charEmbed.addFields({ name: 'Campaign', value: campaignString, inline: true });
+            }
         }
-    })
+    });
     charEmbed.addFields(
         { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
     );
@@ -622,11 +635,19 @@ function stringForCharacter(char) {
     return `${char.name} / ${char.race.fullName} / ${classes}`;
 }
 
+function stringForCharacterShort(char) {
+    let classes = '';
+    char.classes.forEach((theClass) => {
+        classes += stringForClassShort(theClass);
+    });
+    return `${classes}`;
+}
+
 function stringForCampaign(char) {
     const dndCampaign = (char.campaign && char.campaign.name
         ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
         : undefined);
-    let returnCampaign = '';
+    let returnCampaign;
     if (dndCampaign && char.campaignOverride) {
         returnCampaign = char.campaignOverride + ' DDB:' + dndCampaign;
     } else if (char.campaignOverride) {
@@ -677,7 +698,7 @@ async function handleListAll(msg, guildConfig) {
         let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault');
+            const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault', false);
             for (let charEmbed of charEmbedArray) {
                 // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
@@ -721,14 +742,15 @@ async function handleListQueued(msg, guildConfig) {
  */
 async function handleList(msg, guildConfig) {
     try {
+        let vaultUser = await UserModel.findOne({ guildID: msg.guild.id, userID: msg.member.id });
+        console.log('vaultuser', vaultUser);
         let charArrayUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
         let charArrayNoUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`);
+            const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`, false, vaultUser);
             for (let charEmbed of charEmbedArray) {
-                // await charEmbedArray.forEach(async (charEmbed) => {
                 await msg.channel.send(charEmbed);
             }
             await msg.delete();
@@ -873,4 +895,4 @@ exports.handleApprove = handleApprove;
 exports.handleShow = handleShow;
 exports.handleChanges = handleChanges;
 exports.handleCampaign = handleCampaign;
-exports.stringForCharacter = stringForCharacter;
+exports.stringForCharacterShort = stringForCharacterShort;

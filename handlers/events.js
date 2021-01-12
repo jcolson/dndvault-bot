@@ -380,6 +380,10 @@ ${signUpInfo}Add this BOT to your server. [Click here](${Config.inviteURL})`
     return returnEmbeds;
 }
 
+/**
+ * returns string for attendees that is not over 1024 characters (embed field value limit)
+ * @param {String} event 
+ */
 async function getStringForAttendees(event) {
     let attendees = '';
     for (let attendee of event.attendees) {
@@ -390,11 +394,12 @@ async function getStringForAttendees(event) {
         console.log(char.name);
         let charString = '';
         if (char) {
-            charString = ' (' + characters.stringForCharacter(char) + ')';
+            charString = ' (' + characters.stringForCharacterShort(char) + ')';
         }
         attendees += `<@${attendee.userID}>${charString},`;
     }
-    return attendees != '' ? attendees.substring(0, attendees.length - 1) : 'None yet';
+    attendees = (attendees != '' ? attendees.substring(0, attendees.length - 1) : 'None yet').substring(0,1024);
+    return attendees;
 }
 
 function getEmbedLinkForEvent(theEvent) {
