@@ -48,9 +48,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
         return;
     }
     if (!user.bot) {
-        // Now the message has been cached and is fully available
-        console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-        await events.handleReactionAdd(reaction, user);
+        try {
+            // Now the message has been cached and is fully available
+            console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+            let guildConfig = await confirmGuildConfig(reaction.message);
+            await events.handleReactionAdd(reaction, user, guildConfig);
+        } catch (error) {
+            console.error(`caught exception handling reaction`, error);
+        }
     } else {
         console.log('bot reacted');
     }
@@ -109,80 +114,84 @@ client.on('messageReactionAdd', async (reaction, user) => {
 // });
 
 client.on('message', async (msg) => {
-    if (msg.partial) {
-        // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-        try {
-            await msg.fetch();
-        } catch (error) {
-            console.error('Something went wrong when fetching the message: ', error);
-            // Return as `reaction.message.author` may be undefined/null
+    try {
+        if (msg.partial) {
+            // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+            try {
+                await msg.fetch();
+            } catch (error) {
+                console.error('Something went wrong when fetching the message: ', error);
+                // Return as `reaction.message.author` may be undefined/null
+                return;
+            }
+        }
+        if (!msg.guild) {
+            console.log(`msg: DIRECT:${msg.author.nickname}:${msg.content}`);
+            if (msg.content === 'help') {
+                help.handleHelp(msg, null, Config.inviteURL);
+            }
             return;
         }
-    }
-    if (!msg.guild) {
-        console.log(`msg: DIRECT:${msg.author.nickname}:${msg.content}`);
-        if (msg.content === 'help') {
-            help.handleHelp(msg, null, Config.inviteURL);
+        let guildConfig = await confirmGuildConfig(msg);
+        if (!msg.content.startsWith(guildConfig.prefix)) return;
+        console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
+        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
+            await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
+            return;
         }
-        return;
-    }
-    let guildConfig = await confirmGuildConfig(msg);
-    if (!msg.content.startsWith(guildConfig.prefix)) return;
-    console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
-    if (!await users.hasRoleOrIsAdmin(msg, guildConfig.prole)) {
-        await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
-        return;
-    }
-    if (msg.content === guildConfig.prefix + 'help') {
-        help.handleHelp(msg, guildConfig, Config.inviteURL);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
-        characters.handleRegister(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'update')) {
-        characters.handleUpdate(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
-        characters.handleChanges(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'campaign')) {
-        characters.handleCampaign(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'list campaign')) {
-        characters.handleListCampaign(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'list user')) {
-        characters.handleListUser(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'list all')) {
-        characters.handleListAll(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'list queued')) {
-        characters.handleListQueued(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'list')) {
-        characters.handleList(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'remove')) {
-        characters.handleRemove(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'approve')) {
-        characters.handleApprove(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
-        characters.handleShow(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
-        users.handleDefault(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
-        events.handleEventCreate(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
-        events.handleEventEdit(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'event remove')) {
-        events.handleEventRemove(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'event show')) {
-        events.handleEventShow(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
-        events.handleEventList(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {
-        users.handleTimezoneSet(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
-        users.handleTimezone(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
-        handleConfigPrefix(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
-        handleConfigArole(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
-        handleConfigProle(msg, guildConfig);
-    } else if (msg.content.startsWith(guildConfig.prefix + 'config')) {
-        handleConfig(msg, guildConfig);
+        if (msg.content === guildConfig.prefix + 'help') {
+            help.handleHelp(msg, guildConfig, Config.inviteURL);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
+            characters.handleRegister(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'update')) {
+            characters.handleUpdate(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
+            characters.handleChanges(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'campaign')) {
+            characters.handleCampaign(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'list campaign')) {
+            characters.handleListCampaign(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'list user')) {
+            characters.handleListUser(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'list all')) {
+            characters.handleListAll(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'list queued')) {
+            characters.handleListQueued(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'list')) {
+            characters.handleList(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'remove')) {
+            characters.handleRemove(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'approve')) {
+            characters.handleApprove(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
+            characters.handleShow(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
+            users.handleDefault(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
+            events.handleEventCreate(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
+            events.handleEventEdit(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'event remove')) {
+            events.handleEventRemove(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'event show')) {
+            events.handleEventShow(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
+            events.handleEventList(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {
+            users.handleTimezoneSet(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
+            users.handleTimezone(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
+            handleConfigPrefix(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
+            handleConfigArole(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
+            handleConfigProle(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config')) {
+            handleConfig(msg, guildConfig);
+        }
+    } catch (error) {
+        await msg.reply(`unrecoverable ... ${error.message}`);
     }
 });
 
@@ -220,7 +229,7 @@ async function handleConfig(msg, guildConfig) {
  */
 async function handleConfigArole(msg, guildConfig) {
     try {
-        if (await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             let configAroleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
             if (configAroleName.startsWith('<@&')) {
                 // need to strip the tailing '>' off as well ...
@@ -252,7 +261,7 @@ async function handleConfigArole(msg, guildConfig) {
  */
 async function handleConfigProle(msg, guildConfig) {
     try {
-        if (await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             let configProleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
             if (configProleName.startsWith('<@&')) {
                 // need to strip the tailing '>' off as well ...
@@ -284,7 +293,7 @@ async function handleConfigProle(msg, guildConfig) {
  */
 async function handleConfigPrefix(msg, guildConfig) {
     try {
-        if (await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             let configPrefix = msg.content.substring((guildConfig.prefix + 'config prefix').length + 1);
             guildConfig.prefix = configPrefix;
             await guildConfig.save();

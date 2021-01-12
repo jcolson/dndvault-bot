@@ -95,8 +95,8 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] edit [MISSION_ID] !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [MISSION_DESC_REGION_PLAYSTYLE] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
   - [x] show [MISSION_ID] - replace the posting for an event (for instance if it got deleted by accident)
   - [x] remove [MISSION_ID] - removes mission event
-  - [ ] deploy [MISSION_ID] [@USER_NAME] - mark an event as deployed, user will become 'DM' for event
-  - [ ] list - list all future events (PROPOSed and DEPLOYed)
+  - [x] list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
+  - [ ] list past [DAYS] - list past events for the last DAYS (PROPOSed and DEPLOYed)
   - [ ] list proposed - list all future PROPOSED events
   - [ ] list deployed - list all future DEPLOYED events
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign

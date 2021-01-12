@@ -88,20 +88,20 @@ function isValidTimeZone(tz) {
 
 /**
  * Check to see if the user that sent the message is in the role or an admin (so it is automatically authorized)
- * @param {Message} msg 
+ * @param {GuildMember} member 
  * @param {String} roleId 
  */
-async function hasRoleOrIsAdmin(msg, roleId) {
+async function hasRoleOrIsAdmin(member, roleId) { // @todo change this from message to member
     // if (roleId == '792845390834958368') {
     //     return false;
     // }
     let hasRole = false;
     try {
-        if (msg.member.hasPermission('ADMINISTRATOR')) {
+        if (member.hasPermission('ADMINISTRATOR')) {
             console.log('User is an admin.');
             hasRole = true;
         } else {
-            msg.member.roles.cache.array().forEach((role) => {
+            member.roles.cache.array().forEach((role) => {
                 console.log('role check: ' + role.id + " : " + roleId);
                 if (role.id == roleId) {
                     hasRole = true;
@@ -109,7 +109,8 @@ async function hasRoleOrIsAdmin(msg, roleId) {
             })
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        console.error('Could not determine user role',error);
+        throw new Error('Could not determine user role');
     }
     console.log('permission check: ' + hasRole);
     return hasRole;

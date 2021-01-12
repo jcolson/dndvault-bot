@@ -789,10 +789,10 @@ async function handleRemove(msg, guildConfig) {
             deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: false });
             if (deleteResponse.deletedCount < 1) {
                 typeOfRemoval = 'Approved Character';
-                if (await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+                if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
                     deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 } else {
-                    msg.reply(`Please ask an approver to remove this character, as it has already been approved`);
+                    msg.reply(`Please ask an <@&${guildConfig.arole}> to remove this character, as it has already been approved`);
                     return;
                 }
             }
@@ -811,7 +811,7 @@ async function handleRemove(msg, guildConfig) {
  */
 async function handleApprove(msg, guildConfig) {
     try {
-        if (await users.hasRoleOrIsAdmin(msg, guildConfig.arole)) {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             const charIdToApprove = msg.content.substr((guildConfig.prefix + 'approve').length + 1);
             // console.log('charid: ' + charIdToApprove);
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
@@ -832,7 +832,7 @@ async function handleApprove(msg, guildConfig) {
                 await msg.delete();
             }
         } else {
-            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to approve.`);
+            await msg.reply(`<@${msg.member.id}>, please ask an <@&${guildConfig.arole}> to approve.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
