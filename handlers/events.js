@@ -424,9 +424,9 @@ async function embedForEvent(msg, eventArray, title, isShow) {
         let attendees = await getStringForAttendees(theEvent);
         if (isShow) {
             eventEmbed.addFields(
-                { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
+                // { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
                 { name: 'Author', value: `<@${theEvent.userID}>`, inline: true },
-                { name: 'Attendees', value: `${attendees}`, inline: true },
+                { name: `Attendees${theEvent.attendees ? ' (' + theEvent.attendees.length : ' (' + 0}/${theEvent.number_player_slots + ')'}`, value: `${attendees}`, inline: true },
                 { name: 'Description', value: `${theEvent.description}`, inline: false },
             );
         }

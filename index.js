@@ -47,6 +47,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
+    console.log(`msg: ${reaction.message.guild.name}:${user.username}:${reaction.message.content}`);
     if (!user.bot) {
         try {
             // Now the message has been cached and is fully available
