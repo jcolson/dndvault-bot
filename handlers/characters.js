@@ -625,11 +625,15 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
-                name: `\:dagger: Name | ID | Status \:shield:`,
-                value: `${defCharString}[${char.name}](${char.readonlyUrl}) | ${char.id} | `
-                    + stringForApprovalsAndUpdates(char)
+                name: `\:dagger: Name | ID | Status | Campaign \:shield:`,
+                value: `${defCharString}[${char.name}](${char.readonlyUrl}) | ${char.id} | 
+                    ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
+        // let campaignString = stringForCampaign(char);
+        // if (campaignString) {
+        //     charEmbed.addFields({ name: 'Campaign', value: campaignString, inline: true });
+        // }
         if (isShow) {
             charEmbed.addFields(
                 { name: 'User', value: `<@${char.guildUser}>`, inline: true },
@@ -641,10 +645,6 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
                 },
                 { name: 'Attributes*', value: stringForStats(char), inline: true }
             );
-            let campaignString = stringForCampaign(char);
-            if (campaignString) {
-                charEmbed.addFields({ name: 'Campaign', value: campaignString, inline: true });
-            }
         }
     });
     charEmbed.addFields(
@@ -674,7 +674,7 @@ function stringForCampaign(char) {
     const dndCampaign = (char.campaign && char.campaign.name
         ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
         : undefined);
-    let returnCampaign;
+    let returnCampaign = 'No Campaign Set';
     if (dndCampaign && char.campaignOverride) {
         returnCampaign = char.campaignOverride + '\nDDB:' + dndCampaign;
     } else if (char.campaignOverride) {
@@ -690,6 +690,9 @@ function stringForCampaign(char) {
  * @param {CharModel} char 
  */
 function stringForStats(char) {
+    if (char.stats.length < 1) {
+        return "N/A";
+    }
     let charStatsString = '';
     char.stats.forEach((stat) => {
         let bonus = RacialBonusLookup[stat.id][char.race.baseRaceName] ? RacialBonusLookup[stat.id][char.race.baseRaceName] : 0;

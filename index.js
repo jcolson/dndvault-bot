@@ -188,6 +188,8 @@ client.on('message', async (msg) => {
             users.handleTimezoneSet(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
             users.handleTimezone(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config approval')) {
+            handleConfigApproval(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
             handleConfigPrefix(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
@@ -221,6 +223,7 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Prefix', value: guildConfig.prefix, inline: true },
             { name: 'Approver Role', value: retrieveRoleForID(msg, guildConfig.arole), inline: true },
             { name: 'Player Role', value: retrieveRoleForID(msg, guildConfig.prole), inline: true },
+            { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
         );
         await msg.channel.send(configEmbed);
         await msg.delete();
@@ -254,7 +257,7 @@ async function handleConfigArole(msg, guildConfig) {
                 await msg.reply(`<@${msg.member.id}>, could not locate the role: ${configAroleName}`);
             }
         } else {
-            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to configure.`);
+            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ...${error.message}`);
@@ -286,7 +289,7 @@ async function handleConfigProle(msg, guildConfig) {
                 await msg.reply(`<@${msg.member.id}>, could not locate the role: ${configProleName}`);
             }
         } else {
-            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to configure.`);
+            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ...${error.message}`);
@@ -308,7 +311,28 @@ async function handleConfigPrefix(msg, guildConfig) {
             await msg.channel.send(`<@${msg.member.id}>, \`${guildConfig.prefix}\` is now my prefix, don't forget!.`);
             await msg.delete();
         } else {
-            await msg.reply(`<@${msg.member.id}>, please ask someone with an approver-role to configure.`);
+            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
+        }
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
+/**
+ * 
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleConfigApproval(msg, guildConfig) {
+    try {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
+            guildConfig.requireCharacterApproval = msg.content.substring((guildConfig.prefix + 'config approval').length + 1);
+            await guildConfig.save();
+            GuildCache[msg.guild.id] = guildConfig;
+            await msg.channel.send(`<@${msg.member.id}>, Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.`);
+            await msg.delete();
+        } else {
+            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);

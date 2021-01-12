@@ -6,16 +6,20 @@ const Guild = Schema({
         index: true
     },
     "name": {
-        type: String
+        type: "String"
     },
     "prefix": {
-        type: String
+        type: "String"
     },
     "arole": {
-        type: String
+        type: "String"
     },
     "prole": {
-        type: String
+        type: "String"
+    },
+    "requireCharacterApproval": {
+        type: "Boolean",
+        default: false
     }
 })
 module.exports = model('Guild', Guild);

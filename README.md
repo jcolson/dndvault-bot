@@ -89,6 +89,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
+  - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
 - [x] timezone
   - [x] {no args} - view your timezone
   - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
