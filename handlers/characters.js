@@ -5,6 +5,7 @@ const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const users = require('../handlers/users.js');
 const utils = require('../utils/utils.js');
+const { Types } = require('mongoose');
 
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
@@ -44,6 +45,42 @@ async function handleRegister(msg, guildConfig) {
             throw new Error('Sorry, this character has already been registered, use `update` command instead.');
         }
         let char = new CharModel(charData);
+        char.guildUser = msg.member.id;
+        char.guildID = msg.guild.id;
+        char.approvalStatus = false;
+        await char.save();
+        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
+        await msg.delete();
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
+/**
+ * create a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleRegisterManual(msg, guildConfig) {
+    try {
+        const parameters = msg.content.substring((guildConfig.prefix + 'register manual').length + 1);
+        const paramArray = parameters.split(' ');
+        if (paramArray.length < 4) {
+            throw new Error('Not enough parameters passed.');
+        }
+        let char = new CharModel();
+        char.id = Types.ObjectId();
+        char.name = paramArray[0];
+        char.classes = [];
+        char.classes[0] = { definition: { name: paramArray[1] }, level: paramArray[2] };
+        char.race.fullName = paramArray[3];
+        if (paramArray.length > 4) {
+            char.campaignOverride = '';
+            for (let i = 4; i < paramArray.length; i++) {
+                char.campaignOverride += paramArray[i] + ' ';
+            }
+            char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
+        }
         char.guildUser = msg.member.id;
         char.guildID = msg.guild.id;
         char.approvalStatus = false;
@@ -583,9 +620,9 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
                 .setColor('#0099ff');
             i = 0;
         }
-        console.log('vaultuser', vaultUser);
+        // console.log('vaultuser', vaultUser);
         let defCharString = (vaultUser && vaultUser.defaultCharacter && vaultUser.defaultCharacter == char.id) ? `\:asterisk: ` : '';
-        console.log('defCharString "%s" and "%s"', vaultUser.defaultCharacter, char.id);
+        // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
                 name: `\:dagger: Name | ID | Status \:shield:`,
@@ -639,7 +676,7 @@ function stringForCampaign(char) {
         : undefined);
     let returnCampaign;
     if (dndCampaign && char.campaignOverride) {
-        returnCampaign = char.campaignOverride + ' DDB:' + dndCampaign;
+        returnCampaign = char.campaignOverride + '\nDDB:' + dndCampaign;
     } else if (char.campaignOverride) {
         returnCampaign = char.campaignOverride;
     } else if (dndCampaign) {
@@ -836,7 +873,7 @@ async function handleApprove(msg, guildConfig) {
  */
 async function handleShow(msg, guildConfig) {
     try {
-        const charID = parseCharIdFromURL(msg.content, 'show', guildConfig.prefix);
+        const charID = msg.content.substr((guildConfig.prefix + 'show').length + 1);
         const showUser = await CharModel.findOne({ id: charID, isUpdate: false, guildID: msg.guild.id });
         const embedChar = embedForCharacter(msg, [showUser], 'Show Character', true);
         await msg.channel.send(embedChar);
@@ -886,3 +923,4 @@ exports.handleShow = handleShow;
 exports.handleChanges = handleChanges;
 exports.handleCampaign = handleCampaign;
 exports.stringForCharacterShort = stringForCharacterShort;
+exports.handleRegisterManual = handleRegisterManual;

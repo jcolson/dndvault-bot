@@ -62,7 +62,9 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 
 ```fix
 - [x] help
-- [x] register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
+- [ ] register
+    - [ ] manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
+    - [x] [DNDBEYOND_URL] - register a character in the vault from dndbeyond
 - [ ] campaigns - list all campaigns for server
 - [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
 - [x] default

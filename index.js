@@ -142,6 +142,8 @@ client.on('message', async (msg) => {
         }
         if (msg.content === guildConfig.prefix + 'help') {
             help.handleHelp(msg, guildConfig, Config.inviteURL);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'register manual')) {
+            characters.handleRegisterManual(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
             characters.handleRegister(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'update')) {
