@@ -216,7 +216,7 @@ async function handleUpdateManual(msg, guildConfig) {
             });
             if (paramArray.length > 5) {
                 char.campaignOverride = '';
-                for (let i = 4; i < paramArray.length; i++) {
+                for (let i = 5; i < paramArray.length; i++) {
                     char.campaignOverride += paramArray[i] + ' ';
                 }
                 char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
@@ -236,7 +236,7 @@ async function handleUpdateManual(msg, guildConfig) {
             });
             if (paramArray.length > 5) {
                 char.campaignOverride = '';
-                for (let i = 4; i < paramArray.length; i++) {
+                for (let i = 5; i < paramArray.length; i++) {
                     char.campaignOverride += paramArray[i] + ' ';
                 }
                 char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
