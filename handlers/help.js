@@ -22,16 +22,18 @@ async function handleHelp(msg, guildConfig, inviteURL) {
 - [x] register
     - [x] manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - register a character in the vault from dndbeyond
-- [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
+- [x] update 
+    - [x] manual [CHAR_ID] [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - update a stub character, do not use spaces in any of the parameters except the campaign
+    - [x] [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
 - [x] approve [CHAR_ID] - approve a new/updated character within vault
 - [x] changes [CHAR_ID] - display changes for an unapproved character update
 - [ ] campaigns - list all campaigns for server
-- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
 \`\`\``},
             {
                 name: '\u200B', value: `
 \`\`\`fix
+- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
 - [x] default
   - [x] {no args} - show current default character
   - [x] [CHAR_ID] - set your default character id to be used for events/missions with no campaign
