@@ -16,4 +16,13 @@ function stringOfSize(value, size, padChar, padBefore) {
     return value;
 }
 
+/**
+ * 
+ * @param {Message} msg 
+ */
+function getLinkForEvent(msg) {
+    return `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+}
+
 exports.stringOfSize = stringOfSize;
+exports.getLinkForEvent = getLinkForEvent;

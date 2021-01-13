@@ -62,9 +62,13 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 
 ```fix
 - [x] help
-- [ ] register
-    - [ ] manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
+- [x] register
+    - [x] manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - register a character in the vault from dndbeyond
+- [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
+- [x] remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
+- [x] approve [CHAR_ID] - approve a new/updated character within vault
+- [x] changes [CHAR_ID] - display changes for an unapproved character update
 - [ ] campaigns - list all campaigns for server
 - [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
 - [x] default
@@ -80,17 +84,6 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [ ] show
   - [x] [CHAR_ID] - show a user's character from the vault
   - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault
-- [x] update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
-- [x] remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
-- [x] approve [CHAR_ID] - approve a new/updated character within vault
-- [x] changes [CHAR_ID] - display changes for an unapproved character update
-- [x] config - show BOT config
-  - [x] {no args} - show config
-  - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
-  - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
-  - [x] prefix [NEW_PREFIX] - modify the command prefix
-  - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
-  - [ ] require [BOOLEAN] - require that a user have matching character for events
 - [x] timezone
   - [x] {no args} - view your timezone
   - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
@@ -106,6 +99,13 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
   - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
   - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign
+- [x] config - show BOT config
+  - [x] {no args} - show config
+  - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
+  - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
+  - [x] prefix [NEW_PREFIX] - modify the command prefix
+  - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
+  - [ ] require [BOOLEAN] - require that a user have matching character for events
 ```
 
 ## Screenshots
