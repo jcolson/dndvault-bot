@@ -22,6 +22,8 @@
 
 # DND Vault Discord BOT
 
+D&D Character Vault and Event Management for Discord.
+
 This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) (or 'stub' characters not on dndbeyond) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
 
 The bot also offers the ability to schedule events (missions) and allow attendees (party members) to sign up for attendance, or remove themselves from attendance.  The bot will also convert the default time (GMT) to the user's local timezone upon request via the clock reaction on the event.  Events can be 'deployed' to show that they are 'approved' and have all the proper components (DM/GM, attendees, etc).
