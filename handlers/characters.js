@@ -5,7 +5,7 @@ const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const users = require('../handlers/users.js');
 const utils = require('../utils/utils.js');
-const { Types } = require('mongoose');
+const { Types, Mongoose } = require('mongoose');
 
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
@@ -47,7 +47,12 @@ async function handleRegister(msg, guildConfig) {
         let char = new CharModel(charData);
         char.guildUser = msg.member.id;
         char.guildID = msg.guild.id;
-        char.approvalStatus = false;
+        if (guildConfig.requireCharacterApproval) {
+            char.approvalStatus = false;
+        } else {
+            char.approvalStatus = true;
+            char.approvedBy = msg.guild.me.id;
+        }
         await char.save();
         await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
         await msg.delete();
@@ -83,7 +88,11 @@ async function handleRegisterManual(msg, guildConfig) {
         }
         char.guildUser = msg.member.id;
         char.guildID = msg.guild.id;
-        char.approvalStatus = false;
+        if (guildConfig.requireCharacterApproval) {
+            char.approvalStatus = false;
+        } else {
+            char.approvalStatus = true;
+        }
         await char.save();
         await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
         await msg.delete();
@@ -148,13 +157,27 @@ async function handleUpdate(msg, guildConfig) {
         if (req) {
             throw new Error('Sorry, this character has already has an update pending.  `remove ' + charData.id + '` if you would like to replace the update request');
         }
-        let char = new CharModel(charData);
-        char.guildUser = msg.member.id;
-        char.guildID = msg.guild.id;
-        char.approvalStatus = false;
-        char.isUpdate = true;
+        let char = checkRegisterStatus;
+        if (guildConfig.requireCharacterApproval) {
+            char._id = Types.ObjectId();
+            char.approvalStatus = false;
+            char.isUpdate = true;
+            char.guildUser = msg.member.id;
+            char.guildID = msg.guild.id;
+            char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.approvedBy = checkRegisterStatus.approvedBy;
+        } else {
+            // char = checkRegisterStatus;
+            char.overwrite(charData);
+            char.approvalStatus = true;
+            char.isUpdate = false;
+            char.guildUser = msg.member.id;
+            char.guildID = msg.guild.id;
+            char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.approvedBy = msg.guild.me.id;
+        }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} now has an update pending.`);
+        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has an update pending.`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -773,7 +796,7 @@ async function handleListQueued(msg, guildConfig) {
 async function handleList(msg, guildConfig) {
     try {
         let vaultUser = await UserModel.findOne({ guildID: msg.guild.id, userID: msg.member.id });
-        console.log('vaultuser', vaultUser);
+        // console.log('handlelist vaultuser', vaultUser);
         let charArrayUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
         let charArrayNoUpdates = await CharModel.find({ guildUser: msg.member.id, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
