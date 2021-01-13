@@ -196,6 +196,8 @@ client.on('message', async (msg) => {
             handleConfigArole(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
             handleConfigProle(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config require')) {
+            handleConfigRequire(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config')) {
             handleConfig(msg, guildConfig);
         }
@@ -224,6 +226,7 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Approver Role', value: retrieveRoleForID(msg, guildConfig.arole), inline: true },
             { name: 'Player Role', value: retrieveRoleForID(msg, guildConfig.prole), inline: true },
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
+            { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
         );
         await msg.channel.send(configEmbed);
         await msg.delete();
@@ -327,6 +330,27 @@ async function handleConfigApproval(msg, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             guildConfig.requireCharacterApproval = msg.content.substring((guildConfig.prefix + 'config approval').length + 1);
+            await guildConfig.save();
+            GuildCache[msg.guild.id] = guildConfig;
+            await msg.channel.send(`<@${msg.member.id}>, Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.`);
+            await msg.delete();
+        } else {
+            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
+        }
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
+/**
+ * 
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleConfigRequire(msg, guildConfig) {
+    try {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
+            guildConfig.requireCharacterForEvent = msg.content.substring((guildConfig.prefix + 'config require').length + 1);
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await msg.channel.send(`<@${msg.member.id}>, Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.`);

@@ -90,6 +90,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
   - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
+  - [ ] require [BOOLEAN] - require that a user have matching character for events
 - [x] timezone
   - [x] {no args} - view your timezone
   - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
@@ -149,7 +150,7 @@ https://discordapp.com/channels/785567026512527390
 ```
 
 ```
-!event create !title Test Mission !DMGM @D&D Vault Test !at 9:00 pm !for 3.5 !on Jan 17 2030 !with 5 !campaign Beholders Must Die !desc Starting Region # according to Region Map Mode (mandatory, can be more specific, bonus points for googling real life names, extra points if historic names): Christchurch
+!event create !title Let's Kill Kobols !DMGM @D&D Vault Test !at 9:00 pm !for 3.5 !on Feb 17 2021 !with 5 !campaign Kobol Killas !desc Starting Region # according to Region Map Mode (mandatory, can be more specific, bonus points for googling real life names, extra points if historic names): Christchurch
 
 Mission Description/Goal: Your initiation. Are you ready?
 OR

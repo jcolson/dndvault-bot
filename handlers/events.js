@@ -272,16 +272,17 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
         throw new Error('You must include a description for your event.');
     } else if (eventArray['!WITH'] && isNaN(eventArray['!WITH'])) {
         throw new Error(`The number of player slots needs to be a number, not: "${eventArray['!WITH']}"`);
-    } else if (eventArray['!CAMPAIGN']) {
-        //let campaigns = await CharModel.find().distinct('campaign.id');
-        let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaignOverride": eventArray['!CAMPAIGN'] });
-        if (!campaignCharExample) {
-            campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaign.id": eventArray['!CAMPAIGN'] });
-            if (!campaignCharExample) {
-                throw new Error(`The campaign id "${eventArray['!CAMPAIGN']}" is not being used by any characters on this server.`);
-            }
-        }
-    }
+    } 
+    // else if (eventArray['!CAMPAIGN']) {
+    //     //let campaigns = await CharModel.find().distinct('campaign.id');
+    //     let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaignOverride": eventArray['!CAMPAIGN'] });
+    //     if (!campaignCharExample) {
+    //         campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaign.id": eventArray['!CAMPAIGN'] });
+    //         if (!campaignCharExample) {
+    //             throw new Error(`The campaign id "${eventArray['!CAMPAIGN']}" is not being used by any characters on this server.`);
+    //         }
+    //     }
+    // }
 
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: msg.guild.id, userID: msg.member.id });
 
@@ -454,11 +455,14 @@ async function getStringForAttendees(event) {
     for (let attendee of event.attendees) {
         // console.log('attendee: ' + attendee);
         // console.log('guildid %s charid %s guilduser %s', event.guildID, attendee.characterID, attendee.userID);
-        let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
-        // console.log('attendee char',char.name);
         let charString = '';
-        if (char) {
-            charString = ' (' + characters.stringForCharacterShort(char) + ')';
+        if (attendee.characterID) {
+            let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
+            // console.log('attendee char',char.name);
+
+            if (char) {
+                charString = ' (' + characters.stringForCharacterShort(char) + ')';
+            }
         }
         attendees += `<@${attendee.userID}>${charString},`;
     }
@@ -513,7 +517,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         // console.log(reaction.emoji);
         if (reaction.emoji && reaction.emoji.name == '✅') {
             // console.log(eventForMessage);
-            await attendeeAdd(reaction, user, eventForMessage);
+            await attendeeAdd(reaction, user, eventForMessage, guildConfig);
         } else if (reaction.emoji && reaction.emoji.name == '❎') {
             // console.log(eventForMessage);
             await attendeeRemove(reaction, user, eventForMessage);
@@ -581,15 +585,17 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
     await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
 }
 
-async function attendeeAdd(reaction, user, eventForMessage) {
+async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
     let charParams;
     if (!eventForMessage.campaign) {
         // console.log('guildid %s and userid %s', reaction.message.guild.id, user.id);
         let vaultUser = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
         if (vaultUser) {
             charParams = { guildID: reaction.message.guild.id, guildUser: user.id, id: vaultUser.defaultCharacter, approvalStatus: true };
-        } else {
+        } else if (guildConfig.requireCharacterForEvent) {
             throw new Error(`Make sure you have set \`!default\` character for events with no campaign set.`);
+        } else {
+            charParams = { guildID: reaction.message.guild.id, guildUser: user.id, approvalStatus: true };
         }
     } else {
         charParams = {
@@ -615,10 +621,12 @@ async function attendeeAdd(reaction, user, eventForMessage) {
     }
     let character = await CharModel.findOne(charParams);
     if (!character) {
-        if (eventForMessage.campaign) {
+        if (eventForMessage.campaign && guildConfig.requireCharacterForEvent) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have an approved character and that it's campaign is set to ${eventForMessage.campaign}.`);
-        } else {
+        } else if (guildConfig.requireCharacterForEvent) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have set \`!default\` character for events with no campaign set.`);
+        } else {
+            console.log(`Could not locate an eligible character to join the mission, but guild doesn't require.`);
         }
     }
     if (!eventForMessage.attendees) {
@@ -627,14 +635,14 @@ async function attendeeAdd(reaction, user, eventForMessage) {
     let alreadySignedUp = false;
     eventForMessage.attendees.forEach((attendee) => {
         if (attendee.userID == user.id) {
-            attendee.characterID = character.id;
+            attendee.characterID = character && character.id ? character.id : undefined;
             attendee.date_time = new Date();
             alreadySignedUp = true;
         }
     });
     if (!alreadySignedUp) {
         if (eventForMessage.attendees.length < eventForMessage.number_player_slots) {
-            eventForMessage.attendees.push({ userID: user.id, characterID: character.id, date_time: new Date() });
+            eventForMessage.attendees.push({ userID: user.id, characterID: character && character.id ? character.id : undefined, date_time: new Date() });
         } else {
             throw new Error(`Could not add another attendee, there are only ${eventForMessage.number_player_slots} total slots available, and they're all taken.`);
         }

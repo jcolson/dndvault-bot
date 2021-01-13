@@ -20,6 +20,10 @@ const Guild = Schema({
     "requireCharacterApproval": {
         type: "Boolean",
         default: false
+    },
+    "requireCharacterForEvent": {
+        type: "Boolean",
+        default: false
     }
 })
 module.exports = model('Guild', Guild);
