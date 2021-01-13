@@ -950,7 +950,7 @@ async function handleApprove(msg, guildConfig) {
                 // if this is an update, then remove the original - this update will become the registered character
                 if (charToApprove.isUpdate = true) {
                     charToApprove.isUpdate = false;
-                    await CharModel.deleteMany({ guildUser: msg.member.id, id: charIdToApprove, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
+                    await CharModel.deleteMany({ id: charIdToApprove, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 }
                 await charToApprove.save();
                 await msg.channel.send(`<@${msg.member.id}>, "${charToApprove.id}" was approved.`);

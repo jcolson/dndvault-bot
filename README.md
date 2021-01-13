@@ -116,7 +116,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
   - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
-  - [ ] require [BOOLEAN] - require that a user have matching character for events
+  - [x] require [BOOLEAN] - require that a user have matching character for events
 ```
 
 ## Screenshots
