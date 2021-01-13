@@ -4,13 +4,16 @@
 
 - [DND Vault Discord BOT](#dnd-vault-discord-bot)
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
-  - [Example workflow with the BOT](#example-workflow-with-the-bot)
-  - [Example usage](#example-usage)
+  - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
+  - [Example character workflow usage](#example-character-workflow-usage)
   - [Commands](#commands)
   - [Screenshots](#screenshots)
-    - [list](#list)
-    - [changes](#changes)
-    - [config](#config)
+    - [event list](#event-list)
+    - [event](#event)
+    - [show character](#show-character)
+    - [list characters](#list-characters)
+    - [changes in character updates](#changes-in-character-updates)
+    - [config of server for guild](#config-of-server-for-guild)
   - [Notes (can be safely ignored)](#notes-can-be-safely-ignored)
     - [Mongodb queries](#mongodb-queries)
     - [discordjs](#discordjs)
@@ -19,13 +22,17 @@
 
 # DND Vault Discord BOT
 
-This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
+This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) (or 'stub' characters not on dndbeyond) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
+
+The bot also offers the ability to schedule events (missions) and allow attendees (party members) to sign up for attendance, or remove themselves from attendance.  The bot will also convert the default time (GMT) to the user's local timezone upon request via the clock reaction on the event.  Events can be 'deployed' to show that they are 'approved' and have all the proper components (DM/GM, attendees, etc).
+
+Users have the ability to list events that are deployed or proposed (not yet approved/deployed).
 
 ## Invite the BOT to your server
 
 [Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=92224&scope=bot)
 
-## Example workflow with the BOT
+## Example character workflow with the BOT
 
 Workflow would work something like this.
 
@@ -43,7 +50,7 @@ Workflow would work something like this.
 
 all the while anyone on the server can 'view' any user's character ...
 
-## Example usage
+## Example character workflow usage
 
 ```diff
 !register https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
