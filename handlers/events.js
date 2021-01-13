@@ -590,7 +590,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
     if (!eventForMessage.campaign) {
         // console.log('guildid %s and userid %s', reaction.message.guild.id, user.id);
         let vaultUser = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
-        if (vaultUser) {
+        if (vaultUser && vaultUser.defaultCharacter) {
             charParams = { guildID: reaction.message.guild.id, guildUser: user.id, id: vaultUser.defaultCharacter, approvalStatus: true };
         } else if (guildConfig.requireCharacterForEvent) {
             throw new Error(`Make sure you have set \`!default\` character for events with no campaign set.`);
