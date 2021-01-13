@@ -357,7 +357,7 @@ async function handleConfigRequire(msg, guildConfig) {
             guildConfig.requireCharacterForEvent = msg.content.substring((guildConfig.prefix + 'config require').length + 1);
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
-            await msg.channel.send(`<@${msg.member.id}>, Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.`);
+            await msg.channel.send(`<@${msg.member.id}>, Require Character for Events now set to: \`${guildConfig.requireCharacterForEvent}\`.`);
             await msg.delete();
         } else {
             await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);

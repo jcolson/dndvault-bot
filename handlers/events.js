@@ -272,7 +272,7 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
         throw new Error('You must include a description for your event.');
     } else if (eventArray['!WITH'] && isNaN(eventArray['!WITH'])) {
         throw new Error(`The number of player slots needs to be a number, not: "${eventArray['!WITH']}"`);
-    } 
+    }
     // else if (eventArray['!CAMPAIGN']) {
     //     //let campaigns = await CharModel.find().distinct('campaign.id');
     //     let campaignCharExample = await CharModel.findOne({ guildID: msg.guild.id, "campaignOverride": eventArray['!CAMPAIGN'] });
@@ -419,6 +419,9 @@ async function embedForEvent(msg, eventArray, title, isShow) {
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs`, inline: true },
             { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
         );
+        if (!isShow) {
+            eventEmbed.addFields({ name: `Attendees`, value: `${theEvent.attendees ? '(' + theEvent.attendees.length : '(' + 0}/${theEvent.number_player_slots + ')'}`, inline: true },);
+        }
         if (theEvent.campaign) {
             eventEmbed.addField('Campaign', theEvent.campaign, true);
         }
@@ -586,40 +589,33 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
 }
 
 async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
-    let charParams;
+    let vaultUser = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
+    let characterArray = await CharModel.find({ guildID: reaction.message.guild.id, guildUser: user.id, approvalStatus: true }).sort([["campaignOverride", "desc"], ["campaign.id", "desc"]]);
+    let character;
+    // check array for characters that will work for no campaign
     if (!eventForMessage.campaign) {
-        // console.log('guildid %s and userid %s', reaction.message.guild.id, user.id);
-        let vaultUser = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
-        if (vaultUser && vaultUser.defaultCharacter) {
-            charParams = { guildID: reaction.message.guild.id, guildUser: user.id, id: vaultUser.defaultCharacter, approvalStatus: true };
-        } else if (guildConfig.requireCharacterForEvent) {
-            throw new Error(`Make sure you have set \`!default\` character for events with no campaign set.`);
-        } else {
-            charParams = { guildID: reaction.message.guild.id, guildUser: user.id, approvalStatus: true };
-        }
-    } else {
-        charParams = {
-            "$and": [
-                {
-                    "guildID": reaction.message.guild.id,
-                    "guildUser": user.id,
-                    "approvalStatus": true,
-                    "isUpdate": false
-                },
-                {
-                    "$or": [
-                        {
-                            "campaignOverride": eventForMessage.campaign
-                        },
-                        {
-                            "campaign.id": eventForMessage.campaign
-                        }
-                    ]
+        for (let charCheck of characterArray) {
+            if (vaultUser && vaultUser.defaultCharacter) {
+                if (charCheck.id == vaultUser.defaultCharacter) {
+                    character = charCheck;
                 }
-            ]
-        };
+            } else if (!character) {
+                character = charCheck;
+            }
+        }
+    } else { // check array for characters that will work for a campaign
+        let characterBackup, characterDefault;
+        for (let charCheck of characterArray) {
+            if (charCheck.campaignOverride == eventForMessage.campaign || charCheck.campaign.id == eventForMessage.campaign) {
+                character = charCheck;
+            } else if (vaultUser && vaultUser.defaultCharacter && charCheck.id == vaultUser.defaultCharacter) {
+                characterDefault = charCheck;
+            } else if (!guildConfig.requireCharacterForEvent && !character && !characterBackup) { //if characters aren't required for a campaign and a character hasn't been found yet, use the first one
+                characterBackup = charCheck;
+            }
+        }
+        character = character ? character : (characterDefault && !guildConfig.requireCharacterForEvent ? characterDefault : (characterBackup && !guildConfig.requireCharacterForEvent ? characterBackup : undefined));
     }
-    let character = await CharModel.findOne(charParams);
     if (!character) {
         if (eventForMessage.campaign && guildConfig.requireCharacterForEvent) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have an approved character and that it's campaign is set to ${eventForMessage.campaign}.`);
