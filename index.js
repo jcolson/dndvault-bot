@@ -7,6 +7,7 @@ const path = require('path');
 const { Client, MessageEmbed, Role } = require('discord.js');
 const GuildModel = require('./models/Guild');
 const { connect } = require('mongoose');
+global.vaultVersion = require('./package.json').version;
 global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 const GuildCache = {};
 
@@ -229,6 +230,7 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Player Role', value: retrieveRoleForID(msg, guildConfig.prole), inline: true },
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
             { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
+            { name: 'BOT Version', value: vaultVersion, inline: true },
         );
         await msg.channel.send(configEmbed);
         await msg.delete();
