@@ -1,0 +1,20 @@
+{
+    "$and": [
+        {
+            "guildID": "785567026512527390",
+            "guildUser": "227562842591723521",
+            "approvalStatus": true,
+            "isUpdate": false
+        },
+        {
+            "$or": [
+                {
+                    "campaignOverride": "Beholders Must Die"
+                },
+                {
+                    "campaign.id": 1664765
+                }
+            ]
+        }
+    ]
+}
