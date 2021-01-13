@@ -146,6 +146,8 @@ client.on('message', async (msg) => {
             characters.handleRegisterManual(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
             characters.handleRegister(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'update manual')) {
+            characters.handleUpdateManual(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'update')) {
             characters.handleUpdate(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {

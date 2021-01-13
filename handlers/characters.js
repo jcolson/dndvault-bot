@@ -146,20 +146,20 @@ async function handleUpdate(msg, guildConfig) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
         };
         let charData = Object.assign({}, charJSON.data);
-        const checkRegisterStatus = await CharModel.findOne({ id: charData.id, isUpdate: false, guildID: msg.guild.id });
+        const checkRegisterStatus = await CharModel.findOne({ id: charData.id, isUpdate: false, guildID: msg.guild.id, guildUser: msg.member.id });
         if (!checkRegisterStatus) {
             throw new Error('Sorry, this character has not been registered and approved yet.  `register ' + charData.id + '` it first.');
         } else if (checkRegisterStatus.approvalStatus == false) {
             throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charData.id + '` and then re-register if you would like to replace the `register` request');
         }
         // charData.id = charData.id + '_update';
-        const req = await CharModel.findOne({ id: charData.id, isUpdate: true, guildID: msg.guild.id });
+        const req = await CharModel.findOne({ id: charData.id, guildUser: msg.member.id, isUpdate: true, guildID: msg.guild.id });
         if (req) {
             throw new Error('Sorry, this character has already has an update pending.  `remove ' + charData.id + '` if you would like to replace the update request');
         }
         let char = checkRegisterStatus;
         if (guildConfig.requireCharacterApproval) {
-            char._id = Types.ObjectId();
+            char = new CharModel(charData);
             char.approvalStatus = false;
             char.isUpdate = true;
             char.guildUser = msg.member.id;
@@ -167,7 +167,6 @@ async function handleUpdate(msg, guildConfig) {
             char.campaignOverride = checkRegisterStatus.campaignOverride;
             char.approvedBy = checkRegisterStatus.approvedBy;
         } else {
-            // char = checkRegisterStatus;
             char.overwrite(charData);
             char.approvalStatus = true;
             char.isUpdate = false;
@@ -177,7 +176,80 @@ async function handleUpdate(msg, guildConfig) {
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has an update pending.`);
+        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.`);
+        await msg.delete();
+    } catch (error) {
+        await msg.channel.send(`unrecoverable ... ${error.message}`);
+    }
+}
+
+/**
+ * update a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
+async function handleUpdateManual(msg, guildConfig) {
+    try {
+        const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
+        const paramArray = parameters.split(' ');
+        if (paramArray.length < 5) {
+            throw new Error('Not enough parameters passed.');
+        }
+        console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, paramArray[0]);
+        let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: paramArray[0], isUpdate: false });
+        if (!checkRegisterStatus) {
+            throw new Error('Sorry, this character has not been registered and approved yet.  `register` and `approve` it first.');
+        } else if (checkRegisterStatus.approvalStatus == false) {
+            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + paramArray[0] + '` and then re-register if you would like to replace the `register` request');
+        }
+        const req = await CharModel.findOne({ id: paramArray[0], isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
+        if (req) {
+            throw new Error('Sorry, this character has already has an update pending.  `remove ' + paramArray[0] + '` if you would like to replace the update request');
+        }
+        let char = checkRegisterStatus;
+        if (guildConfig.requireCharacterApproval) {
+            char = new CharModel({
+                id: paramArray[0],
+                name: paramArray[1],
+                classes: [{ definition: { name: paramArray[2] }, level: paramArray[3] }],
+                "race.fullName": paramArray[4],
+            });
+            if (paramArray.length > 5) {
+                char.campaignOverride = '';
+                for (let i = 4; i < paramArray.length; i++) {
+                    char.campaignOverride += paramArray[i] + ' ';
+                }
+                char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
+            }
+            char.approvalStatus = false;
+            char.isUpdate = true;
+            char.guildUser = msg.member.id;
+            char.guildID = msg.guild.id;
+            char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.approvedBy = checkRegisterStatus.approvedBy;
+        } else {
+            char.overwrite({
+                id: paramArray[0],
+                name: paramArray[1],
+                classes: [{ definition: { name: paramArray[2] }, level: paramArray[3] }],
+                "race.fullName": paramArray[4],
+            });
+            if (paramArray.length > 5) {
+                char.campaignOverride = '';
+                for (let i = 4; i < paramArray.length; i++) {
+                    char.campaignOverride += paramArray[i] + ' ';
+                }
+                char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
+            }
+            char.approvalStatus = true;
+            char.isUpdate = false;
+            char.guildUser = msg.member.id;
+            char.guildID = msg.guild.id;
+            char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.approvedBy = msg.guild.me.id;
+        }
+        await char.save();
+        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.`);
         await msg.delete();
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
@@ -950,3 +1022,4 @@ exports.handleChanges = handleChanges;
 exports.handleCampaign = handleCampaign;
 exports.stringForCharacterShort = stringForCharacterShort;
 exports.handleRegisterManual = handleRegisterManual;
+exports.handleUpdateManual = handleUpdateManual;
