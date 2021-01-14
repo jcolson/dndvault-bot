@@ -53,7 +53,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
   - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault
 - [x] timezone
   - [x] {no args} - view your timezone
-  - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
+  - [x] [TIMEZONE] - set your timezone (required for interacting with events)
 \`\`\``});
         charEmbedArray.push(charEmbed);
         charEmbed = new MessageEmbed()

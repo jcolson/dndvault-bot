@@ -1,5 +1,6 @@
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
+const utils = require('../utils/utils.js');
 
 /**
  * set user's timezone
@@ -10,8 +11,10 @@ async function handleDefault(msg, guildConfig) {
     try {
         let defaultChar = msg.content.substring((guildConfig.prefix + 'default').length + 1);
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (defaultChar == '') {
-            await msg.channel.send(`<@${msg.member.id}>, your default character is currently set to: ${currUser.defaultCharacter}`);
+        if (defaultChar == '' && currUser) {
+            await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character is currently set to: ${currUser.defaultCharacter}` }], msg);
+        } else if (defaultChar == '') {
+            throw new Error('No default character set yet.');
         } else {
             let character = CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: defaultChar, approvalStatus: true });
             if (!character) {
@@ -23,11 +26,11 @@ async function handleDefault(msg, guildConfig) {
                 currUser.defaultCharacter = defaultChar;
             }
             await currUser.save();
-            await msg.channel.send(`<@${msg.member.id}>, your default character was successfully set to: ${currUser.defaultCharacter}`);
+            await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character was successfully set to: ${currUser.defaultCharacter}` }], msg);
         }
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -36,41 +39,28 @@ async function handleDefault(msg, guildConfig) {
  * @param {Message} msg 
  * @param {GuildModel} guildConfig 
  */
-async function handleTimezoneSet(msg, guildConfig) {
-    try {
-        let timeZoneString = msg.content.substring((guildConfig.prefix + 'timezone set').length + 1);
-        timeZoneString = isValidTimeZone(timeZoneString);
-        let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (!currUser) {
-            currUser = new UserModel({ guildID: msg.guild.id, userID: msg.member.id, timezone: timeZoneString });
-        } else {
-            console.log('setting timezone to "%s"', timeZoneString);
-            currUser.timezone = timeZoneString;
-        }
-        await currUser.save();
-        await msg.channel.send(`<@${msg.member.id}>, your timezone was successfully set to: ${currUser.timezone}`);
-        await msg.delete();
-    } catch (error) {
-        await msg.channel.send(`<@${msg.member.id}> ... ${error.message}`);
-    }
-}
-
-/**
- * show user's timezone
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
- */
 async function handleTimezone(msg, guildConfig) {
     try {
+        let timeZoneString = msg.content.substring((guildConfig.prefix + 'timezone').length + 1);
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (!currUser || !currUser.timezone) {
-            await msg.channel.send(`<@${msg.member.id}>, your timezone is currently not set.  Use \`timezone set\` to set it.`);
+        if (timeZoneString == '' && currUser) {
+            await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` }], msg);
+        } else if (timeZoneString == '') {
+            throw new Error('No timezone set yet.');
         } else {
-            await msg.channel.send(`<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}`);
+            timeZoneString = isValidTimeZone(timeZoneString);    
+            if (!currUser) {
+                currUser = new UserModel({ guildID: msg.guild.id, userID: msg.member.id, timezone: timeZoneString });
+            } else {
+                // console.log('setting timezone to "%s"', timeZoneString);
+                currUser.timezone = timeZoneString;
+            }
+            await currUser.save();
+            await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone was successfully set to: ${currUser.timezone}` }], msg);
         }
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -109,14 +99,13 @@ async function hasRoleOrIsAdmin(member, roleId) { // @todo change this from mess
             })
         }
     } catch (error) {
-        console.error('Could not determine user role',error);
+        console.error('Could not determine user role', error);
         throw new Error('Could not determine user role');
     }
     console.log('permission check: ' + hasRole);
     return hasRole;
 }
 
-exports.handleTimezoneSet = handleTimezoneSet;
 exports.handleTimezone = handleTimezone;
 exports.hasRoleOrIsAdmin = hasRoleOrIsAdmin;
 exports.handleDefault = handleDefault;

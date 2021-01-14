@@ -171,8 +171,6 @@ client.on('message', async (msg) => {
             characters.handleApprove(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
             characters.handleShow(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
-            users.handleDefault(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
             events.handleEventCreate(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
@@ -187,8 +185,8 @@ client.on('message', async (msg) => {
             events.handleEventListDeployed(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
             events.handleEventList(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {
-            users.handleTimezoneSet(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
+            users.handleDefault(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
             users.handleTimezone(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config approval')) {
