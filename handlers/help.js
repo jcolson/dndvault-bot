@@ -72,6 +72,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
   - [x] show [MISSION_ID] - replace the posting for an event (if it got deleted by accident)
   - [x] remove [MISSION_ID] - removes mission event
   - [x] list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
+  - [ ] list my - list all future events you are signed up for or are a DMGM for
   - [ ] list past [DAYS] - list past events for the last DAYS (PROPOSed and DEPLOYed)
   - [x] list proposed - list all future PROPOSED events
   - [x] list deployed - list all future DEPLOYED events
