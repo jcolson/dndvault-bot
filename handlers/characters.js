@@ -54,10 +54,10 @@ async function handleRegister(msg, guildConfig) {
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
+        await utils.sendDirectOrFallbackToChannel([{ name: 'Register', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }], msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -94,10 +94,10 @@ async function handleRegisterManual(msg, guildConfig) {
             char.approvalStatus = true;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
+        await utils.sendDirectOrFallbackToChannel([{ name: 'Register Manual', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }], msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -176,10 +176,10 @@ async function handleUpdate(msg, guildConfig) {
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.`);
+        await utils.sendDirectOrFallbackToChannel([{ name: 'Update', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.` }], msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -249,10 +249,10 @@ async function handleUpdateManual(msg, guildConfig) {
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.`);
+        await utils.sendDirectOrFallbackToChannel([{ name: 'Update Manual', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.` }], msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -302,48 +302,67 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     change = stringForRaceChange(approvedChar, updatedChar);
     if (change) changes.push(change);
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
-    changesEmbed.addFields({ name: 'Core Changes', value: changes });
+    changesEmbed.addFields({ name: 'Core Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     changes = arrayForAbilitiesChange(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Abilities Changes', value: changes });
+        changesEmbed.addFields({ name: 'Abilities Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForBackgroundModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Background Changes', value: changes });
+        changesEmbed.addFields({ name: 'Background Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForClassModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Class Changes', value: changes });
+        changesEmbed.addFields({ name: 'Class Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForConditionModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Condition Changes', value: changes });
+        changesEmbed.addFields({ name: 'Condition Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForFeatModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Feat Changes', value: changes });
+        changesEmbed.addFields({ name: 'Feat Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForItemModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Item Changes', value: changes });
+        changesEmbed.addFields({ name: 'Item Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForRaceModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Race Changes', value: changes });
+        changesEmbed.addFields({ name: 'Race Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForTraitsChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Traits Changes', value: changes });
+        changesEmbed.addFields({ name: 'Traits Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForInventoryChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Inventory Changes', value: changes });
+        changesEmbed.addFields({ name: 'Inventory Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForCurrenciesChange(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Currency Changes', value: changes });
+        changesEmbed.addFields({ name: 'Currency Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     return changesEmbed;
+}
+
+function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
+    let elipses = '...';
+    let buffer = elipses.length;
+    totalFinalLength = totalFinalLength - buffer;
+    let stringToReturn = strArrayToTrim.join('\n');
+    while (stringToReturn.length >= totalFinalLength) {
+        let lastIndex = stringToReturn.lastIndexOf('| `');
+        if (lastIndex == -1) {
+            stringToReturn = stringToReturn.substring(0, totalFinalLength - buffer) + elipses;
+        } else {
+            stringToReturn = stringToReturn.substring(0, lastIndex);
+            if (stringToReturn.length <= totalFinalLength - buffer) {
+                stringToReturn += elipses;
+            }
+        }
+    }
+    return stringToReturn;
 }
 
 
@@ -960,7 +979,7 @@ async function handleApprove(msg, guildConfig) {
             await msg.reply(`<@${msg.member.id}>, please ask an <@&${guildConfig.arole}> to approve.`);
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -972,14 +991,19 @@ async function handleApprove(msg, guildConfig) {
 async function handleShow(msg, guildConfig) {
     try {
         const charID = msg.content.substr((guildConfig.prefix + 'show').length + 1);
-        const showUser = await CharModel.findOne({ id: charID, isUpdate: false, guildID: msg.guild.id });
-        const embedChar = embedForCharacter(msg, [showUser], 'Show Character', true);
-        await msg.channel.send(embedChar);
+        const showUser = (await CharModel.find({ id: charID, guildID: msg.guild.id }).sort({ isUpdate: 'desc' }))[0];
+        if (!showUser) {
+            throw new Error(`That character (${charID}) doesn't exist`);
+        }
+        const embedsChar = embedForCharacter(msg, [showUser], 'Show Character', true);
+        await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
+
+// @todo left off
 
 /**
  * allow editing of campaign to override dndbeyond

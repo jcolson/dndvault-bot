@@ -8,7 +8,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
             .setColor('#0099ff')
             .setTitle('Help for D&D Vault BOT')
             .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot');
-        if (guildConfig) {
+        if (msg.guild) {
             charEmbed.setDescription(`Current Command Prefix is "${guildConfig.prefix}"`);
             charEmbed.setThumbnail(msg.guild.iconURL());
         }
@@ -95,7 +95,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
         );
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-        if (guildConfig) {
+        if (msg.guild) {
             await msg.delete();
         }
     } catch (error) {
