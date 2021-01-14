@@ -20,6 +20,9 @@ function stringOfSize(value, size, padChar, padBefore) {
  * @param {Message} msg 
  */
 function getLinkForMessage(msg) {
+    if (!msg.guild) {
+        return undefined;
+    }
     return `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
 }
 
@@ -73,12 +76,15 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         } else if (msg) {
             memberToSend = msg.member;
         } else {
-            console.error('sendDirectOrFallbackToChannel: no valid reaction, message or user was passed to be able to respond.');
+            console.error('sendDirectOrFallbackToChannelEmbeds: no valid reaction, message or user was passed to be able to respond.');
             throw new Error('no valid reaction, message or user was passed to be able to respond.');
         }
         // console.log('membertosend: ' + memberToSend.id);
         // console.log('msg member: ' + msg.member.id);
-        embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `[Go Back To Message](${getLinkForMessage(msg)})`, inline: false });
+        let linkForMessage = getLinkForMessage(msg);
+        if (linkForMessage) {
+            embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `[Go Back To Message](${linkForMessage})`, inline: false });
+        }
         let messageSent = false;
         if (memberToSend && !skipDM) {
             try {
@@ -87,7 +93,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 }
                 messageSent = true;
             } catch (error) {
-                console.error('sendDirectOrFallbackToChannel: could not DC with user, will fallback to channel send. - %s %s', error.message, error);
+                console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s %s', error.message, error);
             }
         }
         if (!messageSent) {
@@ -96,12 +102,12 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     await msg.channel.send(embed);
                 }
             } catch (error) {
-                console.error('sendDirectOrFallbackToChannel: could not channel send. - %s', error.message);
+                console.error('sendDirectOrFallbackToChannelEmbeds: could not channel send. - %s', error.message);
                 throw error;
             }
         }
     } catch (error) {
-        console.error('sendDirectOrFallbackToChannel: - %s', error.message);
+        console.error('sendDirectOrFallbackToChannelEmbeds: - %s', error.message);
     }
 }
 

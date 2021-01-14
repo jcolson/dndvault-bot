@@ -3,7 +3,6 @@ const utils = require('../utils/utils.js');
 
 async function handleHelp(msg, guildConfig, inviteURL) {
     try {
-        let goBackToServer = '';
         const charEmbedArray = [];
         let charEmbed = new MessageEmbed()
             .setColor('#0099ff')
@@ -12,7 +11,6 @@ async function handleHelp(msg, guildConfig, inviteURL) {
         if (guildConfig) {
             charEmbed.setDescription(`Current Command Prefix is "${guildConfig.prefix}"`);
             charEmbed.setThumbnail(msg.guild.iconURL());
-            goBackToServer = `[🔙 Go back to your server](${utils.getLinkForEvent(msg)}).  `;
         }
         charEmbed.addFields(
             {
@@ -93,18 +91,12 @@ async function handleHelp(msg, guildConfig, inviteURL) {
 \`\`\``},
         );
         charEmbed.addFields(
-            { name: '\u200B', value: `${goBackToServer}Add this BOT to your server. [Click here](${inviteURL})` },
+            { name: '\u200B', value: `Add this BOT to your server. [Click here](${inviteURL})` },
         );
         charEmbedArray.push(charEmbed);
+        await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
         if (guildConfig) {
-            for (let charEmbed of charEmbedArray) {
-                await msg.member.send(charEmbed);
-            }
             await msg.delete();
-        } else {
-            for (let charEmbed of charEmbedArray) {
-                await msg.channel.send(charEmbed);
-            }
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
