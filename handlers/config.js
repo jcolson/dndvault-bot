@@ -1,7 +1,6 @@
 const GuildModel = require('../models/Guild');
 const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
-const { MessageEmbed } = require('discord.js');
 const GuildCache = {};
 
 /**

@@ -1,4 +1,4 @@
-const { MessageReaction, MessageEmbed } = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 
 /**
  * 

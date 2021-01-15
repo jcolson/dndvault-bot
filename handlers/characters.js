@@ -1,11 +1,11 @@
 
-const { Client, MessageEmbed, Role } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const users = require('../handlers/users.js');
 const utils = require('../utils/utils.js');
-const { Types, Mongoose } = require('mongoose');
+const { Types } = require('mongoose');
 
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
