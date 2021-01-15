@@ -197,8 +197,8 @@ client.on('message', async (msg) => {
             handleConfigArole(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
             handleConfigProle(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config require')) {
-            handleConfigRequire(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config campaign')) {
+            handleConfigCampaign(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config')) {
             handleConfig(msg, guildConfig);
         }
@@ -349,10 +349,10 @@ async function handleConfigApproval(msg, guildConfig) {
  * @param {Message} msg 
  * @param {GuildModel} guildConfig 
  */
-async function handleConfigRequire(msg, guildConfig) {
+async function handleConfigCampaign(msg, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            guildConfig.requireCharacterForEvent = msg.content.substring((guildConfig.prefix + 'config require').length + 1);
+            guildConfig.requireCharacterForEvent = msg.content.substring((guildConfig.prefix + 'config campaign').length + 1);
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await msg.channel.send(`<@${msg.member.id}>, Require Character for Events now set to: \`${guildConfig.requireCharacterForEvent}\`.`);

@@ -48,6 +48,9 @@ async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
  * @param {Boolean} skipDM 
  */
 async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
+    if (!Array.isArray(fields)) {
+        fields = [fields];
+    }
     let embed = new MessageEmbed()
         .setColor('#0099ff');
     for (let field of fields) {
@@ -67,29 +70,29 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
  */
 async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM) {
     try {
+        if (!Array.isArray(embedsArray)) {
+            embedsArray = [embedsArray];
+        }
         if (embedsArray.length < 1) {
             throw new Error('No embeds passed to send');
         }
-        let memberToSend;
-        if (user) {
-            memberToSend = await msg.guild.members.fetch(user.id);
-        } else if (msg) {
-            memberToSend = msg.member;
-        } else {
-            console.error('sendDirectOrFallbackToChannelEmbeds: no valid reaction, message or user was passed to be able to respond.');
-            throw new Error('no valid reaction, message or user was passed to be able to respond.');
+        if (!user && msg) {
+            user = msg.author;
+        } else if (!user) {
+            console.error('sendDirectOrFallbackToChannelEmbeds: no valid message or user was passed to be able to respond.');
+            throw new Error('no valid message or user was passed to be able to respond.');
         }
-        // console.log('membertosend: ' + memberToSend.id);
+        // console.log('user: ' + user.id);
         // console.log('msg member: ' + msg.member.id);
         let linkForMessage = getLinkForMessage(msg);
         if (linkForMessage) {
             embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `[Go Back To Message](${linkForMessage})`, inline: false });
         }
         let messageSent = false;
-        if (memberToSend && !skipDM) {
+        if (user && !skipDM) {
             try {
                 for (let embed of embedsArray) {
-                    await memberToSend.send(embed);
+                    await user.send(embed);
                 }
                 messageSent = true;
             } catch (error) {

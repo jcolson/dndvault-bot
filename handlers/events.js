@@ -449,12 +449,12 @@ async function getStringForAttendees(event) {
             // console.log('attendee char',char.name);
 
             if (char) {
-                charString = ' (' + characters.stringForCharacterShort(char) + ')';
+                charString = ` w/${characters.stringForCharacterShort(char)}`;
             }
         }
-        attendees += `<@${attendee.userID}>${charString},`;
+        attendees += `<@${attendee.userID}>${charString},\n`;
     }
-    attendees = (attendees != '' ? attendees.substring(0, attendees.length - 1) : 'None yet').substring(0, 1024);
+    attendees = (attendees != '' ? attendees.substring(0, attendees.length - 2) : 'None yet').substring(0, 1024);
     return attendees;
 }
 

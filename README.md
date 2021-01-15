@@ -26,7 +26,11 @@ D&D Character Vault and Event Management for Discord.
 
 This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) (or 'stub' characters not on dndbeyond) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
 
+Approval functionality is configured 'false' by default, enable it by running `!config approval true`.
+
 The bot also offers the ability to schedule events (missions) and allow attendees (party members) to sign up for attendance, or remove themselves from attendance.  The bot will also convert the default time (GMT) to the user's local timezone upon request via the clock reaction on the event.  Events can be 'deployed' to show that they are 'approved' and have all the proper components (DM/GM, attendees, etc).
+
+Event campaign enforcement is configured off ('false') by default.  Turning it on ensures that the players that sign up for an event have a 'character' in the vault that is also related to the event's campaign (if set) via `!campaign` or dndbeyond's campaign).  Turn this on by issuing `!config campaign true`
 
 Users have the ability to list events that are deployed or proposed (not yet approved/deployed).
 
@@ -81,7 +85,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] approve [CHAR_ID] - approve a new/updated character within vault
 - [x] changes [CHAR_ID] - display changes for an unapproved character update
 - [ ] campaigns - list all campaigns for server
-- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
+- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to override dndbeyond's campaign name, this does NOT update dndbeyond's campaign
 - [x] default
   - [x] {no args} - show current default character
   - [x] [CHAR_ID] - set your default character id to be used for events/missions with no campaign
@@ -117,7 +121,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
   - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
-  - [x] require [BOOLEAN] - require that a user have matching character for events
+  - [x] campaign [BOOLEAN] - require that a user have matching character for event's campaigns
 ```
 
 ## Screenshots

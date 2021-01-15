@@ -31,7 +31,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
             {
                 name: '\u200B', value: `
 \`\`\`fix
-- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
+- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to override dndbeyond's campaign name, this does NOT update dndbeyond's campaign
 - [x] default
   - [x] {no args} - show current default character
   - [x] [CHAR_ID] - set your default character id to be used for events/missions with no campaign
