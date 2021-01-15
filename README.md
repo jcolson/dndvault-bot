@@ -24,9 +24,9 @@
 
 D&D Character Vault and Event Management for Discord.
 
-[Join me here for support](https://discord.gg/kC7JgnEU)
-
 This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) (or 'stub' characters not on dndbeyond) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
+
+The primary driver for this functionality was watching so many DM/GMs trying to manage [West Marches](http://arsludi.lamemage.com/index.php/78/grand-experiments-west-marches/) type Discord servers using spreadsheets/etc.  Hopefully this can make things a bit easier to maintain.
 
 Approval functionality is configured 'false' by default, enable it by running `!config approval true`.
 
@@ -35,6 +35,8 @@ The bot also offers the ability to schedule events (missions) and allow attendee
 Event campaign enforcement is configured off ('false') by default.  Turning it on ensures that the players that sign up for an event have a 'character' in the vault that is also related to the event's campaign (if set) via `!campaign` or dndbeyond's campaign).  Turn this on by issuing `!config campaign true`
 
 Users have the ability to list events that are deployed or proposed (not yet approved/deployed).
+
+I'm looking for feedback, so please feel free to open bugs, feature requests, etc.  As well as hop on my discord for direct conversation.  [Join me on this discord for support](https://discord.gg/kC7JgnEU)
 
 ## Invite the BOT to your server
 
