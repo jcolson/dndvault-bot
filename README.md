@@ -24,6 +24,8 @@
 
 D&D Character Vault and Event Management for Discord.
 
+[Join me here for support](https://discord.gg/kC7JgnEU)
+
 This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) (or 'stub' characters not on dndbeyond) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
 
 Approval functionality is configured 'false' by default, enable it by running `!config approval true`.
