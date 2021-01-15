@@ -1,11 +1,11 @@
 
-const { Client, MessageEmbed, Role } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const users = require('../handlers/users.js');
 const utils = require('../utils/utils.js');
-const { Types, Mongoose } = require('mongoose');
+const { Types } = require('mongoose');
 
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
 const SkillLookup = {
@@ -54,10 +54,10 @@ async function handleRegister(msg, guildConfig) {
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Register', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -94,10 +94,10 @@ async function handleRegisterManual(msg, guildConfig) {
             char.approvalStatus = true;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered`);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Register Manual', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -176,10 +176,10 @@ async function handleUpdate(msg, guildConfig) {
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.`);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Update', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -249,10 +249,10 @@ async function handleUpdateManual(msg, guildConfig) {
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
-        await msg.channel.send(`<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${stringForClass(char.classes[0])} now has been updated.`);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -272,11 +272,11 @@ async function handleChanges(msg, guildConfig) {
         } else {
             const changesEmbed = embedForChanges(msg, approvedChar, updatedChar);
             // console.log(changesEmbed);
-            await msg.channel.send(changesEmbed);
+            await utils.sendDirectOrFallbackToChannelEmbeds(changesEmbed, msg);
             await msg.delete();
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -296,54 +296,73 @@ function embedForChanges(msg, approvedChar, updatedChar) {
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let changes = [];
-    changes.push(appendStringsForEmbedChanges(['CHAR FIELD', 'OLD VALUE', 'NEW VALUE']));
+    changes.push(utils.appendStringsForEmbedChanges(['CHAR FIELD', 'OLD VALUE', 'NEW VALUE']));
     let change = stringForNameChange(approvedChar, updatedChar);
     if (change) changes.push(change);
     change = stringForRaceChange(approvedChar, updatedChar);
     if (change) changes.push(change);
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
-    changesEmbed.addFields({ name: 'Core Changes', value: changes });
+    changesEmbed.addFields({ name: 'Core Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     changes = arrayForAbilitiesChange(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Abilities Changes', value: changes });
+        changesEmbed.addFields({ name: 'Abilities Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForBackgroundModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Background Changes', value: changes });
+        changesEmbed.addFields({ name: 'Background Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForClassModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Class Changes', value: changes });
+        changesEmbed.addFields({ name: 'Class Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForConditionModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Condition Changes', value: changes });
+        changesEmbed.addFields({ name: 'Condition Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForFeatModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Feat Changes', value: changes });
+        changesEmbed.addFields({ name: 'Feat Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForItemModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Item Changes', value: changes });
+        changesEmbed.addFields({ name: 'Item Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForRaceModifiersChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Race Changes', value: changes });
+        changesEmbed.addFields({ name: 'Race Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForTraitsChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Traits Changes', value: changes });
+        changesEmbed.addFields({ name: 'Traits Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForInventoryChanges(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Inventory Changes', value: changes });
+        changesEmbed.addFields({ name: 'Inventory Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForCurrenciesChange(approvedChar, updatedChar);
     if (changes && changes.length > 0) {
-        changesEmbed.addFields({ name: 'Currency Changes', value: changes });
+        changesEmbed.addFields({ name: 'Currency Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     return changesEmbed;
+}
+
+function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
+    let elipses = '\n...';
+    let buffer = elipses.length;
+    totalFinalLength = totalFinalLength - buffer;
+    let stringToReturn = strArrayToTrim.join('\n');
+    while (stringToReturn.length >= totalFinalLength) {
+        let lastIndex = stringToReturn.lastIndexOf('\n');
+        if (lastIndex == -1) {
+            stringToReturn = stringToReturn.substring(0, totalFinalLength - buffer) + elipses;
+        } else {
+            stringToReturn = stringToReturn.substring(0, lastIndex);
+            if (stringToReturn.length <= totalFinalLength - buffer) {
+                stringToReturn += elipses;
+            }
+        }
+    }
+    return stringToReturn;
 }
 
 
@@ -356,19 +375,19 @@ function embedForChanges(msg, approvedChar, updatedChar) {
 function arrayForCurrenciesChange(approvedChar, updatedChar) {
     let currenciesChanges = [];
     if (approvedChar.currencies.cp != updatedChar.currencies.cp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['CP', '' + approvedChar.currencies.cp, '' + updatedChar.currencies.cp]));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['CP', approvedChar.currencies.cp ? '' + approvedChar.currencies.cp : '0', updatedChar.currencies.cp ? '' + updatedChar.currencies.cp : '0']));
     }
     if (approvedChar.currencies.ep != updatedChar.currencies.ep) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['EP', '' + approvedChar.currencies.ep, '' + updatedChar.currencies.ep]));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['EP', approvedChar.currencies.ep ? '' + approvedChar.currencies.ep : '0', updatedChar.currencies.ep ? '' + updatedChar.currencies.ep : '0']));
     }
     if (approvedChar.currencies.gp != updatedChar.currencies.gp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['GP', '' + approvedChar.currencies.gp, '' + updatedChar.currencies.gp]));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['GP', approvedChar.currencies.gp ? '' + approvedChar.currencies.gp : '0', updatedChar.currencies.gp ? '' + updatedChar.currencies.gp : '0']));
     }
     if (approvedChar.currencies.pp != updatedChar.currencies.pp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['PP', '' + approvedChar.currencies.pp, '' + updatedChar.currencies.pp]));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['PP', approvedChar.currencies.pp ? '' + approvedChar.currencies.pp : '0', updatedChar.currencies.pp ? '' + updatedChar.currencies.pp : '0']));
     }
     if (approvedChar.currencies.sp != updatedChar.currencies.sp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['SP', '' + approvedChar.currencies.sp, '' + updatedChar.currencies.sp]));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['SP', approvedChar.currencies.sp ? '' + approvedChar.currencies.sp : '0', updatedChar.currencies.sp ? '' + updatedChar.currencies.sp : '0']));
     }
     return currenciesChanges;
 }
@@ -455,7 +474,7 @@ function arrayForModifiersChanges(approvedMod, updatedMod) {
         });
         if (!foundItem) {
             // console.log('updated - did not find: ' + updTrait.id + ' | ' + updTrait.friendlySubtypeName + ' | ' + updTrait.friendlyTypeName);
-            modifiersChanges.push(appendStringsForEmbedChanges([updTrait.friendlySubtypeName, '', updTrait.friendlyTypeName + (updTrait.value ? '(' + updTrait.value + ')' : '')]));
+            modifiersChanges.push(utils.appendStringsForEmbedChanges([updTrait.friendlySubtypeName, '', updTrait.friendlyTypeName + (updTrait.value ? '(' + updTrait.value + ')' : '')]));
         }
 
     });
@@ -469,7 +488,7 @@ function arrayForModifiersChanges(approvedMod, updatedMod) {
         });
         if (!foundItem) {
             // console.log('approved - did not find: ' + appTrait.id + ' | ' + appTrait.friendlySubtypeName + ' | ' + appTrait.friendlyTypeName);
-            modifiersChanges.push(appendStringsForEmbedChanges([appTrait.friendlySubtypeName, appTrait.friendlyTypeName + (appTrait.value ? '(' + appTrait.value + ')' : ''), '']));
+            modifiersChanges.push(utils.appendStringsForEmbedChanges([appTrait.friendlySubtypeName, appTrait.friendlyTypeName + (appTrait.value ? '(' + appTrait.value + ')' : ''), '']));
         }
     });
     return modifiersChanges;
@@ -504,7 +523,7 @@ function arrayForTraitsChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + updTrait.definition.name);
-            traitsChanges.push(appendStringsForEmbedChanges([updTrait.definition.snippet ? updTrait.definition.snippet : updTrait.definition.description, '', updTrait.definition.name]));
+            traitsChanges.push(utils.appendStringsForEmbedChanges([updTrait.definition.snippet ? updTrait.definition.snippet : updTrait.definition.description, '', updTrait.definition.name]));
         }
     });
     approvedChar.race.racialTraits.forEach((appTrait) => {
@@ -516,7 +535,7 @@ function arrayForTraitsChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + appTrait.definition.name);
-            traitsChanges.push(appendStringsForEmbedChanges([appTrait.definition.snippet ? appTrait.definition.snippet : appTrait.definition.description, appTrait.definition.name, '']));
+            traitsChanges.push(utils.appendStringsForEmbedChanges([appTrait.definition.snippet ? appTrait.definition.snippet : appTrait.definition.description, appTrait.definition.name, '']));
         }
     });
     return traitsChanges;
@@ -542,7 +561,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + updInv.definition.name);
-            inventoryChanges.push(appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
+            inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
         }
     });
     approvedChar.inventory.forEach((appInv) => {
@@ -557,7 +576,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + appInv.definition.name);
-            inventoryChanges.push(appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
+            inventoryChanges.push(utils.appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
         }
     });
     return inventoryChanges;
@@ -570,7 +589,7 @@ function arrayForAbilitiesChange(approvedChar, updatedChar) {
             if (approvedStat.id == updatedStat.id) {
                 if (approvedStat.value != updatedStat.value) {
                     // console.log('stat is different: ' + StatLookup[approvedStat.id] + ':' + approvedStat.value + '/' + updatedStat.value);
-                    abilitiesChanges.push(appendStringsForEmbedChanges([StatLookup[approvedStat.id], '' + approvedStat.value, '' + updatedStat.value]));
+                    abilitiesChanges.push(utils.appendStringsForEmbedChanges([StatLookup[approvedStat.id], '' + approvedStat.value, '' + updatedStat.value]));
                 }
             }
         })
@@ -584,7 +603,7 @@ function arrayForClassChange(approvedChar, updatedChar) {
     for (let i = 0; i < maxClassesLength; i++) {
         // console.log('printing class: ' + stringForClass(approvedChar.classes[i]) + ' | ' + stringForClass(updatedChar.classes[i]));
         if (stringForClass(approvedChar.classes[i]) != stringForClass(updatedChar.classes[i])) {
-            classChanges.push(appendStringsForEmbedChanges(['Class', stringForClass(approvedChar.classes[i]), stringForClass(updatedChar.classes[i])]));
+            classChanges.push(utils.appendStringsForEmbedChanges(['Class', stringForClass(approvedChar.classes[i]), stringForClass(updatedChar.classes[i])]));
         }
     }
     return classChanges;
@@ -592,7 +611,7 @@ function arrayForClassChange(approvedChar, updatedChar) {
 
 function stringForClass(charClass) {
     if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
-        return charClass.level + ' ' + charClass.definition.name + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : ' ');
+        return `${charClass.definition.name}(${charClass.level})` + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : '');
     } else {
         return '';
     }
@@ -600,7 +619,7 @@ function stringForClass(charClass) {
 
 function stringForClassShort(charClass) {
     if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
-        return charClass.level + ' ' + charClass.definition.name;
+        return `${charClass.definition.name}(${charClass.level})`;
     } else {
         return '';
     }
@@ -608,49 +627,47 @@ function stringForClassShort(charClass) {
 
 function stringForRaceChange(approvedChar, updatedChar) {
     if (approvedChar.race.fullName != updatedChar.race.fullName) {
-        return appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
+        return utils.appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
     }
 }
 
 function stringForNameChange(approvedChar, updatedChar) {
     if (approvedChar.name != updatedChar.name) {
-        return appendStringsForEmbedChanges(['Character Name', approvedChar.name, updatedChar.name]);
+        return utils.appendStringsForEmbedChanges(['Character Name', approvedChar.name, updatedChar.name]);
     }
 }
 
-function appendStringsForEmbedChanges(stringArray) {
-    let fieldSize = 16;
-    let separator = ' | ';
-    return appendStringsForEmbed(stringArray, fieldSize, separator);
-}
-
-function appendStringsForEmbed(stringArray, fieldSize, separator) {
-    let returnValue = '';
-    stringArray.forEach((value) => {
-        returnValue = returnValue + '`' + utils.stringOfSize(value, fieldSize) + '`' + separator;
-    })
-    return returnValue.substring(0, returnValue.length - separator.length);
-}
-
+/**
+ * list all characters for the campaign requested
+ * @param {Message} msg 
+ * @param {GuildModel} guildConfig 
+ */
 async function handleListCampaign(msg, guildConfig) {
     try {
         let campaignToList = msg.content.substring((guildConfig.prefix + 'list campaign').length + 1);
-        let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, isUpdate: true });
+        let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, approvalStatus: false });
+
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
-        let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, id: { $nin: notInIds }, isUpdate: false });
+        let charArrayNoUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, approvalStatus: true, id: { $nin: notInIds } });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
+
+        notInIds = notInIds.concat(getIdsFromCharacterArray(charArrayNoUpdates));
+        let charArrayOverrideUpdates = await CharModel.find({ guildID: msg.guild.id, campaignOverride: campaignToList, approvalStatus: false, id: { $nin: notInIds } });
+        charArray = charArray.concat(charArrayOverrideUpdates);
+
+        notInIds = notInIds.concat(getIdsFromCharacterArray(charArrayNoUpdates));
+        let charArrayOverrideNoUpdates = await CharModel.find({ guildID: msg.guild.id, campaignOverride: campaignToList, approvalStatus: true, id: { $nin: notInIds } });
+        charArray = charArray.concat(charArrayOverrideNoUpdates);
+
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`, false);
-            for (let charEmbed of charEmbedArray) {
-                // await charEmbedArray.forEach(async (charEmbed) => {
-                await msg.channel.send(charEmbed);
-            }
+            await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
             await msg.delete();
         } else {
-            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for that campaign, \`register\` one!`);
+            throw new Error(`There are no registered characters for that campaign, \`register\` one!`);
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -665,23 +682,21 @@ function getIdsFromCharacterArray(charArray) {
 async function handleListUser(msg, guildConfig) {
     try {
         let userToList = msg.content.substring((guildConfig.prefix + 'list user').length + 1);
-        userToList = userToList.substring(3, userToList.length - 1)
+        userToList = userToList.substring(3, userToList.length - 1);
+        let memberToList = await msg.guild.members.fetch(userToList);
         let charArrayUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
         let charArrayNoUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, id: { $nin: notInIds }, isUpdate: false });
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
-            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${msg.member.displayName} in the Vault`, false);
-            for (let charEmbed of charEmbedArray) {
-                // await charEmbedArray.forEach(async (charEmbed) => {
-                await msg.channel.send(charEmbed);
-            }
+            const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${memberToList.displayName} in the Vault`, false);
+            await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
             await msg.delete();
         } else {
-            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for ${userToList}`);
+            throw new Error(`I don't see any registered characters for ${userToList}`);
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -762,16 +777,16 @@ function stringForCharacterShort(char) {
     char.classes.forEach((theClass) => {
         classes += stringForClassShort(theClass);
     });
-    return `${classes}`;
+    return `${char.name} the ${classes}`;
 }
 
 function stringForCampaign(char) {
     const dndCampaign = (char.campaign && char.campaign.name
-        ? `[${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
+        ? `DDB: [${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
         : undefined);
     let returnCampaign = 'No Campaign Set';
     if (dndCampaign && char.campaignOverride) {
-        returnCampaign = char.campaignOverride + '\nDDB:' + dndCampaign;
+        returnCampaign = char.campaignOverride + '\n' + dndCampaign;
     } else if (char.campaignOverride) {
         returnCampaign = char.campaignOverride;
     } else if (dndCampaign) {
@@ -824,16 +839,13 @@ async function handleListAll(msg, guildConfig) {
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault', false);
-            for (let charEmbed of charEmbedArray) {
-                // await charEmbedArray.forEach(async (charEmbed) => {
-                await msg.channel.send(charEmbed);
-            }
+            await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
             await msg.delete();
         } else {
-            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters \`register\` one!`);
+            throw new Error(`I don't see any registered characters \`register\` one!`);
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -847,16 +859,13 @@ async function handleListQueued(msg, guildConfig) {
         const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
-            for (let charEmbed of charEmbedArray) {
-                // await charEmbedArray.forEach(async (charEmbed) => {
-                await msg.channel.send(charEmbed);
-            }
+            await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
             await msg.delete();
         } else {
-            await msg.reply(`<@${msg.member.id}>, I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
+            throw new Error(`I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -875,15 +884,13 @@ async function handleList(msg, guildConfig) {
         let charArray = charArrayUpdates.concat(charArrayNoUpdates);
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`, false, vaultUser);
-            for (let charEmbed of charEmbedArray) {
-                await msg.channel.send(charEmbed);
-            }
+            await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
             await msg.delete();
         } else {
-            await msg.reply(`<@${msg.member.id}>, I don't see any registered characters for you`);
+            throw new Error(`There are no registered characters for you, \`register\` one`);
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -922,10 +929,10 @@ async function handleRemove(msg, guildConfig) {
                 }
             }
         }
-        await msg.channel.send(`<@${msg.member.id}>, ${charIdToDelete} (${typeOfRemoval}) was (${deleteResponse.deletedCount} records) removed from vault.`);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Remove', value: `<@${msg.member.id}>, ${charIdToDelete} (${typeOfRemoval}) was removed (${deleteResponse.deletedCount} records) from vault.` }, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ...${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -953,14 +960,14 @@ async function handleApprove(msg, guildConfig) {
                     await CharModel.deleteMany({ id: charIdToApprove, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 }
                 await charToApprove.save();
-                await msg.channel.send(`<@${msg.member.id}>, "${charToApprove.id}" was approved.`);
+                await utils.sendDirectOrFallbackToChannel({ name: 'Approve', value: `<@${msg.member.id}>, ${stringForCharacter(charToApprove)} was approved.` }, msg);
                 await msg.delete();
             }
         } else {
-            await msg.reply(`<@${msg.member.id}>, please ask an <@&${guildConfig.arole}> to approve.`);
+            throw new Error(`please ask an \`approver role\` to approve.`);
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -972,12 +979,15 @@ async function handleApprove(msg, guildConfig) {
 async function handleShow(msg, guildConfig) {
     try {
         const charID = msg.content.substr((guildConfig.prefix + 'show').length + 1);
-        const showUser = await CharModel.findOne({ id: charID, isUpdate: false, guildID: msg.guild.id });
-        const embedChar = embedForCharacter(msg, [showUser], 'Show Character', true);
-        await msg.channel.send(embedChar);
+        const showUser = (await CharModel.find({ id: charID, guildID: msg.guild.id }).sort({ isUpdate: 'desc' }))[0];
+        if (!showUser) {
+            throw new Error(`That character (${charID}) doesn't exist`);
+        }
+        const embedsChar = embedForCharacter(msg, [showUser], 'Show Character', true);
+        await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
@@ -991,7 +1001,7 @@ async function handleCampaign(msg, guildConfig) {
         const parameterString = msg.content.substr((guildConfig.prefix + 'campaign').length + 1);
         const charID = parameterString.substring(0, parameterString.indexOf(' '));
         const campaignID = parameterString.substring(parameterString.indexOf(' ') + 1);
-        console.log(`charid: ${charID} campaignID: ${campaignID}`);
+        // console.log(`charid: ${charID} campaignID: ${campaignID}`);
         if (!charID || !campaignID) {
             throw new Error('Please pass the character id and the campaign id.');
         }
@@ -1001,10 +1011,10 @@ async function handleCampaign(msg, guildConfig) {
         }
         charToEdit.campaignOverride = campaignID;
         await charToEdit.save();
-        await msg.channel.send(`Character ${charID} campaign changed to ${campaignID}`);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Campaign', value: `Character ${charID} campaign changed to ${campaignID}` }, msg);
         await msg.delete();
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 

@@ -3,16 +3,14 @@ const utils = require('../utils/utils.js');
 
 async function handleHelp(msg, guildConfig, inviteURL) {
     try {
-        let goBackToServer = '';
         const charEmbedArray = [];
         let charEmbed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('Help for D&D Vault BOT')
             .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot');
-        if (guildConfig) {
+        if (msg.guild) {
             charEmbed.setDescription(`Current Command Prefix is "${guildConfig.prefix}"`);
             charEmbed.setThumbnail(msg.guild.iconURL());
-            goBackToServer = `[🔙 Go back to your server](${utils.getLinkForEvent(msg)}).  `;
         }
         charEmbed.addFields(
             {
@@ -33,7 +31,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
             {
                 name: '\u200B', value: `
 \`\`\`fix
-- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to use a campaign id other than dndbeyond's
+- [x] campaign [CHAR_ID] [CAMPAIGN_ID] - update character to override dndbeyond's campaign name, this does NOT update dndbeyond's campaign
 - [x] default
   - [x] {no args} - show current default character
   - [x] [CHAR_ID] - set your default character id to be used for events/missions with no campaign
@@ -53,7 +51,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
   - [ ] queued [CHAR_ID] - show a currently queued (changes not approved) character from the vault
 - [x] timezone
   - [x] {no args} - view your timezone
-  - [x] set [TIMEZONE] - set your timezone (required for interacting with events)
+  - [x] [TIMEZONE] - set your timezone (required for interacting with events)
 \`\`\``});
         charEmbedArray.push(charEmbed);
         charEmbed = new MessageEmbed()
@@ -72,6 +70,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
   - [x] show [MISSION_ID] - replace the posting for an event (if it got deleted by accident)
   - [x] remove [MISSION_ID] - removes mission event
   - [x] list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
+  - [ ] list my - list all future events you are signed up for or are a DMGM for
   - [ ] list past [DAYS] - list past events for the last DAYS (PROPOSed and DEPLOYed)
   - [x] list proposed - list all future PROPOSED events
   - [x] list deployed - list all future DEPLOYED events
@@ -92,18 +91,12 @@ async function handleHelp(msg, guildConfig, inviteURL) {
 \`\`\``},
         );
         charEmbed.addFields(
-            { name: '\u200B', value: `${goBackToServer}Add this BOT to your server. [Click here](${inviteURL})` },
+            { name: '\u200B', value: `Add this BOT to your server. [Click here](${inviteURL})` },
         );
         charEmbedArray.push(charEmbed);
-        if (guildConfig) {
-            for (let charEmbed of charEmbedArray) {
-                await msg.member.send(charEmbed);
-            }
+        await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
+        if (msg.guild) {
             await msg.delete();
-        } else {
-            for (let charEmbed of charEmbedArray) {
-                await msg.channel.send(charEmbed);
-            }
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);

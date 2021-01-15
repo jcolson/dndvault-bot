@@ -3,15 +3,14 @@ const characters = require('./handlers/characters.js');
 const events = require('./handlers/events.js');
 const help = require('./handlers/help.js');
 const users = require('./handlers/users.js');
+const config = require('./handlers/config.js');
 const path = require('path');
-const { Client, MessageEmbed, Role } = require('discord.js');
-const GuildModel = require('./models/Guild');
+const { Client } = require('discord.js');
 const { connect } = require('mongoose');
+const DEFAULT_CONFIGDIR = __dirname;
+
 global.vaultVersion = require('./package.json').version;
 global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
-const GuildCache = {};
-
-const DEFAULT_CONFIGDIR = __dirname;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
 /**
@@ -53,7 +52,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         try {
             // Now the message has been cached and is fully available
             console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-            let guildConfig = await confirmGuildConfig(reaction.message);
+            let guildConfig = await config.confirmGuildConfig(reaction.message);
             await events.handleReactionAdd(reaction, user, guildConfig);
         } catch (error) {
             console.error(`caught exception handling reaction`, error);
@@ -88,33 +87,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
 //     }
 // });
 
-// client.on('raw', packet => {
-//     // We don't want this to run on unrelated packets
-//     if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) return;
-//     console.log('received raw event for reaction');
-//     // Grab the channel to check the message from
-//     const channel = client.channels.get(packet.d.channel_id);
-//     // There's no need to emit if the message is cached, because the event will fire anyway for that
-//     if (channel.messages.has(packet.d.message_id)) return;
-//     // Since we have confirmed the message is not cached, let's fetch it
-//     console.log('fetching message for reaction');
-//     channel.fetchMessage(packet.d.message_id).then(message => {
-//         // Emojis can have identifiers of name:id format, so we have to account for that case as well
-//         const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
-//         // This gives us the reaction we need to emit the event properly, in top of the message object
-//         const reaction = message.reactions.get(emoji);
-//         // Adds the currently reacting user to the reaction's users collection.
-//         if (reaction) reaction.users.set(packet.d.user_id, client.users.get(packet.d.user_id));
-//         // Check which type of event it is before emitting
-//         if (packet.t === 'MESSAGE_REACTION_ADD') {
-//             client.emit('messageReactionAdd', reaction, client.users.get(packet.d.user_id));
-//         }
-//         if (packet.t === 'MESSAGE_REACTION_REMOVE') {
-//             client.emit('messageReactionRemove', reaction, client.users.get(packet.d.user_id));
-//         }
-//     });
-// });
-
 client.on('message', async (msg) => {
     try {
         if (msg.partial) {
@@ -134,7 +106,7 @@ client.on('message', async (msg) => {
             }
             return;
         }
-        let guildConfig = await confirmGuildConfig(msg);
+        let guildConfig = await config.confirmGuildConfig(msg);
         if (!msg.content.startsWith(guildConfig.prefix)) return;
         console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
@@ -171,8 +143,6 @@ client.on('message', async (msg) => {
             characters.handleApprove(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
             characters.handleShow(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
-            users.handleDefault(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
             events.handleEventCreate(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
@@ -187,269 +157,51 @@ client.on('message', async (msg) => {
             events.handleEventListDeployed(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
             events.handleEventList(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'timezone set')) {
-            users.handleTimezoneSet(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
+            users.handleDefault(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
             users.handleTimezone(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config approval')) {
-            handleConfigApproval(msg, guildConfig);
+            config.handleConfigApproval(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
-            handleConfigPrefix(msg, guildConfig);
+            config.handleConfigPrefix(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
-            handleConfigArole(msg, guildConfig);
+            config.handleConfigArole(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
-            handleConfigProle(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config require')) {
-            handleConfigRequire(msg, guildConfig);
+            config.handleConfigProle(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config campaign')) {
+            config.handleConfigCampaign(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config')) {
-            handleConfig(msg, guildConfig);
+            config.handleConfig(msg, guildConfig);
         }
     } catch (error) {
-        await msg.reply(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
 
-/**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
- */
-async function handleConfig(msg, guildConfig) {
-    try {
-        const configEmbed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle('BOT Config')
-            // .setURL('https://discord.js.org/')
-            .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
-            .setDescription('BOT Config for the server: ' + msg.guild.name)
-            .setThumbnail(msg.guild.iconURL())
-        configEmbed.addFields(
-            { name: 'ID', value: guildConfig.guildID },
-            { name: 'Prefix', value: guildConfig.prefix, inline: true },
-            { name: 'Approver Role', value: retrieveRoleForID(msg, guildConfig.arole), inline: true },
-            { name: 'Player Role', value: retrieveRoleForID(msg, guildConfig.prole), inline: true },
-            { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
-            { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
-            { name: 'BOT Version', value: vaultVersion, inline: true },
-        );
-        await msg.channel.send(configEmbed);
-        await msg.delete();
-    } catch (error) {
-        await msg.channel.send(`unrecoverable ...${error.message}`);
-    }
-}
-
-/**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
- */
-async function handleConfigArole(msg, guildConfig) {
-    try {
-        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configAroleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
-            if (configAroleName.startsWith('<@&')) {
-                // need to strip the tailing '>' off as well ...
-                const configAroleId = configAroleName.substring(3, configAroleName.length - 1);
-                configAroleName = retrieveRoleForID(msg, configAroleId).name;
-            }
-            configArole = await retrieveRoleIdForName(msg, configAroleName);
-            if (configArole) {
-                guildConfig.arole = configArole;
-                await guildConfig.save();
-                GuildCache[msg.guild.id] = guildConfig;
-                await msg.channel.send(`<@${msg.member.id}>, ${configAroleName} is now the \`approver\` role.`);
-                await msg.delete();
-            } else {
-                await msg.reply(`<@${msg.member.id}>, could not locate the role: ${configAroleName}`);
-            }
-        } else {
-            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
-        }
-    } catch (error) {
-        await msg.channel.send(`unrecoverable ...${error.message}`);
-    }
-}
-
-/**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
- */
-async function handleConfigProle(msg, guildConfig) {
-    try {
-        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configProleName = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
-            if (configProleName.startsWith('<@&')) {
-                // need to strip the tailing '>' off as well ...
-                const configProleId = configProleName.substring(3, configProleName.length - 1);
-                configProleName = retrieveRoleForID(msg, configProleId).name;
-            }
-            configProle = await retrieveRoleIdForName(msg, configProleName);
-            if (configProle) {
-                guildConfig.prole = configProle;
-                await guildConfig.save();
-                GuildCache[msg.guild.id] = guildConfig;
-                await msg.channel.send(`<@${msg.member.id}>, ${configProleName} is now the \`player\` role.`);
-                await msg.delete();
-            } else {
-                await msg.reply(`<@${msg.member.id}>, could not locate the role: ${configProleName}`);
-            }
-        } else {
-            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
-        }
-    } catch (error) {
-        await msg.channel.send(`unrecoverable ...${error.message}`);
-    }
-}
-
-/**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
- */
-async function handleConfigPrefix(msg, guildConfig) {
-    try {
-        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configPrefix = msg.content.substring((guildConfig.prefix + 'config prefix').length + 1);
-            guildConfig.prefix = configPrefix;
-            await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
-            await msg.channel.send(`<@${msg.member.id}>, \`${guildConfig.prefix}\` is now my prefix, don't forget!.`);
-            await msg.delete();
-        } else {
-            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
-        }
-    } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
-    }
-}
-
-/**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
- */
-async function handleConfigApproval(msg, guildConfig) {
-    try {
-        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            guildConfig.requireCharacterApproval = msg.content.substring((guildConfig.prefix + 'config approval').length + 1);
-            await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
-            await msg.channel.send(`<@${msg.member.id}>, Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.`);
-            await msg.delete();
-        } else {
-            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
-        }
-    } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
-    }
-}
-
-/**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
- */
-async function handleConfigRequire(msg, guildConfig) {
-    try {
-        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            guildConfig.requireCharacterForEvent = msg.content.substring((guildConfig.prefix + 'config require').length + 1);
-            await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
-            await msg.channel.send(`<@${msg.member.id}>, Require Character for Events now set to: \`${guildConfig.requireCharacterForEvent}\`.`);
-            await msg.delete();
-        } else {
-            await msg.reply(`<@${msg.member.id}>, please ask a <@&${guildConfig.arole}> to configure.`);
-        }
-    } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
-    }
-}
-
-/**
- * 
- * @param {Message} msg 
- * @returns {GuildModel}
- */
-async function confirmGuildConfig(msg) {
-    let guildConfig = GuildCache[msg.guild.id];
-    if (!guildConfig) {
-        try {
-            guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
-            if (!guildConfig) {
-                guildConfig = new GuildModel({ guildID: msg.guild.id });
-            }
-            // console.log(guildConfig);
-            if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-                guildConfig.arole = await retrieveRoleIdForName(msg, Config.defaultARoleName);
-            }
-            if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
-                guildConfig.prole = await retrieveRoleIdForName(msg, Config.defaultPRoleName);
-            }
-            if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
-                guildConfig.prefix = Config.defaultPrefix;
-            }
-            if (typeof guildConfig.name === 'undefined' || !guildConfig.name) {
-                guildConfig.name = msg.guild.name;
-            }
-            await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
-        } catch (error) {
-            await msg.reply(error.message);
-        }
-    }
-    return guildConfig;
-}
-
-/**
- * 
- * @param {Message} msg 
- * @param {String} roleName 
- * @returns {Role}
- */
-async function retrieveRoleIdForName(msg, roleName) {
-    let roleForName;
-    let roles = await msg.guild.roles.fetch();
-    // console.log('roles', roles);
-    for (let role of roles.array()) {
-        // roles.array().forEach((role) => {
-        // console.log("role: " + role.name + ' : ' + roleName);
-        if (role.name == roleName || '@' + role.name == roleName) {
-            roleForName = role;
-        }
-    }
-    console.log("found rolename: " + roleForName.id);
-    return roleForName.id;
-}
-
-/**
- * 
- * @param {Message} msg 
- * @param {String} roleID 
- * @returns {Role}
- */
-function retrieveRoleForID(msg, roleID) {
-    console.log('retrieveRoleID: ' + roleID);
-    let roleForID = msg.guild.roles.resolve(roleID);
-    return roleForID;
-}
-
-/**
- * find the approximate size of an embed
- * @param {MessageEmbed} embed 
- * @returns {number}
- */
-function lengthOfEmbed(embed) {
-    let embedLength = (embed.title ? embed.title.length : 0)
-        + (embed.url ? embed.url.length : 0)
-        + (embed.description ? embed.description.length : 0)
-        + (embed.footer && embed.footer.text ? embed.footer.text.length : 0)
-        + (embed.author && embed.author.name ? embed.author.name.length : 0);
-    for (let field of embed.fields) {
-        // embed.fields.forEach((field) => {
-        embedLength += field.name.length + field.value.length;
-    }
-    console.log('EmbedLengthCheck: %d', embedLength);
-    return embedLength;
-}
+// client.on('raw', packet => {
+//     // We don't want this to run on unrelated packets
+//     if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) return;
+//     console.log('received raw event for reaction');
+//     // Grab the channel to check the message from
+//     const channel = client.channels.get(packet.d.channel_id);
+//     // There's no need to emit if the message is cached, because the event will fire anyway for that
+//     if (channel.messages.has(packet.d.message_id)) return;
+//     // Since we have confirmed the message is not cached, let's fetch it
+//     console.log('fetching message for reaction');
+//     channel.fetchMessage(packet.d.message_id).then(message => {
+//         // Emojis can have identifiers of name:id format, so we have to account for that case as well
+//         const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
+//         // This gives us the reaction we need to emit the event properly, in top of the message object
+//         const reaction = message.reactions.get(emoji);
+//         // Adds the currently reacting user to the reaction's users collection.
+//         if (reaction) reaction.users.set(packet.d.user_id, client.users.get(packet.d.user_id));
+//         // Check which type of event it is before emitting
+//         if (packet.t === 'MESSAGE_REACTION_ADD') {
+//             client.emit('messageReactionAdd', reaction, client.users.get(packet.d.user_id));
+//         }
+//         if (packet.t === 'MESSAGE_REACTION_REMOVE') {
+//             client.emit('messageReactionRemove', reaction, client.users.get(packet.d.user_id));
+//         }
+//     });
+// });
