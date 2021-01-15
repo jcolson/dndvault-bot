@@ -81,7 +81,7 @@ function isValidTimeZone(tz) {
  * @param {GuildMember} member 
  * @param {String} roleId 
  */
-async function hasRoleOrIsAdmin(member, roleId) { // @todo change this from message to member
+async function hasRoleOrIsAdmin(member, roleId) {
     // if (roleId == '792845390834958368') {
     //     return false;
     // }
