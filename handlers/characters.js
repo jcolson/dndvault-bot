@@ -296,7 +296,7 @@ function embedForChanges(msg, approvedChar, updatedChar) {
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let changes = [];
-    changes.push(appendStringsForEmbedChanges(['CHAR FIELD', 'OLD VALUE', 'NEW VALUE']));
+    changes.push(utils.appendStringsForEmbedChanges(['CHAR FIELD', 'OLD VALUE', 'NEW VALUE']));
     let change = stringForNameChange(approvedChar, updatedChar);
     if (change) changes.push(change);
     change = stringForRaceChange(approvedChar, updatedChar);
@@ -375,19 +375,19 @@ function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
 function arrayForCurrenciesChange(approvedChar, updatedChar) {
     let currenciesChanges = [];
     if (approvedChar.currencies.cp != updatedChar.currencies.cp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['CP', approvedChar.currencies.cp ? '' + approvedChar.currencies.cp : '0', updatedChar.currencies.cp ? '' + updatedChar.currencies.cp : '0']));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['CP', approvedChar.currencies.cp ? '' + approvedChar.currencies.cp : '0', updatedChar.currencies.cp ? '' + updatedChar.currencies.cp : '0']));
     }
     if (approvedChar.currencies.ep != updatedChar.currencies.ep) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['EP', approvedChar.currencies.ep ? '' + approvedChar.currencies.ep : '0', updatedChar.currencies.ep ? '' + updatedChar.currencies.ep : '0']));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['EP', approvedChar.currencies.ep ? '' + approvedChar.currencies.ep : '0', updatedChar.currencies.ep ? '' + updatedChar.currencies.ep : '0']));
     }
     if (approvedChar.currencies.gp != updatedChar.currencies.gp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['GP', approvedChar.currencies.gp ? '' + approvedChar.currencies.gp : '0', updatedChar.currencies.gp ? '' + updatedChar.currencies.gp : '0']));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['GP', approvedChar.currencies.gp ? '' + approvedChar.currencies.gp : '0', updatedChar.currencies.gp ? '' + updatedChar.currencies.gp : '0']));
     }
     if (approvedChar.currencies.pp != updatedChar.currencies.pp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['PP', approvedChar.currencies.pp ? '' + approvedChar.currencies.pp : '0', updatedChar.currencies.pp ? '' + updatedChar.currencies.pp : '0']));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['PP', approvedChar.currencies.pp ? '' + approvedChar.currencies.pp : '0', updatedChar.currencies.pp ? '' + updatedChar.currencies.pp : '0']));
     }
     if (approvedChar.currencies.sp != updatedChar.currencies.sp) {
-        currenciesChanges.push(appendStringsForEmbedChanges(['SP', approvedChar.currencies.sp ? '' + approvedChar.currencies.sp : '0', updatedChar.currencies.sp ? '' + updatedChar.currencies.sp : '0']));
+        currenciesChanges.push(utils.appendStringsForEmbedChanges(['SP', approvedChar.currencies.sp ? '' + approvedChar.currencies.sp : '0', updatedChar.currencies.sp ? '' + updatedChar.currencies.sp : '0']));
     }
     return currenciesChanges;
 }
@@ -474,7 +474,7 @@ function arrayForModifiersChanges(approvedMod, updatedMod) {
         });
         if (!foundItem) {
             // console.log('updated - did not find: ' + updTrait.id + ' | ' + updTrait.friendlySubtypeName + ' | ' + updTrait.friendlyTypeName);
-            modifiersChanges.push(appendStringsForEmbedChanges([updTrait.friendlySubtypeName, '', updTrait.friendlyTypeName + (updTrait.value ? '(' + updTrait.value + ')' : '')]));
+            modifiersChanges.push(utils.appendStringsForEmbedChanges([updTrait.friendlySubtypeName, '', updTrait.friendlyTypeName + (updTrait.value ? '(' + updTrait.value + ')' : '')]));
         }
 
     });
@@ -488,7 +488,7 @@ function arrayForModifiersChanges(approvedMod, updatedMod) {
         });
         if (!foundItem) {
             // console.log('approved - did not find: ' + appTrait.id + ' | ' + appTrait.friendlySubtypeName + ' | ' + appTrait.friendlyTypeName);
-            modifiersChanges.push(appendStringsForEmbedChanges([appTrait.friendlySubtypeName, appTrait.friendlyTypeName + (appTrait.value ? '(' + appTrait.value + ')' : ''), '']));
+            modifiersChanges.push(utils.appendStringsForEmbedChanges([appTrait.friendlySubtypeName, appTrait.friendlyTypeName + (appTrait.value ? '(' + appTrait.value + ')' : ''), '']));
         }
     });
     return modifiersChanges;
@@ -523,7 +523,7 @@ function arrayForTraitsChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + updTrait.definition.name);
-            traitsChanges.push(appendStringsForEmbedChanges([updTrait.definition.snippet ? updTrait.definition.snippet : updTrait.definition.description, '', updTrait.definition.name]));
+            traitsChanges.push(utils.appendStringsForEmbedChanges([updTrait.definition.snippet ? updTrait.definition.snippet : updTrait.definition.description, '', updTrait.definition.name]));
         }
     });
     approvedChar.race.racialTraits.forEach((appTrait) => {
@@ -535,7 +535,7 @@ function arrayForTraitsChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + appTrait.definition.name);
-            traitsChanges.push(appendStringsForEmbedChanges([appTrait.definition.snippet ? appTrait.definition.snippet : appTrait.definition.description, appTrait.definition.name, '']));
+            traitsChanges.push(utils.appendStringsForEmbedChanges([appTrait.definition.snippet ? appTrait.definition.snippet : appTrait.definition.description, appTrait.definition.name, '']));
         }
     });
     return traitsChanges;
@@ -561,7 +561,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + updInv.definition.name);
-            inventoryChanges.push(appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
+            inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
         }
     });
     approvedChar.inventory.forEach((appInv) => {
@@ -576,7 +576,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
         });
         if (!foundItem) {
             // console.log('did not find: ' + appInv.definition.name);
-            inventoryChanges.push(appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
+            inventoryChanges.push(utils.appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
         }
     });
     return inventoryChanges;
@@ -589,7 +589,7 @@ function arrayForAbilitiesChange(approvedChar, updatedChar) {
             if (approvedStat.id == updatedStat.id) {
                 if (approvedStat.value != updatedStat.value) {
                     // console.log('stat is different: ' + StatLookup[approvedStat.id] + ':' + approvedStat.value + '/' + updatedStat.value);
-                    abilitiesChanges.push(appendStringsForEmbedChanges([StatLookup[approvedStat.id], '' + approvedStat.value, '' + updatedStat.value]));
+                    abilitiesChanges.push(utils.appendStringsForEmbedChanges([StatLookup[approvedStat.id], '' + approvedStat.value, '' + updatedStat.value]));
                 }
             }
         })
@@ -603,7 +603,7 @@ function arrayForClassChange(approvedChar, updatedChar) {
     for (let i = 0; i < maxClassesLength; i++) {
         // console.log('printing class: ' + stringForClass(approvedChar.classes[i]) + ' | ' + stringForClass(updatedChar.classes[i]));
         if (stringForClass(approvedChar.classes[i]) != stringForClass(updatedChar.classes[i])) {
-            classChanges.push(appendStringsForEmbedChanges(['Class', stringForClass(approvedChar.classes[i]), stringForClass(updatedChar.classes[i])]));
+            classChanges.push(utils.appendStringsForEmbedChanges(['Class', stringForClass(approvedChar.classes[i]), stringForClass(updatedChar.classes[i])]));
         }
     }
     return classChanges;
@@ -627,28 +627,14 @@ function stringForClassShort(charClass) {
 
 function stringForRaceChange(approvedChar, updatedChar) {
     if (approvedChar.race.fullName != updatedChar.race.fullName) {
-        return appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
+        return utils.appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
     }
 }
 
 function stringForNameChange(approvedChar, updatedChar) {
     if (approvedChar.name != updatedChar.name) {
-        return appendStringsForEmbedChanges(['Character Name', approvedChar.name, updatedChar.name]);
+        return utils.appendStringsForEmbedChanges(['Character Name', approvedChar.name, updatedChar.name]);
     }
-}
-
-function appendStringsForEmbedChanges(stringArray) {
-    let fieldSize = 16;
-    let separator = ' | ';
-    return appendStringsForEmbed(stringArray, fieldSize, separator);
-}
-
-function appendStringsForEmbed(stringArray, fieldSize, separator) {
-    let returnValue = '';
-    stringArray.forEach((value) => {
-        returnValue = returnValue + '`' + utils.stringOfSize(value, fieldSize) + '`' + separator;
-    })
-    return returnValue.substring(0, returnValue.length - separator.length);
 }
 
 /**

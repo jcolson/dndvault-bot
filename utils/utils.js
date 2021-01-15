@@ -1,20 +1,5 @@
 const { MessageReaction, MessageEmbed } = require("discord.js");
 
-function stringOfSize(value, size, padChar, padBefore) {
-    if (!padChar) {
-        padChar = ' ';
-    }
-    value = value.substring(0, size);
-    if (value.length < size) {
-        if (padBefore) {
-            value = padChar.repeat(size - value.length) + value;
-        } else {
-            value = value + padChar.repeat(size - value.length);
-        }
-    }
-    return value;
-}
-
 /**
  * 
  * @param {Message} msg 
@@ -54,8 +39,8 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
     let embed = new MessageEmbed()
         .setColor('#0099ff');
     for (let field of fields) {
-        field.name = field.name && field.name != '' ? field.name : 'UNSET';
-        field.value = field.value && field.value != '' ? field.value : 'UNSET';
+        field.name = typeof field.name !== 'undefined' && '' + field.name != '' ? field.name : 'UNSET';
+        field.value = typeof field.value !== 'undefined' && '' + field.value != '' ? field.value : 'UNSET';
     }
     embed.addFields(fields);
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM);
@@ -114,8 +99,117 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
     }
 }
 
+/**
+ * find the approximate size of an embed
+ * @param {MessageEmbed} embed 
+ * @returns {number}
+ */
+function lengthOfEmbed(embed) {
+    let embedLength = (embed.title ? embed.title.length : 0)
+        + (embed.url ? embed.url.length : 0)
+        + (embed.description ? embed.description.length : 0)
+        + (embed.footer && embed.footer.text ? embed.footer.text.length : 0)
+        + (embed.author && embed.author.name ? embed.author.name.length : 0);
+    for (let field of embed.fields) {
+        // embed.fields.forEach((field) => {
+        embedLength += field.name.length + field.value.length;
+    }
+    console.log('EmbedLengthCheck: %d', embedLength);
+    return embedLength;
+}
+
+/**
+ * 
+ * @param {Message} msg 
+ * @param {String} roleID 
+ * @returns {Role}
+ */
+async function retrieveRoleForID(guild, roleID) {
+    // console.log('retrieveRoleID: %s', roleID);
+    let roleForID = await guild.roles.resolve(roleID);
+    // console.log('retrieveRoleID, name: %s ', roleForID.name);
+    return roleForID;
+}
+
+/**
+ * 
+ * @param {Guild} guild 
+ * @param {String} roleName 
+ * @returns {Role}
+ */
+async function retrieveRoleIdForName(guild, roleName) {
+    let roleForName;
+    let roles = await guild.roles.fetch();
+    // console.log('roles', roles);
+    for (let role of roles.array()) {
+        // roles.array().forEach((role) => {
+        // console.log("role: " + role.name + ' : ' + roleName);
+        if (role.name == roleName || '@' + role.name == roleName) {
+            roleForName = role;
+        }
+    }
+    // console.log("found rolename: " + roleForName.id);
+    return roleForName.id;
+}
+
+function appendStringsForEmbedChanges(stringArray) {
+    let fieldSize = 16;
+    let separator = ' | ';
+    return appendStringsForEmbed(stringArray, fieldSize, separator);
+}
+
+function appendStringsForEmbed(stringArray, fieldSize, separator, dontQuote, padChar) {
+    let returnValue = '';
+    let quote = '`';
+    if (dontQuote) {
+        quote = '';
+    }
+    stringArray.forEach((value) => {
+        returnValue = returnValue + quote + stringOfSize(value, fieldSize, padChar) + quote + separator;
+    })
+    return returnValue.substring(0, returnValue.length - separator.length);
+}
+
+function stringOfSize(value, size, padChar, padBefore) {
+    if (!padChar) {
+        padChar = ' ';
+    }
+    value = value.substring(0, size);
+    if (value.length < size) {
+        if (padBefore) {
+            value = padChar.repeat(size - value.length) + value;
+        } else {
+            value = value + padChar.repeat(size - value.length);
+        }
+    }
+    return value;
+}
+
+function isTrue(value){
+    if (typeof(value) === 'string'){
+        value = value.trim().toLowerCase();
+    }
+    switch(value){
+        case true:
+        case "true":
+        case 1:
+        case "1":
+        case "on":
+        case "yes":
+            return true;
+        default: 
+            return false;
+    }
+}
+
 exports.stringOfSize = stringOfSize;
 exports.getLinkForMessage = getLinkForMessage;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
 exports.sendDirectOrFallbackToChannelError = sendDirectOrFallbackToChannelError;
+exports.lengthOfEmbed = lengthOfEmbed;
+exports.retrieveRoleForID = retrieveRoleForID;
+exports.retrieveRoleIdForName = retrieveRoleIdForName;
+exports.appendStringsForEmbed = appendStringsForEmbed;
+exports.appendStringsForEmbedChanges = appendStringsForEmbedChanges;
+exports.isTrue = isTrue;
