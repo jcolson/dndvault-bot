@@ -18,7 +18,7 @@ global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR,
  */
 (async () => {
     console.log('mongo user: %s ... connecting', Config.mongoUser);
-    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/dnd?authSource=dnd', {
+    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/' + Config.mongoSchema + '?authSource=' + Config.mongoSchema, {
         useNewUrlParser: true,
         useFindAndModify: false,
         useUnifiedTopology: true,
