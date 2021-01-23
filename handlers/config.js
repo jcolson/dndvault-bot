@@ -157,6 +157,17 @@ async function handleConfigApproval(msg, guildConfig) {
     }
 }
 
+async function getGuildConfig(guildID) {
+    let guildConfig = GuildCache[guildID];
+    if (!guildConfig) {
+        guildConfig = await GuildModel.findOne({ guildID: guildID });
+        if (guildConfig) {
+            GuildCache[guildID] = guildConfig;
+        }
+    }
+    return guildConfig;
+}
+
 /**
  * 
  * @param {Message} msg 
@@ -199,3 +210,4 @@ exports.handleConfigProle = handleConfigProle;
 exports.handleConfigArole = handleConfigArole;
 exports.handleConfig = handleConfig;
 exports.confirmGuildConfig = confirmGuildConfig;
+exports.getGuildConfig = getGuildConfig;
