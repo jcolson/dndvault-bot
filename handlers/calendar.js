@@ -10,12 +10,23 @@ const events = require('../handlers/events.js');
  * @param {*} url 
  */
 async function handleCalendarRequest(requestUrl) {
-    let returnICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN\r\nCALSCALE:GREGORIAN\r\n';
     console.log('handling calendar request: search params: ', requestUrl.searchParams);
     let userID = requestUrl.searchParams.get('userID');
     if (!userID) {
         throw new Error('No userID passed!');
     }
+    let returnICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN\r\n';
+    returnICS += `URL:${Config.calendarURL}${Config.calendarURI}?userID=${userID}\r\n`;
+    returnICS += 'NAME:DND Vault\r\n';
+    returnICS += 'X-WR-CALNAME:DND Vault\r\n';
+    returnICS += 'DESCRIPTION:DND Vault events from Discord\r\n';
+    returnICS += 'X-WR-CALDESC:DND Vault events from Discord\r\n';
+    // returnICS += 'TIMEZONE-ID:Europe/London\r\n';
+    // returnICS += 'X-WR-TIMEZONE:Europe/London\r\n';
+    returnICS += 'REFRESH-INTERVAL;VALUE=DURATION:PT12H\r\n';
+    returnICS += 'X-PUBLISHED-TTL:PT12H\r\n';
+    returnICS += 'COLOR:34:50:105\r\n';
+    returnICS += 'CALSCALE:GREGORIAN\r\n';
     let cutOffDate = new Date();
     cutOffDate.setDate(cutOffDate.getDate() - 7);
     let userEvents = await EventModel.find(
@@ -47,7 +58,7 @@ async function handleCalendarRequest(requestUrl) {
 }
 
 function encodeStringICS(valueToEncode) {
-    return valueToEncode.replace(/\r?\n|\r/g,'\\n');
+    return valueToEncode.replace(/\r?\n|\r/g, '\\n');
 }
 
 function getICSdateFormat(theDate) {
@@ -68,6 +79,18 @@ function getICSdateFormat(theDate) {
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//hacksw/handcal//NONSGML v1.0//EN
+URL:http://my.calendar/url
+
+NAME:My Calendar Name
+X-WR-CALNAME:My Calendar Name
+DESCRIPTION:A description of my calendar
+X-WR-CALDESC:A description of my calendar
+TIMEZONE-ID:Europe/London
+X-WR-TIMEZONE:Europe/London
+REFRESH-INTERVAL;VALUE=DURATION:PT12H
+X-PUBLISHED-TTL:PT12H
+COLOR:34:50:105
+
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTEND:<?= dateToCal($dateend) ?>
