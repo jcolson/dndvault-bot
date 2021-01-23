@@ -36,7 +36,7 @@ Event campaign enforcement is configured off ('false') by default.  Turning it o
 
 Users have the ability to list events that are deployed or proposed (not yet approved/deployed).
 
-I'm looking for feedback, so please feel free to open bugs, feature requests, etc.  As well as hop on my discord for direct conversation.  [Join me on this discord for support](https://discord.gg/kC7JgnEU)
+I'm looking for feedback, so please feel free to open bugs, feature requests, etc.  As well as hop on my discord for direct conversation.  [Join me on this discord for support](https://discord.gg/ueCkbQgxrF)
 
 ## Invite the BOT to your server
 
