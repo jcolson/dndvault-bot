@@ -1,9 +1,11 @@
 require('log-timestamp');
+const http = require('http');
 const characters = require('./handlers/characters.js');
 const events = require('./handlers/events.js');
 const help = require('./handlers/help.js');
 const users = require('./handlers/users.js');
 const config = require('./handlers/config.js');
+const calendar = require('./handlers/calendar.js');
 const path = require('path');
 const { Client } = require('discord.js');
 const { connect } = require('mongoose');
@@ -14,11 +16,52 @@ global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
 /**
+ * http server used for calendar ics
+ */
+const server = http.createServer();
+server.on('request', async (request, response) => {
+    request.on('error', (error) => {
+        console.error(error);
+        response.statusCode = 400;
+        response.end("400");
+    });
+    response.on('error', (error) => {
+        console.error(error);
+    });
+
+    let requestUrl = new URL(request.url, `http://${request.headers.host}`);
+    let body = [];
+    request.on('data', async (chunk) => {
+        body.push(chunk);
+    });
+    request.on('end', async () => {
+        try {
+            body = Buffer.concat(body).toString();
+            // console.log('body: ' + body);
+            if (request.method === 'GET' && requestUrl.pathname === Config.calendarURI) {
+                response.setHeader('Content-Type', 'text/calendar');
+                response.end(await calendar.handleCalendarRequest(requestUrl));
+            } else {
+                console.error('404 request: ' + request.url);
+                response.statusCode = 404;
+                response.end("404");
+            }
+        } catch (error) {
+            console.error(error);
+            response.statusCode = 400;
+            response.end("400");
+        }
+    });
+});
+server.listen(Config.httpServerPort);
+console.log('ics http server listening on: %s', Config.httpServerPort);
+
+/**
  * connect to the mongodb
  */
 (async () => {
     console.log('mongo user: %s ... connecting', Config.mongoUser);
-    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/dnd?authSource=dnd', {
+    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/' + Config.mongoSchema + '?authSource=' + Config.mongoSchema, {
         useNewUrlParser: true,
         useFindAndModify: false,
         useUnifiedTopology: true,
