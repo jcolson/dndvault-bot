@@ -41,7 +41,7 @@ async function handleCalendarRequest(requestUrl) {
     for (currEvent of userEvents) {
         let guildConfig = await config.getGuildConfig(currEvent.guildID);
         returnICS += 'BEGIN:VEVENT\r\n';
-        let endDate = currEvent.date_time;
+        let endDate = new Date(currEvent.date_time);
         endDate.setTime(endDate.getTime() + (currEvent.duration_hours * 60 * 60 * 1000));
         returnICS += `DTEND:${getICSdateFormat(endDate)}\r\n`;
         returnICS += `UID:${currEvent._id}\r\n`;
