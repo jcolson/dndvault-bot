@@ -531,7 +531,10 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
         throw new Error(`You must set your timezone via \`timezone set\` in order to convert to your own timezone.`);
     } else {
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
-        await utils.sendDirectOrFallbackToChannel([{ name: 'Converted time', value: `${usersTimeString} ${userModel.timezone}`, inline: true }], reaction.message, user);
+        await utils.sendDirectOrFallbackToChannel([
+            { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
+            { name: 'Calendar Subscribe', value: `${Config.calendarURL}${Config.calendarURI}?userID=${user.id}`, inline: true }
+        ], reaction.message, user);
     }
 }
 
@@ -651,3 +654,4 @@ exports.handleEventList = handleEventList;
 exports.handleReactionAdd = handleReactionAdd;
 exports.handleEventListProposed = handleEventListProposed;
 exports.handleEventListDeployed = handleEventListDeployed;
+exports.getLinkForEvent = getLinkForEvent;

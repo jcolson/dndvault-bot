@@ -23,9 +23,16 @@ const Event = Schema({
     },
     "attendees": {
         type: [{
-            "userID": String,
-            "characterID": String,
-            "date_time": Date
+            "userID": {
+                type: String,
+                index: true
+            },
+            "characterID": {
+                type: String
+            },
+            "date_time": {
+                type: Date
+            }
         }]
     },
     "campaign": {
