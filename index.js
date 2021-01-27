@@ -72,7 +72,8 @@ console.log('ics http server listening on: %s', Config.httpServerPort);
 })();
 
 client.on('ready', () => {
-    console.info(`logged in as ${client.user.tag}`)
+    console.info(`logged in as ${client.user.tag}`);
+    client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
