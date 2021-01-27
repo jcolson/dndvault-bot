@@ -46,10 +46,10 @@ async function handleCalendarRequest(requestUrl) {
         returnICS += `DTEND:${getICSdateFormat(endDate)}\r\n`;
         returnICS += `UID:${currEvent._id}\r\n`;
         returnICS += `DTSTAMP:${getICSdateFormat(new Date())}\r\n`;
-        returnICS += `LOCATION:${encodeStringICS(guildConfig.name)}\r\n`;
+        returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}\r\n`;
         returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
         returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
-        returnICS += `SUMMARY:${encodeStringICS(currEvent.title)}\r\n`;
+        returnICS += `SUMMARY:🗡${encodeStringICS(guildConfig.name)}\\n${encodeStringICS(currEvent.title)}\r\n`;
         returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
         returnICS += `END:VEVENT\r\n`;
     }

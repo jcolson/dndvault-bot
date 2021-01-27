@@ -72,7 +72,8 @@ console.log('ics http server listening on: %s', Config.httpServerPort);
 })();
 
 client.on('ready', () => {
-    console.info(`logged in as ${client.user.tag}`)
+    console.info(`logged in as ${client.user.tag}`);
+    client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
@@ -90,7 +91,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
-    console.log(`msg: ${reaction.message.guild.name}:${user.username}:${reaction.message.content}`);
+    console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}:${reaction.emoji.name}:${reaction.message.content}`);
     if (!user.bot) {
         try {
             // Now the message has been cached and is fully available
