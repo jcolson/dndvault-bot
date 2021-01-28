@@ -74,14 +74,18 @@ Workflow would work something like this.
 
 all the while anyone on the server can 'view' any user's character ...
 
-## Example character workflow usage
+## Example character workflow usage with approvals 'true'
 
 ```diff
+#player types
 !register https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
+#approver role user types
 !list queued
 !changes 41867999
 !approve 41867999
+#player types, to update character
 !update https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
+#approver role user types
 !list queued
 !changes 41867999
 !approve 41867999
