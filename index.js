@@ -9,7 +9,7 @@ const calendar = require('./handlers/calendar.js');
 const path = require('path');
 const { Client } = require('discord.js');
 const { connect } = require('mongoose');
-const utils = require('../utils/utils.js');
+const utils = require('./utils/utils.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 
