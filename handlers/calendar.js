@@ -2,6 +2,7 @@ const EventModel = require('../models/Event');
 const utils = require('../utils/utils.js');
 const config = require('../handlers/config.js');
 const events = require('../handlers/events.js');
+const he = require('he');
 
 /**
  * 
@@ -47,9 +48,11 @@ async function handleCalendarRequest(requestUrl) {
         returnICS += `UID:${currEvent._id}\r\n`;
         returnICS += `DTSTAMP:${getICSdateFormat(new Date())}\r\n`;
         returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}\r\n`;
+        // seems like X-ALT-DESC doesn't really work any more
+        // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>\r\n`;
         returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
         returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
-        returnICS += `SUMMARY:🗡${encodeStringICS(guildConfig.name)}\\n${encodeStringICS(currEvent.title)}\r\n`;
+        returnICS += `SUMMARY:🗡${encodeStringICS(guildConfig.name)} - ${encodeStringICS(currEvent.title)}\r\n`;
         returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
         returnICS += `END:VEVENT\r\n`;
     }
@@ -57,8 +60,14 @@ async function handleCalendarRequest(requestUrl) {
     return returnICS;
 }
 
-function encodeStringICS(valueToEncode) {
-    return valueToEncode.replace(/\r?\n|\r/g, '\\n');
+/**
+ * 
+ * @param {String} valueToEncode 
+ * @param {Boolean} heEncode 
+ */
+function encodeStringICS(valueToEncode, heEncode) {
+    valueToEncode = valueToEncode.replace(/\r?\n|\r/g, '\\n');
+    return heEncode ? he.encode(valueToEncode) : valueToEncode;
 }
 
 function getICSdateFormat(theDate) {
