@@ -175,30 +175,42 @@ async function getGuildConfig(guildID) {
  */
 async function confirmGuildConfig(msg) {
     let guildConfig = GuildCache[msg.guild.id];
-    if (!guildConfig) {
-        try {
+    try {
+        let needsSave = false;
+        if (!guildConfig) {
             guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
             if (!guildConfig) {
                 guildConfig = new GuildModel({ guildID: msg.guild.id });
+                needsSave = true;
             }
-            // console.log(guildConfig);
-            if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-                guildConfig.arole = await utils.retrieveRoleIdForName(msg.guild, Config.defaultARoleName);
-            }
-            if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
-                guildConfig.prole = await utils.retrieveRoleIdForName(msg.guild, Config.defaultPRoleName);
-            }
-            if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
-                guildConfig.prefix = Config.defaultPrefix;
-            }
-            if (typeof guildConfig.name === 'undefined' || !guildConfig.name) {
-                guildConfig.name = msg.guild.name;
-            }
-            await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
-        } catch (error) {
-            throw new Error('confirmGuildConfig: ' + error.message);
         }
+        // console.log(guildConfig);
+        if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
+            guildConfig.arole = await utils.retrieveRoleIdForName(msg.guild, Config.defaultARoleName);
+            needsSave = true;
+        }
+        if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
+            guildConfig.prole = await utils.retrieveRoleIdForName(msg.guild, Config.defaultPRoleName);
+            needsSave = true;
+        }
+        if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
+            guildConfig.prefix = Config.defaultPrefix;
+            needsSave = true;
+        }
+        if (typeof guildConfig.name === 'undefined' || !guildConfig.name || guildConfig.name != msg.guild.name) {
+            guildConfig.name = msg.guild.name;
+            needsSave = true;
+        }
+        if (typeof guildConfig.iconURL === 'undefined' || !guildConfig.iconURL || guildConfig.iconURL != msg.guild.iconURL()) {
+            guildConfig.iconURL = msg.guild.iconURL();
+            needsSave = true;
+        }
+        if (needsSave) {
+            await guildConfig.save();
+        }
+        GuildCache[msg.guild.id] = guildConfig;
+    } catch (error) {
+        throw new Error('confirmGuildConfig: ' + error.message);
     }
     return guildConfig;
 }
