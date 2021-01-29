@@ -8,6 +8,9 @@ const Guild = Schema({
     "name": {
         type: "String"
     },
+    "iconURL": {
+        type: "String"
+    },
     "prefix": {
         type: "String"
     },
