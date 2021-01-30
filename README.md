@@ -210,3 +210,9 @@ Harpy Rescue - https://discord.com/channels/787645782269624340/78764578283257857
 Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue): 50/50 Rp/Combat
 @LVLone @LVL2 @LVL3 @LVL4 @LVL5
 ```
+
+test bot invite
+
+```
+https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=223296&scope=bot
+```

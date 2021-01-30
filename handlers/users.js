@@ -46,9 +46,9 @@ async function handleTimezone(msg, guildConfig) {
         if (timeZoneString == '' && currUser) {
             await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` }], msg);
         } else if (timeZoneString == '') {
-            throw new Error('No timezone set yet.');
+            throw new Error('No timezone [YOUR TIMEZONE] yet.');
         } else {
-            timeZoneString = isValidTimeZone(timeZoneString);    
+            timeZoneString = isValidTimeZone(timeZoneString);
             if (!currUser) {
                 currUser = new UserModel({ guildID: msg.guild.id, userID: msg.member.id, timezone: timeZoneString });
             } else {
@@ -60,6 +60,8 @@ async function handleTimezone(msg, guildConfig) {
         }
         await msg.delete();
     } catch (error) {
+        console.log('handleTimezone:', error.message);
+        error.message += '\nexample timezone: `Europe/Berlin`\nList available here: <https://github.com/formatjs/date-time-format-timezone/blob/master/tasks/gen-package.js#L51>';
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
