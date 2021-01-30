@@ -102,6 +102,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             await events.handleReactionAdd(reaction, user, guildConfig);
         } catch (error) {
             console.error(`caught exception handling reaction`, error);
+            await utils.sendDirectOrFallbackToChannelError(error,reaction.message,user);
         }
     } else {
         console.log('bot reacted');
