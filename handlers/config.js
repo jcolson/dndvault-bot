@@ -11,7 +11,7 @@ const GuildCache = {};
 async function handleConfig(msg, guildConfig) {
     try {
         await utils.sendDirectOrFallbackToChannel(
-            [{ name: 'Config for Guild ID', value: guildConfig.guildID },
+            [{ name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
             { name: 'Prefix', value: guildConfig.prefix, inline: true },
             { name: 'Approver Role', value: (await utils.retrieveRoleForID(msg.guild, guildConfig.arole)).name, inline: true },
             { name: 'Player Role', value: (await utils.retrieveRoleForID(msg.guild, guildConfig.prole)).name, inline: true },
@@ -176,6 +176,16 @@ async function getGuildConfig(guildID) {
 async function confirmGuildConfig(msg) {
     let guildConfig = GuildCache[msg.guild.id];
     try {
+        //check that I have the proper permissions
+        let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY', 'CONNECT'];
+        for (reqPerm of requiredPerms) {
+            if (!msg.guild.me.hasPermission(reqPerm)) {
+                throw new Error(`Server is missing a Required Permission (please inform a server admin to kick/re-invite bot): ${reqPerm}`);
+            }
+        }
+        // for (perm of msg.guild.me.permissions) {
+        //     console.log(perm);
+        // }
         let needsSave = false;
         if (!guildConfig) {
             guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });

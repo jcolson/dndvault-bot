@@ -152,6 +152,11 @@ client.on('message', async (msg) => {
             }
             return;
         }
+        if (msg.author.bot) {
+            // it's a message from a bot, ignore
+            console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}:bot message, ignoring`);
+            return;
+        }
         let guildConfig = await config.confirmGuildConfig(msg);
         if (!msg.content.startsWith(guildConfig.prefix)) return;
         console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
@@ -222,7 +227,7 @@ client.on('message', async (msg) => {
         }
     } catch (error) {
         console.error('on_message: ', error);
-        // await utils.sendDirectOrFallbackToChannelError(error, msg);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
 
