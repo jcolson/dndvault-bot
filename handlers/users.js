@@ -60,7 +60,7 @@ async function handleTimezone(msg, guildConfig) {
         }
         await msg.delete();
     } catch (error) {
-        console.log('handleTimezone:', error.message);
+        console.log('handleTimezone:', error);
         error.message += '\nexample timezone: `Europe/Berlin`\nList available here: <https://github.com/formatjs/date-time-format-timezone/blob/master/tasks/gen-package.js#L51>';
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
