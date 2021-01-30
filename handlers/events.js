@@ -16,7 +16,7 @@ async function handleEventCreate(msg, guildConfig) {
     try {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!currUser || !currUser.timezone) {
-            throw new Error('Please set your timezone first using `timezone set`!');
+            throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
         }
         let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
         let eventArray = parseEventString(eventString);
@@ -40,7 +40,7 @@ async function handleEventEdit(msg, guildConfig) {
     try {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!currUser || !currUser.timezone) {
-            throw new Error('Please set your timezone first using `timezone set`!');
+            throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
         }
         let eventString = msg.content.substring((guildConfig.prefix + 'event edit').length + 1);
         const eventID = eventString.substring(0, eventString.indexOf(' '));
@@ -528,7 +528,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
 async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
     let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
     if (!userModel || !userModel.timezone) {
-        throw new Error(`You must set your timezone via \`timezone set\` in order to convert to your own timezone.`);
+        throw new Error(`You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`);
     } else {
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         await utils.sendDirectOrFallbackToChannel([

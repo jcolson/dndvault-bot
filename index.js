@@ -221,7 +221,8 @@ client.on('message', async (msg) => {
             config.handleConfig(msg, guildConfig);
         }
     } catch (error) {
-        await utils.sendDirectOrFallbackToChannelError(error, msg);
+        consoler.error('on_message: ', error);
+        // await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
 
