@@ -98,10 +98,12 @@ client.on('messageReactionAdd', async (reaction, user) => {
         try {
             // Now the message has been cached and is fully available
             console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+            await utils.checkChannelPermissions(reaction.message);
             let guildConfig = await config.confirmGuildConfig(reaction.message);
             await events.handleReactionAdd(reaction, user, guildConfig);
         } catch (error) {
             console.error(`caught exception handling reaction`, error);
+            await utils.sendDirectOrFallbackToChannelError(error,reaction.message,user);
         }
     } else {
         console.log('bot reacted');
@@ -152,8 +154,14 @@ client.on('message', async (msg) => {
             }
             return;
         }
+        if (msg.author.bot) {
+            // it's a message from a bot, ignore
+            console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}:bot message, ignoring`);
+            return;
+        }
         let guildConfig = await config.confirmGuildConfig(msg);
         if (!msg.content.startsWith(guildConfig.prefix)) return;
+        await utils.checkChannelPermissions(msg);
         console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
             await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
@@ -221,8 +229,8 @@ client.on('message', async (msg) => {
             config.handleConfig(msg, guildConfig);
         }
     } catch (error) {
-        consoler.error('on_message: ', error);
-        // await utils.sendDirectOrFallbackToChannelError(error, msg);
+        console.error('on_message: ', error);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
 

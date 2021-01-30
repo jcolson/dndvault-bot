@@ -3,6 +3,7 @@ const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
 const { MessageEmbed } = require('discord.js');
 const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
+const { DateTime } = require('luxon');
 const users = require('../handlers/users.js');
 const characters = require('../handlers/characters.js');
 const utils = require('../utils/utils.js');
@@ -265,7 +266,7 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
 
     if (eventArray['!ON'] || eventArray['!AT']) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
-        // console.log('tz offset: ' + timezoneOffset);
+        console.log('tz offset: ' + timezoneOffset);
 
         // convert to user's time if this exists already
         let usersOriginalEventDate;
@@ -306,9 +307,19 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
 
 function getTimeZoneOffset(timezone) {
     let utcDate = new Date();
-    let utcDateString = utcDate.toUTCString();
-    let userDateString = utcDateString.substring(0, utcDateString.length - 3) + timezone;
-    let userDate = new Date(userDateString);
+    // console.log('getTimeZoneOffset: %s', userDateString);
+    let userDateTime = DateTime.fromObject(
+        {
+            day: utcDate.getDate(),
+            month: utcDate.getMonth()+1,
+            year: utcDate.getFullYear(),
+            hour: utcDate.getHours(),
+            minute: utcDate.getMinutes(),
+            zone: timezone
+        });
+    // console.log('getTimeZoneOffset/DateTime: %s', userDateTime);
+    let userDate = userDateTime.toJSDate();
+    // console.log('getTimeZoneOffset/userDate: %s', userDate);
     return -Math.ceil((userDate - utcDate) / 60 / 1000);
 }
 

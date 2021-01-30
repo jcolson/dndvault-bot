@@ -11,7 +11,7 @@ const GuildCache = {};
 async function handleConfig(msg, guildConfig) {
     try {
         await utils.sendDirectOrFallbackToChannel(
-            [{ name: 'Config for Guild ID', value: guildConfig.guildID },
+            [{ name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
             { name: 'Prefix', value: guildConfig.prefix, inline: true },
             { name: 'Approver Role', value: (await utils.retrieveRoleForID(msg.guild, guildConfig.arole)).name, inline: true },
             { name: 'Player Role', value: (await utils.retrieveRoleForID(msg.guild, guildConfig.prole)).name, inline: true },

@@ -21,7 +21,7 @@ function getLinkForMessage(msg) {
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
     let embed = new MessageEmbed()
         .setColor('#0099ff');
-    embed.addFields({ name: `Error`, value: `<@${msg.member.id}> - ${error.message}` });
+    embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.member ? msg.member.id : 'unknown user'}> - ${error.message}` });
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM);
 }
 
@@ -186,11 +186,11 @@ function stringOfSize(value, size, padChar, padBefore) {
     return value;
 }
 
-function isTrue(value){
-    if (typeof(value) === 'string'){
+function isTrue(value) {
+    if (typeof (value) === 'string') {
         value = value.trim().toLowerCase();
     }
-    switch(value){
+    switch (value) {
         case true:
         case "true":
         case 1:
@@ -198,9 +198,42 @@ function isTrue(value){
         case "on":
         case "yes":
             return true;
-        default: 
+        default:
             return false;
     }
+}
+
+/**
+ * ensure that the bot has proper permissions in the channel
+ * @param {Message} msg 
+ */
+async function checkChannelPermissions(msg) {
+    //check that I have the proper permissions
+    let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
+    let botPerms = msg.channel.permissionsFor(msg.guild.me);
+    // if (!await botPerms.has(requiredPerms)) {
+    //     throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permissions): ${requiredPerms}`);
+    // }
+    for (reqPerm of requiredPerms) {
+        if (!await botPerms.has(reqPerm)) {
+            throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}`);
+        }
+    }
+    // debug info below for permissions debugging in a channel
+    // for (let [permOverKey, permOver] of msg.channel.permissionOverwrites.entries()) {
+    //     let permOverKeyRoleName = (await utils.retrieveRoleForID(msg.guild, permOverKey)).name;
+    //     console.log(permOverKeyRoleName + ': allowed:', permOver.allow);
+    //     for (allowed of await permOver.allow.toArray()) {
+    //         console.log(allowed);
+    //     }
+    //     console.log(permOverKeyRoleName + ': denied:', permOver.deny);
+    //     for (denied of permOver.deny.toArray()) {
+    //         console.log(denied);
+    //     }
+    // }
+    // for (perm of msg.guild.me.permissions) {
+    //     console.log(perm);
+    // }
 }
 
 exports.stringOfSize = stringOfSize;
@@ -213,4 +246,5 @@ exports.retrieveRoleForID = retrieveRoleForID;
 exports.retrieveRoleIdForName = retrieveRoleIdForName;
 exports.appendStringsForEmbed = appendStringsForEmbed;
 exports.appendStringsForEmbedChanges = appendStringsForEmbedChanges;
+exports.checkChannelPermissions = checkChannelPermissions;
 exports.isTrue = isTrue;
