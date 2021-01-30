@@ -54,7 +54,7 @@ I'm looking for feedback, so please feel free to open bugs, feature requests, et
 
 ## Invite the BOT to your server
 
-[Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=92224&scope=bot)
+[Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)
 
 ## Example character workflow with the BOT
 
