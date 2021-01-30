@@ -21,7 +21,7 @@ function getLinkForMessage(msg) {
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
     let embed = new MessageEmbed()
         .setColor('#0099ff');
-    embed.addFields({ name: `Error`, value: `<@${msg.member.id}> - ${error.message}` });
+    embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.member ? msg.member.id : 'unknown user'}> - ${error.message}` });
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM);
 }
 
@@ -209,17 +209,17 @@ function isTrue(value) {
  */
 async function checkChannelPermissions(msg) {
     //check that I have the proper permissions
-    let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY', 'CONNECT'];
+    let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
     let botPerms = msg.channel.permissionsFor(msg.guild.me);
-    if (!await botPerms.has(requiredPerms)) {
-        throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permissions): ${requiredPerms}`);
+    // if (!await botPerms.has(requiredPerms)) {
+    //     throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permissions): ${requiredPerms}`);
+    // }
+    for (reqPerm of requiredPerms) {
+        if (!await botPerms.has(reqPerm)) {
+            throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}`);
+        }
     }
     // debug info below for permissions debugging in a channel
-    // for (reqPerm of requiredPerms) {
-    //     if (!await msg.guild.me.hasPermission(reqPerm)) {
-    //         throw new Error(`Server is missing a Required Permission (please inform a server admin to kick/re-invite bot): ${reqPerm}`);
-    //     }
-    // }
     // for (let [permOverKey, permOver] of msg.channel.permissionOverwrites.entries()) {
     //     let permOverKeyRoleName = (await utils.retrieveRoleForID(msg.guild, permOverKey)).name;
     //     console.log(permOverKeyRoleName + ': allowed:', permOver.allow);
