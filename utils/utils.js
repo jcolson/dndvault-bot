@@ -139,10 +139,11 @@ async function retrieveRoleForID(guild, roleID) {
  */
 async function retrieveRoleIdForName(guild, roleName) {
     let roleForName;
+    // ensure that the guild is populated ... this sometimes can not be populated on a new server join
+    guild = await guild.fetch();
     let roles = await guild.roles.fetch();
-    // console.log('roles', roles);
+    // console.log('retrieveRoleIdForName:', roles, typeof roles);
     for (let role of roles.array()) {
-        // roles.array().forEach((role) => {
         // console.log("role: " + role.name + ' : ' + roleName);
         if (role.name == roleName || '@' + role.name == roleName) {
             roleForName = role;
