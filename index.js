@@ -98,6 +98,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         try {
             // Now the message has been cached and is fully available
             console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+            await utils.checkChannelPermissions(reaction.message);
             let guildConfig = await config.confirmGuildConfig(reaction.message);
             await events.handleReactionAdd(reaction, user, guildConfig);
         } catch (error) {
@@ -160,6 +161,7 @@ client.on('message', async (msg) => {
         }
         let guildConfig = await config.confirmGuildConfig(msg);
         if (!msg.content.startsWith(guildConfig.prefix)) return;
+        await utils.checkChannelPermissions(msg);
         console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
             await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
