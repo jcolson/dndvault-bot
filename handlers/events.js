@@ -394,7 +394,7 @@ async function embedForEvent(msg, eventArray, title, isShow) {
         .setColor('#0099ff')
         .setTitle(title)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
