@@ -12,6 +12,7 @@ const config = require('./handlers/config.js');
 const calendar = require('./handlers/calendar.js');
 const utils = require('./utils/utils.js');
 const timezones = require('./handlers/timezones.js');
+const poll = require('./handlers/poll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 
@@ -99,13 +100,18 @@ client.on('messageReactionAdd', async (reaction, user) => {
         return;
     }
     console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}:${reaction.emoji.name}:${reaction.message.content}`);
-    if (!user.bot) {
+    if (!user.bot && reaction.message.author.id === reaction.message.guild.me.id) {
         try {
             // Now the message has been cached and is fully available
-            console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
             await utils.checkChannelPermissions(reaction.message);
             let guildConfig = await config.confirmGuildConfig(reaction.message);
-            await events.handleReactionAdd(reaction, user, guildConfig);
+            if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
+                console.log(`${reaction.message.author}'s POLL "${reaction.message.id}" gained a reaction!`);
+                await poll.handleReactionAdd(reaction, user, guildConfig);
+            } else {
+                console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+                await events.handleReactionAdd(reaction, user, guildConfig);
+            }
         } catch (error) {
             console.error(`caught exception handling reaction`, error);
             await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
@@ -216,6 +222,8 @@ client.on('message', async (msg) => {
             events.handleEventListDeployed(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
             events.handleEventList(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'poll')) {
+            poll.handlePoll(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
             users.handleDefault(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
