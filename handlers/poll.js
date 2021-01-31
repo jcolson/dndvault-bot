@@ -77,7 +77,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                     // console.log('user: ',aUser);
                     // if (aUser.id = user.id) {
                         // console.log("removing ... ");
-                        await aReaction.users.remove(user);
+                        aReaction.users.remove(user);
                     // }
                 // }
             }
