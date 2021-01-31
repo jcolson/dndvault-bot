@@ -433,7 +433,7 @@ async function embedForEvent(msg, eventArray, title, isShow) {
     }
     let signUpInfo = '';
     if (isShow) {
-        signUpInfo = `✅ Sign up | ❎ Remove yourself | ▶️ Deploy | 🕟 Your time and calendar\n`;
+        signUpInfo = `✅Sign up ❎Withdrawal ▶️Deploy 🕟Your TZ and Calendar\n`;
     }
     eventEmbed.addFields(
         {
