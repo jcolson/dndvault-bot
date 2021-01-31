@@ -1,15 +1,17 @@
 require('log-timestamp');
 const http = require('http');
+const path = require('path');
+const { Client } = require('discord.js');
+const { connect } = require('mongoose');
+
 const characters = require('./handlers/characters.js');
 const events = require('./handlers/events.js');
 const help = require('./handlers/help.js');
 const users = require('./handlers/users.js');
 const config = require('./handlers/config.js');
 const calendar = require('./handlers/calendar.js');
-const path = require('path');
-const { Client } = require('discord.js');
-const { connect } = require('mongoose');
 const utils = require('./utils/utils.js');
+const timezones = require('./handlers/timezones.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 
@@ -40,9 +42,12 @@ server.on('request', async (request, response) => {
         try {
             body = Buffer.concat(body).toString();
             // console.log('body: ' + body);
-            if (request.method === 'GET' && requestUrl.pathname === Config.calendarURI) {
+            if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
                 response.setHeader('Content-Type', 'text/calendar');
                 response.end(await calendar.handleCalendarRequest(requestUrl));
+            } else if (request.method === 'GET' && requestUrl.pathname === '/timezones') {
+                response.setHeader('Content-Type', 'text/html');
+                response.end(await timezones.handleTimezonesRequest(requestUrl));
             } else {
                 console.error('404 request: ' + request.url);
                 response.statusCode = 404;
@@ -103,7 +108,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             await events.handleReactionAdd(reaction, user, guildConfig);
         } catch (error) {
             console.error(`caught exception handling reaction`, error);
-            await utils.sendDirectOrFallbackToChannelError(error,reaction.message,user);
+            await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
         }
     } else {
         console.log('bot reacted');
