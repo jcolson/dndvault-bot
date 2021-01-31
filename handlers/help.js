@@ -84,11 +84,13 @@ async function handleHelp(msg, guildConfig, inviteURL) {
 \`\`\`fix
 - [x] config - show BOT config
   - [x] {no args} - show config
-  - [x] arole [NEW_ROLE] - modify approver role (allows user to approve characters)
-  - [x] prole [NEW_ROLE] - modify player role (allows user to use bot)
+  - [x] arole [@ROLE] - modify approver role (allows user to approve characters)
+  - [x] prole [@ROLE] - modify player role (allows user to use bot)
   - [x] prefix [NEW_PREFIX] - modify the command prefix
   - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
   - [x] campaign [BOOLEAN] - require that a user have matching character for event's campaigns
+  - [x] pollchannel [#CHANNEL] - send all polls to this channel
+  - [x] eventchannel [#CHANNEL] - send all events to this channel
 \`\`\``},
         );
         charEmbed.addFields(
