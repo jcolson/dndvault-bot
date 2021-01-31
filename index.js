@@ -230,6 +230,10 @@ client.on('message', async (msg) => {
             users.handleTimezone(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config approval')) {
             config.handleConfigApproval(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config eventchannel')) {
+            config.handleConfigEventChannel(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config pollchannel')) {
+            config.handleConfigPollChannel(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
             config.handleConfigPrefix(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
