@@ -59,7 +59,7 @@ function parseMessageForPoll(params) {
                 `\u0039\uFE0F\u20E3`];
         } else {
             thePoll.choices = ['Yes', 'No', 'Maybe'];
-            thePoll.emojis = [`\u1F44d`, `\u1F44e`, `\u1F937`];
+            thePoll.emojis = [`\uD83D\uDC4D`, `\uD83D\uDC4E`, `\uD83E\uDD37`];
         }
     }
 
@@ -73,15 +73,20 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             // console.log('reaction name ' + aReaction.emoji.name);
             if (aReaction.emoji.name != reaction.emoji.name) {
                 // console.log('reaction didnot match areaction ' + aReaction.emoji.name);
-                // for (aUser of await aReaction.users.fetch()) {
-                    // console.log('user: ',aUser);
-                    // if (aUser.id = user.id) {
-                        // console.log("removing ... ");
+                // console.log('cache', aReaction.users.cache.array().length);
+                if (aReaction.users.cache.array().length == 0) {
+                    await aReaction.users.fetch();
+                }
+                for (aUser of aReaction.users.cache.array()) {
+                    // console.log('user: ', aUser.id, user.id);
+                    if (aUser.id == user.id) {
+                        // console.log("removing ... ", user.id);
                         aReaction.users.remove(user);
-                    // }
-                // }
+                    }
+                }
             }
         }
+
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
     }
