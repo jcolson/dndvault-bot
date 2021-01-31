@@ -14,6 +14,7 @@ const utils = require('../utils/utils.js');
  * @param {GuildModel} guildConfig 
  */
 async function handleEventCreate(msg, guildConfig) {
+    let eventChannel = msg.channel;
     try {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!currUser || !currUser.timezone) {
@@ -23,7 +24,10 @@ async function handleEventCreate(msg, guildConfig) {
         let eventArray = parseEventString(eventString);
 
         let validatedEvent = await validateEvent(eventArray, msg, currUser);
-        let sentMessage = await msg.channel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
+        if (guildConfig.channelForEvents) {
+            eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+        }
+        let sentMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
         validatedEvent.channelID = sentMessage.channel.id;
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
@@ -33,11 +37,14 @@ async function handleEventCreate(msg, guildConfig) {
         await sentMessage.react('🕟');
         await msg.delete();
     } catch (error) {
+        console.error('handleEventCreate:', error.message);
+        error.message += ` For Channel: ${eventChannel.name}`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
 async function handleEventEdit(msg, guildConfig) {
+    let eventChannel = msg.channel;
     try {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!currUser || !currUser.timezone) {
@@ -74,7 +81,10 @@ async function handleEventEdit(msg, guildConfig) {
             await eventMessage.edit(await embedForEvent(msg, [validatedEvent], `Event`, true));
         } catch (error) {
             console.log(`couldn't edit old event message on edit: ${error.message}`);
-            eventMessage = await msg.channel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
+            if (guildConfig.channelForEvents) {
+                eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+            }
+            eventMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
             validatedEvent.channelID = eventMessage.channel.id;
             validatedEvent.messageID = eventMessage.id;
             await eventMessage.react('✅');
@@ -86,6 +96,8 @@ async function handleEventEdit(msg, guildConfig) {
         await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${msg.member.id}> - edited event successfully.`, inline: true }], eventMessage, msg.author);
         await msg.delete();
     } catch (error) {
+        console.error('handleEventEdit:', error.message);
+        error.message += ` For Channel: ${eventChannel.name}`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -130,6 +142,7 @@ async function handleEventRemove(msg, guildConfig) {
  * @param {GuildModel} guildConfig 
  */
 async function handleEventShow(msg, guildConfig) {
+    let eventChannel = msg.channel;
     try {
         const eventID = msg.content.substring((guildConfig.prefix + 'event show').length + 1);
         let showEvent;
@@ -145,7 +158,10 @@ async function handleEventShow(msg, guildConfig) {
             throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
         }
         const embedEvent = await embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
-        const sentMessage = await msg.channel.send(embedEvent);
+        if (guildConfig.channelForEvents) {
+            eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+        }
+        const sentMessage = await eventChannel.send(embedEvent);
         await msg.delete();
         try {
             // remove old event message
@@ -166,6 +182,8 @@ async function handleEventShow(msg, guildConfig) {
         await sentMessage.react('▶️');
         await sentMessage.react('🕟');
     } catch (error) {
+        console.error('handleEventShow:', error.message);
+        error.message += ` For Channel: ${eventChannel.name}`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -311,7 +329,7 @@ function getTimeZoneOffset(timezone) {
     let userDateTime = DateTime.fromObject(
         {
             day: utcDate.getDate(),
-            month: utcDate.getMonth()+1,
+            month: utcDate.getMonth() + 1,
             year: utcDate.getFullYear(),
             hour: utcDate.getHours(),
             minute: utcDate.getMinutes(),
@@ -394,7 +412,7 @@ async function embedForEvent(msg, eventArray, title, isShow) {
         .setColor('#0099ff')
         .setTitle(title)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;

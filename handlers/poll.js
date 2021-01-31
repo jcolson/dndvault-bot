@@ -1,4 +1,5 @@
 const utils = require('../utils/utils.js');
+const users = require('../handlers/users.js');
 const { MessageEmbed } = require('discord.js');
 
 /**
@@ -7,15 +8,22 @@ const { MessageEmbed } = require('discord.js');
  * @param {GuildModel} guildConfig 
  */
 async function handlePoll(msg, guildConfig) {
+    let pollChannel = msg.channel;
     try {
         let params = msg.content.substring((guildConfig.prefix + 'poll').length + 1);
         let thePoll = parseMessageForPoll(params);
-        let sentMessage = await msg.channel.send(embedForPoll(msg, thePoll));
+        if (guildConfig.channelForPolls) {
+            pollChannel = await msg.guild.channels.resolve(guildConfig.channelForPolls);
+        }
+        let sentMessage = await pollChannel.send(embedForPoll(msg, thePoll));
         for (let i = 0; i < thePoll.choices.length; i++) {
             await sentMessage.react(thePoll.emojis[i]);
         }
+        await sentMessage.react(`\u{1F5D1}`);
         await msg.delete();
     } catch (error) {
+        console.error('handlePoll:', error.message);
+        error.message += ` For Channel: ${pollChannel.name}`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -28,6 +36,7 @@ function embedForPoll(msg, thePoll) {
         .setAuthor('Pollster', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
+    pollEmbed.addFields({ name: 'Author', value: `<@${msg.author.id}>` });
     for (let i = 0; i < thePoll.choices.length; i++) {
         pollEmbed.addFields({ name: thePoll.emojis[i], value: thePoll.choices[i] });
     }
@@ -69,24 +78,36 @@ function parseMessageForPoll(params) {
 async function handleReactionAdd(reaction, user, guildConfig) {
     try {
         console.log('handleReactionAdd...' + reaction.emoji.name);
-        for (aReaction of reaction.message.reactions.cache.values()) {
-            // console.log('reaction name ' + aReaction.emoji.name);
-            if (aReaction.emoji.name != reaction.emoji.name) {
-                // console.log('reaction didnot match areaction ' + aReaction.emoji.name);
-                // console.log('cache', aReaction.users.cache.array().length);
-                if (aReaction.users.cache.array().length == 0) {
-                    await aReaction.users.fetch();
-                }
-                for (aUser of aReaction.users.cache.array()) {
-                    // console.log('user: ', aUser.id, user.id);
-                    if (aUser.id == user.id) {
-                        // console.log("removing ... ", user.id);
-                        aReaction.users.remove(user);
+        let pollAuthor = reaction.message.embeds[0].fields[0].value;
+        pollAuthor = pollAuthor.substring(2, pollAuthor.length - 1);
+        // console.log('user info %s and %s', user.id, pollAuthor);
+        let memberUser = await reaction.message.guild.members.resolve(user.id);
+        if (reaction.emoji.name == `\u{1F5D1}`) {
+            if (user.id == pollAuthor || await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole)) {
+            // if (false) {
+                await reaction.message.delete();
+            } else {
+                await reaction.users.remove(user);
+            }
+        } else {
+            for (aReaction of reaction.message.reactions.cache.values()) {
+                // console.log('reaction name ' + aReaction.emoji.name);
+                if (aReaction.emoji.name != reaction.emoji.name) {
+                    // console.log('reaction didnot match areaction ' + aReaction.emoji.name);
+                    // console.log('cache', aReaction.users.cache.array().length);
+                    if (aReaction.users.cache.array().length == 0) {
+                        await aReaction.users.fetch();
+                    }
+                    for (aUser of aReaction.users.cache.array()) {
+                        // console.log('user: ', aUser.id, user.id);
+                        if (aUser.id == user.id) {
+                            // console.log("removing ... ", user.id);
+                            aReaction.users.remove(user);
+                        }
                     }
                 }
             }
         }
-
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
     }
