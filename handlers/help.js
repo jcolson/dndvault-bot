@@ -52,6 +52,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
 - [x] timezone
   - [x] {no args} - view your timezone
   - [x] [TIMEZONE] - set your timezone (required for interacting with events)
+- [x] poll ["Poll Question"] {"Response 0"} {"Response 1"} {"Response 2"} {"Response 3"} ...
 \`\`\``});
         charEmbedArray.push(charEmbed);
         charEmbed = new MessageEmbed()

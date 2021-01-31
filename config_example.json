@@ -13,6 +13,5 @@
     "dndBeyondCharServiceUrl": "https://character-service.dndbeyond.com/character/v3/character/",
     "dndVaultIcon": "https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no",
     "httpServerPort": 8080,
-    "calendarURL": "https://dndvault.karma.net",
-    "calendarURI": "/calendar"
+    "calendarURL": "https://dndvault.karma.net"
 }
