@@ -12,7 +12,8 @@ const he = require('he');
  */
 async function handleCalendarRequest(requestUrl) {
     console.log('handling calendar request: search params: ', requestUrl.searchParams);
-    let userID = requestUrl.searchParams.get('userID');
+    const userID = requestUrl.searchParams.get('userID');
+    const excludeGuild = requestUrl.searchParams.get('exclude') ? requestUrl.searchParams.get('exclude').split(',') : [];
     if (!userID) {
         throw new Error('No userID passed!');
     }
@@ -40,21 +41,23 @@ async function handleCalendarRequest(requestUrl) {
     );
     // console.log(events);
     for (currEvent of userEvents) {
-        let guildConfig = await config.getGuildConfig(currEvent.guildID);
-        returnICS += 'BEGIN:VEVENT\r\n';
-        let endDate = new Date(currEvent.date_time);
-        endDate.setTime(endDate.getTime() + (currEvent.duration_hours * 60 * 60 * 1000));
-        returnICS += `DTEND:${getICSdateFormat(endDate)}\r\n`;
-        returnICS += `UID:${currEvent._id}\r\n`;
-        returnICS += `DTSTAMP:${getICSdateFormat(new Date())}\r\n`;
-        returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}\r\n`;
-        // seems like X-ALT-DESC doesn't really work any more
-        // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>\r\n`;
-        returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
-        returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
-        returnICS += `SUMMARY:🗡${encodeStringICS(guildConfig.name)} - ${encodeStringICS(currEvent.title)}\r\n`;
-        returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
-        returnICS += `END:VEVENT\r\n`;
+        if (!excludeGuild.includes(currEvent.guildID)) {
+            let guildConfig = await config.getGuildConfig(currEvent.guildID);
+            returnICS += 'BEGIN:VEVENT\r\n';
+            let endDate = new Date(currEvent.date_time);
+            endDate.setTime(endDate.getTime() + (currEvent.duration_hours * 60 * 60 * 1000));
+            returnICS += `DTEND:${getICSdateFormat(endDate)}\r\n`;
+            returnICS += `UID:${currEvent._id}\r\n`;
+            returnICS += `DTSTAMP:${getICSdateFormat(new Date())}\r\n`;
+            returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}\r\n`;
+            // seems like X-ALT-DESC doesn't really work any more
+            // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>\r\n`;
+            returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
+            returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
+            returnICS += `SUMMARY:🗡${encodeStringICS(guildConfig.name)} - ${encodeStringICS(currEvent.title)}\r\n`;
+            returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
+            returnICS += `END:VEVENT\r\n`;
+        }
     }
     returnICS += 'END:VCALENDAR\r\n';
     return returnICS;
