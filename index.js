@@ -16,8 +16,9 @@ const poll = require('./handlers/poll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 
+const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+
 global.vaultVersion = require('./package.json').version;
-global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
 /**

@@ -43,10 +43,16 @@ async function handleTimezone(msg, guildConfig) {
     try {
         let timeZoneString = msg.content.substring((guildConfig.prefix + 'timezone').length + 1);
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (timeZoneString == '' && currUser) {
-            await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` }], msg);
+        if (timeZoneString == '' && currUser && currUser.timezone) {
+            await utils.sendDirectOrFallbackToChannel([
+                { name: 'Your Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` },
+                { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+            ], msg);
         } else if (timeZoneString == '') {
-            throw new Error('No timezone [YOUR TIMEZONE] yet.');
+            await utils.sendDirectOrFallbackToChannel([
+                { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
+                { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+            ], msg);
         } else {
             timeZoneString = isValidTimeZone(timeZoneString);
             if (!currUser) {
@@ -61,7 +67,7 @@ async function handleTimezone(msg, guildConfig) {
         await msg.delete();
     } catch (error) {
         console.log('handleTimezone:', error);
-        error.message += `\nexample timezone: \`Europe/Berlin\`\nList available here: <${Config.calendarURL}/timezones>`;
+        error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
