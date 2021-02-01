@@ -36,6 +36,7 @@ async function handleEventCreate(msg, guildConfig) {
         await sentMessage.react('▶️');
         await sentMessage.react('🕟');
         await sentMessage.react(`\u{1F5D1}`);
+        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${msg.member.id}> - created event successfully.`, inline: true }], sentMessage, msg.author);
         await msg.delete();
     } catch (error) {
         console.error('handleEventCreate:', error.message);
@@ -75,9 +76,7 @@ async function handleEventEdit(msg, guildConfig) {
         let eventMessage;
         try {
             eventMessage = await (
-                await (
-                    await client.guilds.fetch(validatedEvent.guildID)
-                ).channels.resolve(validatedEvent.channelID)
+                msg.guild.channels.resolve(validatedEvent.channelID)
             ).messages.fetch(validatedEvent.messageID);
             await eventMessage.edit(await embedForEvent(msg, [validatedEvent], undefined, true));
         } catch (error) {
@@ -172,9 +171,7 @@ async function handleEventShow(msg, guildConfig) {
         try {
             // remove old event message
             const eventMessage = await (
-                await (
-                    await client.guilds.fetch(showEvent.guildID)
-                ).channels.resolve(showEvent.channelID)
+                msg.guild.channels.resolve(showEvent.channelID)
             ).messages.fetch(showEvent.messageID);
             await eventMessage.delete();
         } catch (error) {
@@ -594,15 +591,20 @@ async function handleReactionAdd(reaction, user, guildConfig) {
 
 async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
     let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
+    let fieldsToSend = [];
     if (!userModel || !userModel.timezone) {
-        throw new Error(`You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`);
+        fieldsToSend = [
+            { name: 'Timezone not set', value: `You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`, inline: true },
+            { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${reaction.message.channel.id}>` }
+        ];
     } else {
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
-        await utils.sendDirectOrFallbackToChannel([
+        fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
             { name: 'Calendar Subscribe', value: `${Config.calendarURL}/calendar?userID=${user.id}`, inline: true }
-        ], reaction.message, user);
+        ];
     }
+    await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);
 }
 
 function getDateStringInDifferentTimezone(date, tzString) {
