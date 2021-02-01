@@ -27,7 +27,7 @@ async function handleEventCreate(msg, guildConfig) {
         if (guildConfig.channelForEvents) {
             eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
         }
-        let sentMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
+        let sentMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
         validatedEvent.channelID = sentMessage.channel.id;
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
@@ -78,13 +78,13 @@ async function handleEventEdit(msg, guildConfig) {
                     await client.guilds.fetch(validatedEvent.guildID)
                 ).channels.resolve(validatedEvent.channelID)
             ).messages.fetch(validatedEvent.messageID);
-            await eventMessage.edit(await embedForEvent(msg, [validatedEvent], `Event`, true));
+            await eventMessage.edit(await embedForEvent(msg, [validatedEvent], undefined, true));
         } catch (error) {
             console.log(`couldn't edit old event message on edit: ${error.message}`);
             if (guildConfig.channelForEvents) {
                 eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
             }
-            eventMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
+            eventMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
             validatedEvent.channelID = eventMessage.channel.id;
             validatedEvent.messageID = eventMessage.id;
             await eventMessage.react('✅');
@@ -157,7 +157,7 @@ async function handleEventShow(msg, guildConfig) {
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
         }
-        const embedEvent = await embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
+        const embedEvent = await embedForEvent(msg, [showEvent], undefined, true);
         if (guildConfig.channelForEvents) {
             eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
         }
@@ -408,6 +408,11 @@ async function embedForEvent(msg, eventArray, title, isShow) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 1 : 4;
+    if (!title && eventArray.length > 0) {
+        title = eventArray[0].title;
+    } else if (!title) {
+        title = 'Event';
+    }
     let eventEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
@@ -562,7 +567,7 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         await utils.sendDirectOrFallbackToChannel([
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
-            { name: 'Calendar Subscribe', value: `${Config.calendarURL}${Config.calendarURI}?userID=${user.id}`, inline: true }
+            { name: 'Calendar Subscribe', value: `${Config.calendarURL}/calendar?userID=${user.id}`, inline: true }
         ], reaction.message, user);
     }
 }
@@ -595,7 +600,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = user.id;
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
 async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
@@ -656,7 +661,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
     // console.log('Character will be playing: ' + character.name);
     // console.log('attendees: ', eventForMessage.attendees);
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
 async function attendeeRemove(reaction, user, eventForMessage) {
@@ -672,7 +677,7 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     });
     // console.log(eventForMessage);
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
 exports.handleEventCreate = handleEventCreate;
