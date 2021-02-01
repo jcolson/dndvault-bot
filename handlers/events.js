@@ -501,14 +501,25 @@ function getLinkForEvent(theEvent) {
 }
 
 function formatDate(theDate, includeGMTstring) {
-    let hours = theDate.getHours();
-    let amOrPm = hours >= 12 ? 'pm' : 'am';
-    hours = (hours % 12) || 12;
-    let returnString = `${theDate.getMonth() + 1}/${theDate.getDate()}/${theDate.getFullYear()}, ${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)} ${amOrPm}`;
+    var options = {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        hour: 'numeric', minute: 'numeric',
+        hour12: true,
+    };
     if (includeGMTstring) {
-        returnString += ` GMT`;
+        options.timeZoneName = 'short';
     }
-    return returnString;
+    return new Intl.DateTimeFormat('en-US', options).format(theDate);
+    /**
+        let hours = theDate.getHours();
+        let amOrPm = hours >= 12 ? 'pm' : 'am';
+        hours = (hours % 12) || 12;
+        let returnString = `${theDate.getMonth() + 1}/${theDate.getDate()}/${theDate.getFullYear()}, ${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)} ${amOrPm}`;
+        if (includeGMTstring) {
+            returnString += ` GMT`;
+        }
+        return returnString;
+        */
 }
 
 function formatJustDate(theDate) {
@@ -517,10 +528,17 @@ function formatJustDate(theDate) {
 }
 
 function formatJustTime(theDate) {
-    let hours = theDate.getHours();
-    let amOrPm = hours >= 12 ? 'pm' : 'am';
-    hours = (hours % 12) || 12;
-    let returnString = `${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)}${amOrPm}`;
+    var options = {
+        hour: 'numeric', minute: 'numeric',
+        hour12: true,
+    };
+    // let hours = theDate.getHours();
+    // let amOrPm = hours >= 12 ? 'pm' : 'am';
+    // hours = (hours % 12) || 12;
+    // let returnString = `${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)}${amOrPm}`;
+    // console.log(returnString);
+    let returnString = new Intl.DateTimeFormat('en-US', options).format(theDate);
+    // console.log(returnString);
     return returnString;
 }
 
