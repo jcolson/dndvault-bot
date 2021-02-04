@@ -1,7 +1,7 @@
 const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Message, User, Guild, TextChannel } = require('discord.js');
 const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
 const { DateTime } = require('luxon');
 const users = require('../handlers/users.js');
@@ -14,6 +14,7 @@ const utils = require('../utils/utils.js');
  * @param {GuildModel} guildConfig 
  */
 async function handleEventCreate(msg, guildConfig) {
+    let eventChannel = msg.channel;
     try {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!currUser || !currUser.timezone) {
@@ -23,7 +24,10 @@ async function handleEventCreate(msg, guildConfig) {
         let eventArray = parseEventString(eventString);
 
         let validatedEvent = await validateEvent(eventArray, msg, currUser);
-        let sentMessage = await msg.channel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
+        if (guildConfig.channelForEvents) {
+            eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+        }
+        let sentMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
         validatedEvent.channelID = sentMessage.channel.id;
         validatedEvent.messageID = sentMessage.id;
         await validatedEvent.save();
@@ -31,13 +35,18 @@ async function handleEventCreate(msg, guildConfig) {
         await sentMessage.react('❎');
         await sentMessage.react('▶️');
         await sentMessage.react('🕟');
+        await sentMessage.react(`\u{1F5D1}`);
+        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${msg.member.id}> - created event successfully.`, inline: true }], sentMessage, msg.author);
         await msg.delete();
     } catch (error) {
+        console.error('handleEventCreate:', error.message);
+        error.message += ` For Channel: ${eventChannel.name}`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
 async function handleEventEdit(msg, guildConfig) {
+    let eventChannel = msg.channel;
     try {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!currUser || !currUser.timezone) {
@@ -64,28 +73,33 @@ async function handleEventEdit(msg, guildConfig) {
         }
         let eventArray = parseEventString(eventString, existingEvent);
         let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);
+        validatedEvent.reminderSent = undefined;
         let eventMessage;
         try {
             eventMessage = await (
-                await (
-                    await client.guilds.fetch(validatedEvent.guildID)
-                ).channels.resolve(validatedEvent.channelID)
+                msg.guild.channels.resolve(validatedEvent.channelID)
             ).messages.fetch(validatedEvent.messageID);
-            await eventMessage.edit(await embedForEvent(msg, [validatedEvent], `Event`, true));
+            await eventMessage.edit(await embedForEvent(msg, [validatedEvent], undefined, true));
         } catch (error) {
             console.log(`couldn't edit old event message on edit: ${error.message}`);
-            eventMessage = await msg.channel.send(await embedForEvent(msg, [validatedEvent], `Event`, true));
+            if (guildConfig.channelForEvents) {
+                eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+            }
+            eventMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
             validatedEvent.channelID = eventMessage.channel.id;
             validatedEvent.messageID = eventMessage.id;
             await eventMessage.react('✅');
             await eventMessage.react('❎');
             await eventMessage.react('▶️');
             await eventMessage.react('🕟');
+            await sentMessage.react(`\u{1F5D1}`);
         }
         await validatedEvent.save();
         await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${msg.member.id}> - edited event successfully.`, inline: true }], eventMessage, msg.author);
         await msg.delete();
     } catch (error) {
+        console.error('handleEventEdit:', error.message);
+        error.message += ` For Channel: ${eventChannel.name}`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -94,34 +108,38 @@ async function handleEventRemove(msg, guildConfig) {
     try {
         let eventID = msg.content.substring((guildConfig.prefix + 'event remove').length + 1);
         // console.log(eventID);
-        let existingEvent;
-        try {
-            existingEvent = await EventModel.findById(eventID);
-            if (!existingEvent) {
-                throw new Error();
-            }
-        } catch (error) {
-            throw new Error('Event not found.');
-        }
-        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole) && msg.member.id != existingEvent.userID) {
-            throw new Error(`Please have <@${msg.member.id}> remove, or ask an <@&${guildConfig.arole}> to remove.`);
-        }
-        await existingEvent.delete();
-        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Remove 🛡', value: `<@${msg.member.id}> - the event, ${eventID} , was successfully removed.`, inline: true }], msg);
+        let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
+        await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
         await msg.delete();
-        try {
-            const eventMessage = await (
-                await (
-                    await client.guilds.fetch(existingEvent.guildID)
-                ).channels.resolve(existingEvent.channelID)
-            ).messages.fetch(existingEvent.messageID);
-            await eventMessage.delete();
-        } catch (error) {
-            console.error(`couldn't delete old event message on edit: ${error.message}`);
-        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
+}
+
+async function removeEvent(guild, memberUser, eventID, guildConfig) {
+    let existingEvent;
+    try {
+        existingEvent = await EventModel.findById(eventID);
+        if (!existingEvent) {
+            throw new Error();
+        }
+    } catch (error) {
+        throw new Error('Event not found.');
+    }
+    if (!await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole) && memberUser.id != existingEvent.userID) {
+        throw new Error(`Please have <@${existingEvent.userID}> remove, or ask an \`approver role\` to remove.`);
+    }
+    await existingEvent.delete();
+    let returnMessage = { name: '🗡 Event Remove 🛡', value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
+    try {
+        const eventMessage = await (
+            await guild.channels.resolve(existingEvent.channelID)
+        ).messages.fetch(existingEvent.messageID);
+        await eventMessage.delete();
+    } catch (error) {
+        console.error(`couldn't delete old event message on edit: ${error.message}`);
+    }
+    return returnMessage;
 }
 
 /**
@@ -130,6 +148,7 @@ async function handleEventRemove(msg, guildConfig) {
  * @param {GuildModel} guildConfig 
  */
 async function handleEventShow(msg, guildConfig) {
+    let eventChannel = msg.channel;
     try {
         const eventID = msg.content.substring((guildConfig.prefix + 'event show').length + 1);
         let showEvent;
@@ -144,15 +163,16 @@ async function handleEventShow(msg, guildConfig) {
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
         }
-        const embedEvent = await embedForEvent(msg, [showEvent], `Event: ${eventID}`, true);
-        const sentMessage = await msg.channel.send(embedEvent);
+        const embedEvent = await embedForEvent(msg, [showEvent], undefined, true);
+        if (guildConfig.channelForEvents) {
+            eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+        }
+        const sentMessage = await eventChannel.send(embedEvent);
         await msg.delete();
         try {
             // remove old event message
             const eventMessage = await (
-                await (
-                    await client.guilds.fetch(showEvent.guildID)
-                ).channels.resolve(showEvent.channelID)
+                msg.guild.channels.resolve(showEvent.channelID)
             ).messages.fetch(showEvent.messageID);
             await eventMessage.delete();
         } catch (error) {
@@ -165,7 +185,10 @@ async function handleEventShow(msg, guildConfig) {
         await sentMessage.react('❎');
         await sentMessage.react('▶️');
         await sentMessage.react('🕟');
+        await sentMessage.react(`\u{1F5D1}`);
     } catch (error) {
+        console.error('handleEventShow:', error.message);
+        error.message += ` For Channel: ${eventChannel.name}`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -311,7 +334,7 @@ function getTimeZoneOffset(timezone) {
     let userDateTime = DateTime.fromObject(
         {
             day: utcDate.getDate(),
-            month: utcDate.getMonth()+1,
+            month: utcDate.getMonth() + 1,
             year: utcDate.getFullYear(),
             hour: utcDate.getHours(),
             minute: utcDate.getMinutes(),
@@ -390,11 +413,16 @@ async function embedForEvent(msg, eventArray, title, isShow) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 1 : 4;
+    if (!title && eventArray.length > 0) {
+        title = eventArray[0].title;
+    } else if (!title) {
+        title = 'Event';
+    }
     let eventEmbed = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle(title)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
@@ -433,7 +461,7 @@ async function embedForEvent(msg, eventArray, title, isShow) {
     }
     let signUpInfo = '';
     if (isShow) {
-        signUpInfo = `✅ Sign up | ❎ Remove yourself | ▶️ Deploy | 🕟 Convert time\n`;
+        signUpInfo = `✅Sign up ❎Withdrawal ▶️Deploy 🕟Your TZ and Calendar\n`;
     }
     eventEmbed.addFields(
         {
@@ -478,14 +506,25 @@ function getLinkForEvent(theEvent) {
 }
 
 function formatDate(theDate, includeGMTstring) {
-    let hours = theDate.getHours();
-    let amOrPm = hours >= 12 ? 'pm' : 'am';
-    hours = (hours % 12) || 12;
-    let returnString = `${theDate.getMonth() + 1}/${theDate.getDate()}/${theDate.getFullYear()}, ${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)} ${amOrPm}`;
+    var options = {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        hour: 'numeric', minute: 'numeric',
+        hour12: true,
+    };
     if (includeGMTstring) {
-        returnString += ` GMT`;
+        options.timeZoneName = 'short';
     }
-    return returnString;
+    return new Intl.DateTimeFormat('en-US', options).format(theDate);
+    /**
+        let hours = theDate.getHours();
+        let amOrPm = hours >= 12 ? 'pm' : 'am';
+        hours = (hours % 12) || 12;
+        let returnString = `${theDate.getMonth() + 1}/${theDate.getDate()}/${theDate.getFullYear()}, ${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)} ${amOrPm}`;
+        if (includeGMTstring) {
+            returnString += ` GMT`;
+        }
+        return returnString;
+        */
 }
 
 function formatJustDate(theDate) {
@@ -494,10 +533,17 @@ function formatJustDate(theDate) {
 }
 
 function formatJustTime(theDate) {
-    let hours = theDate.getHours();
-    let amOrPm = hours >= 12 ? 'pm' : 'am';
-    hours = (hours % 12) || 12;
-    let returnString = `${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)}${amOrPm}`;
+    var options = {
+        hour: 'numeric', minute: 'numeric',
+        hour12: true,
+    };
+    // let hours = theDate.getHours();
+    // let amOrPm = hours >= 12 ? 'pm' : 'am';
+    // hours = (hours % 12) || 12;
+    // let returnString = `${hours}:${utils.stringOfSize(theDate.getMinutes().toString(), 2, '0', true)}${amOrPm}`;
+    // console.log(returnString);
+    let returnString = new Intl.DateTimeFormat('en-US', options).format(theDate);
+    // console.log(returnString);
     return returnString;
 }
 
@@ -517,36 +563,49 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         if (reaction.emoji && reaction.emoji.name == '✅') {
             // console.log(eventForMessage);
             await attendeeAdd(reaction, user, eventForMessage, guildConfig);
+            await reaction.users.remove(user.id);
         } else if (reaction.emoji && reaction.emoji.name == '❎') {
             // console.log(eventForMessage);
             await attendeeRemove(reaction, user, eventForMessage);
+            await reaction.users.remove(user.id);
         } else if (reaction.emoji && reaction.emoji.name == '▶️') {
             // console.log(eventForMessage);
             await deployEvent(reaction, user, eventForMessage, guildConfig);
+            await reaction.users.remove(user.id);
         } else if (reaction.emoji && reaction.emoji.name == '🕟') {
             // console.log(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
+            await reaction.users.remove(user.id);
+        } else if (reaction.emoji && reaction.emoji.name == `\u{1F5D1}`) {
+            await reaction.users.remove(user);
+            let memberUser = await reaction.message.guild.members.resolve(user.id);
+            let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage._id, guildConfig);
+            await utils.sendDirectOrFallbackToChannel(deleteMessage, reaction.message, user);
         } else {
             console.log('Unknown reaction');
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
-    } finally {
         await reaction.users.remove(user.id);
     }
 }
 
 async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
     let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
+    let fieldsToSend = [];
     if (!userModel || !userModel.timezone) {
-        throw new Error(`You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`);
+        fieldsToSend = [
+            { name: 'Timezone not set', value: `You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`, inline: true },
+            { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${reaction.message.channel.id}>` }
+        ];
     } else {
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
-        await utils.sendDirectOrFallbackToChannel([
+        fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
-            { name: 'Calendar Subscribe', value: `${Config.calendarURL}${Config.calendarURI}?userID=${user.id}`, inline: true }
-        ], reaction.message, user);
+            { name: 'Calendar Subscribe', value: `${Config.calendarURL}/calendar?userID=${user.id}`, inline: true }
+        ];
     }
+    await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);
 }
 
 function getDateStringInDifferentTimezone(date, tzString) {
@@ -577,7 +636,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = user.id;
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
 async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
@@ -638,7 +697,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
     // console.log('Character will be playing: ' + character.name);
     // console.log('attendees: ', eventForMessage.attendees);
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
 async function attendeeRemove(reaction, user, eventForMessage) {
@@ -654,7 +713,44 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     });
     // console.log(eventForMessage);
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], `Event`, true));
+    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
+}
+
+async function sendReminders() {
+    try {
+        let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
+        let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate } });
+        console.log("sending reminders for %d unreminded events events up to %s", eventsToRemind.length, toDate);
+        for (theEvent of eventsToRemind) {
+            theEvent.reminderSent = new Date();
+            let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
+            let channel = new TextChannel(guild, { id: theEvent.channelID });
+            let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
+            let eventEmbeds = await embedForEvent(msg, [theEvent], "Reminder of Upcoming Event", true);
+            let usersToNotify = [];
+            if (theEvent.dm) {
+                usersToNotify.push(theEvent.dm.substring(3, theEvent.dm.length - 1));
+            }
+            for (attendee of theEvent.attendees) {
+                usersToNotify.push(attendee.userID);
+            }
+            usersToNotify = [...new Set(usersToNotify)];
+            console.log(`userstonotify for event ${theEvent.id}`, usersToNotify);
+            for (userToNotify of usersToNotify) {
+                // let user = await (new User(client, { id: '227562842591723521' })).fetch();
+                try {
+                    let user = await (new User(client, { id: userToNotify })).fetch();
+                    await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+                } catch (error) {
+                    console.log(`Could not notify user ${userToNotify} due to ${error.message}`);
+                }
+            }
+            await theEvent.save();
+        }
+    }
+    catch (error) {
+        console.error("sendReminders", error);
+    }
 }
 
 exports.handleEventCreate = handleEventCreate;
@@ -666,3 +762,4 @@ exports.handleReactionAdd = handleReactionAdd;
 exports.handleEventListProposed = handleEventListProposed;
 exports.handleEventListDeployed = handleEventListDeployed;
 exports.getLinkForEvent = getLinkForEvent;
+exports.sendReminders = sendReminders;

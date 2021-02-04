@@ -1,20 +1,25 @@
 require('log-timestamp');
+const cron = require('node-cron');
 const http = require('http');
+const path = require('path');
+const { Client } = require('discord.js');
+const { connect, disconnect } = require('mongoose');
+
 const characters = require('./handlers/characters.js');
 const events = require('./handlers/events.js');
 const help = require('./handlers/help.js');
 const users = require('./handlers/users.js');
 const config = require('./handlers/config.js');
 const calendar = require('./handlers/calendar.js');
-const path = require('path');
-const { Client } = require('discord.js');
-const { connect } = require('mongoose');
 const utils = require('./utils/utils.js');
+const timezones = require('./handlers/timezones.js');
+const poll = require('./handlers/poll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 
-global.vaultVersion = require('./package.json').version;
 global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+
+global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
 /**
@@ -40,9 +45,12 @@ server.on('request', async (request, response) => {
         try {
             body = Buffer.concat(body).toString();
             // console.log('body: ' + body);
-            if (request.method === 'GET' && requestUrl.pathname === Config.calendarURI) {
+            if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
                 response.setHeader('Content-Type', 'text/calendar');
                 response.end(await calendar.handleCalendarRequest(requestUrl));
+            } else if (request.method === 'GET' && requestUrl.pathname === '/timezones') {
+                response.setHeader('Content-Type', 'text/html');
+                response.end(await timezones.handleTimezonesRequest(requestUrl));
             } else {
                 console.error('404 request: ' + request.url);
                 response.statusCode = 404;
@@ -73,6 +81,14 @@ console.log('ics http server listening on: %s', Config.httpServerPort);
     return client.login(Config.token);
 })();
 
+/**
+ * scheduled cron for calendar reminders
+ */
+let calendarReminderCron = cron.schedule(Config.calendarReminderCron, events.sendReminders);
+
+/**
+ * listen for emitted events from discordjs
+ */
 client.on('ready', () => {
     console.info(`logged in as ${client.user.tag}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
@@ -93,20 +109,23 @@ client.on('messageReactionAdd', async (reaction, user) => {
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
-    console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}:${reaction.emoji.name}:${reaction.message.content}`);
-    if (!user.bot) {
+    console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}(bot?${user.bot}):${reaction.emoji.name}:${reaction.message.content}`);
+    if (!user.bot && reaction.message.author.id === reaction.message.guild.me.id) {
         try {
             // Now the message has been cached and is fully available
-            console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
             await utils.checkChannelPermissions(reaction.message);
             let guildConfig = await config.confirmGuildConfig(reaction.message);
-            await events.handleReactionAdd(reaction, user, guildConfig);
+            if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
+                console.log(`${reaction.message.author}'s POLL "${reaction.message.id}" gained a reaction!`);
+                await poll.handleReactionAdd(reaction, user, guildConfig);
+            } else {
+                console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+                await events.handleReactionAdd(reaction, user, guildConfig);
+            }
         } catch (error) {
             console.error(`caught exception handling reaction`, error);
-            await utils.sendDirectOrFallbackToChannelError(error,reaction.message,user);
+            await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
         }
-    } else {
-        console.log('bot reacted');
     }
 });
 
@@ -211,12 +230,18 @@ client.on('message', async (msg) => {
             events.handleEventListDeployed(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
             events.handleEventList(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'poll')) {
+            poll.handlePoll(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
             users.handleDefault(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
             users.handleTimezone(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config approval')) {
             config.handleConfigApproval(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config eventchannel')) {
+            config.handleConfigEventChannel(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'config pollchannel')) {
+            config.handleConfigPollChannel(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
             config.handleConfigPrefix(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
@@ -260,3 +285,29 @@ client.on('message', async (msg) => {
 //         }
 //     });
 // });
+
+process.on('SIGTERM', () => {
+    console.info('SIGTERM signal received.');
+    cleanShutdown();
+});
+
+process.on('SIGINT', () => {
+    console.info('SIGINT signal received.');
+    cleanShutdown();
+});
+
+function cleanShutdown() {
+    console.log('Closing out resources...');
+    server.close(() => {
+        console.log('Http server closed.');
+        client.destroy();
+        console.log('Discord client destroyed.');
+        calendarReminderCron.destroy();
+        console.log('Scheduled calendar reminders destroyed.');
+        // boolean means [force], see in mongoose doc
+        disconnect(() => {
+            console.log('MongoDb connection closed.');
+            process.exit(0);
+        });
+    });
+}

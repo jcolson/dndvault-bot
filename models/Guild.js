@@ -27,6 +27,12 @@ const Guild = Schema({
     "requireCharacterForEvent": {
         type: "Boolean",
         default: false
+    },
+    "channelForPolls": {
+        type: "String"
+    },
+    "channelForEvents": {
+        type: "String"
     }
 })
 module.exports = model('Guild', Guild);
