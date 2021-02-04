@@ -1,7 +1,7 @@
 const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Message, User, Guild, TextChannel } = require('discord.js');
 const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
 const { DateTime } = require('luxon');
 const users = require('../handlers/users.js');
@@ -73,6 +73,7 @@ async function handleEventEdit(msg, guildConfig) {
         }
         let eventArray = parseEventString(eventString, existingEvent);
         let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);
+        validatedEvent.reminderSent = undefined;
         let eventMessage;
         try {
             eventMessage = await (
@@ -715,6 +716,40 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
+async function sendReminders() {
+    try {
+        let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
+        let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate } });
+        console.log("sending reminders for %d unreminded events events up to %s", eventsToRemind.length, toDate);
+        for (theEvent of eventsToRemind) {
+            theEvent.reminderSent = new Date();
+            let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
+            let channel = new TextChannel(guild, { id: theEvent.channelID });
+            let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
+            let eventEmbeds = await embedForEvent(msg, [theEvent], "Reminder of Upcoming Event", true);
+            let usersToNotify = [];
+            if (theEvent.dm) {
+                usersToNotify.push(theEvent.dm.substring(3, theEvent.dm.length - 1));
+            }
+            for (attendee of theEvent.attendees) {
+                usersToNotify.push(attendee.userID);
+            }
+            console.log('userstonotify', usersToNotify);
+            usersToNotify = [...new Set(usersToNotify)];
+            console.log('userstonotify', usersToNotify);
+            for (userToNotify of usersToNotify) {
+                // let user = await (new User(client, { id: '227562842591723521' })).fetch();
+                let user = await (new User(client, { id: userToNotify })).fetch();
+                await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+            }
+            await theEvent.save();
+        }
+    }
+    catch (error) {
+        console.error("sendReminders", error);
+    }
+}
+
 exports.handleEventCreate = handleEventCreate;
 exports.handleEventShow = handleEventShow;
 exports.handleEventEdit = handleEventEdit;
@@ -724,3 +759,4 @@ exports.handleReactionAdd = handleReactionAdd;
 exports.handleEventListProposed = handleEventListProposed;
 exports.handleEventListDeployed = handleEventListDeployed;
 exports.getLinkForEvent = getLinkForEvent;
+exports.sendReminders = sendReminders;

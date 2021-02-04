@@ -16,6 +16,7 @@
     "log-timestamp": "0.3.0",
     "luxon": "^1.25.0",
     "mongoose": "^5.11.8",
+    "node-cron": "^2.0.3",
     "node-fetch": "2.6.1",
     "tzdata": "^1.0.25"
   }

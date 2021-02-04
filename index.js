@@ -1,8 +1,9 @@
 require('log-timestamp');
+const cron = require('node-cron');
 const http = require('http');
 const path = require('path');
 const { Client } = require('discord.js');
-const { connect } = require('mongoose');
+const { connect, disconnect } = require('mongoose');
 
 const characters = require('./handlers/characters.js');
 const events = require('./handlers/events.js');
@@ -16,7 +17,7 @@ const poll = require('./handlers/poll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 
 global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
@@ -80,6 +81,14 @@ console.log('ics http server listening on: %s', Config.httpServerPort);
     return client.login(Config.token);
 })();
 
+/**
+ * scheduled cron for calendar reminders
+ */
+let calendarReminderCron = cron.schedule(Config.calendarReminderCron, events.sendReminders);
+
+/**
+ * listen for emitted events from discordjs
+ */
 client.on('ready', () => {
     console.info(`logged in as ${client.user.tag}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
@@ -100,7 +109,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
-    console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}:${reaction.emoji.name}:${reaction.message.content}`);
+    console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}(bot?${user.bot}):${reaction.emoji.name}:${reaction.message.content}`);
     if (!user.bot && reaction.message.author.id === reaction.message.guild.me.id) {
         try {
             // Now the message has been cached and is fully available
@@ -117,8 +126,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
             console.error(`caught exception handling reaction`, error);
             await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
         }
-    } else {
-        console.log('bot reacted');
     }
 });
 
@@ -278,3 +285,29 @@ client.on('message', async (msg) => {
 //         }
 //     });
 // });
+
+process.on('SIGTERM', () => {
+    console.info('SIGTERM signal received.');
+    cleanShutdown();
+});
+
+process.on('SIGINT', () => {
+    console.info('SIGINT signal received.');
+    cleanShutdown();
+});
+
+function cleanShutdown() {
+    console.log('Closing out resources...');
+    server.close(() => {
+        console.log('Http server closed.');
+        client.destroy();
+        console.log('Discord client destroyed.');
+        calendarReminderCron.destroy();
+        console.log('Scheduled calendar reminders destroyed.');
+        // boolean means [force], see in mongoose doc
+        disconnect(() => {
+            console.log('MongoDb connection closed.');
+            process.exit(0);
+        });
+    });
+}
