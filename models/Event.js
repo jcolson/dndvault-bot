@@ -55,6 +55,10 @@ const Event = Schema({
     "messageID": {
         type: String,
         index: true
+    },
+    "reminderSent": {
+        type: Date,
+        index: true
     }
 })
 module.exports = model('Event', Event);

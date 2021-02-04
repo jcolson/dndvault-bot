@@ -11,7 +11,9 @@
     "defaultPRoleName": "@everyone",
     "dndBeyondUrl": "https://www.dndbeyond.com",
     "dndBeyondCharServiceUrl": "https://character-service.dndbeyond.com/character/v3/character/",
-    "dndVaultIcon": "https://lh3.googleusercontent.com/pw/ACtC-3f7drdu5bCoMLFPEL6nvUBZBVMGPLhY8DVHemDd2_UEkom99ybobk--1nm6cHZa6NyOlGP7MIso2flJ_yUUCRTBnm8cGZemblRCaq_8c5ndYZGWhXq9zbzEYtfIUzScQKQ3SICD-mlDN_wZZfd4dE6PJA=w981-h1079-no",
+    "dndVaultIcon": "https://lh3.googleusercontent.com/pw/ACtC-3f9h-P63bw7fquraJEnF6mLAI96H8zQhGUkzKv3TljoPG-voQJCXy0mZ7vrsTO2XPg7lcC61LjQ6WzffEfMmg-V2Kf08Wg3W44l5sR-bLCfDKAaBXuZ1GLi-u8MPIgteNPNOofRXh_L2l7goy8GNTTfyA=s256-no",
     "httpServerPort": 8080,
-    "calendarURL": "https://dndvault.karma.net"
+    "calendarURL": "https://dndvault.karma.net",
+    "calendarReminderCron": "0 */10 * * * *",
+    "calendarReminderMinutesOut": 45
 }

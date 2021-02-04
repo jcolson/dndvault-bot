@@ -2,17 +2,6 @@ const { MessageEmbed } = require("discord.js");
 
 /**
  * 
- * @param {Message} msg 
- */
-function getLinkForMessage(msg) {
-    if (!msg.guild) {
-        return undefined;
-    }
-    return `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-}
-
-/**
- * 
  * @param {EmbedFieldData[]} fields 
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
@@ -69,9 +58,13 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         // console.log('user: ' + user.id);
         // console.log('msg member: ' + msg.member.id);
-        let linkForMessage = getLinkForMessage(msg);
-        if (linkForMessage) {
-            embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `[Go Back To Message](${linkForMessage})`, inline: false });
+        if (msg.url) {
+            let goBackMessage = '[Go Back To Message]';
+            // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
+            let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
+            if (!lastFieldValue.startsWith(goBackMessage)) {
+                embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${msg.url})`, inline: false });
+            }
         }
         let messageSent = false;
         if (user && !skipDM) {
@@ -84,7 +77,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s %s', error.message, error);
             }
         }
-        if (!messageSent) {
+        if (!messageSent && msg.channel) {
             try {
                 for (let embed of embedsArray) {
                     await msg.channel.send(embed);
@@ -237,7 +230,6 @@ async function checkChannelPermissions(msg) {
 }
 
 exports.stringOfSize = stringOfSize;
-exports.getLinkForMessage = getLinkForMessage;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
 exports.sendDirectOrFallbackToChannelError = sendDirectOrFallbackToChannelError;
