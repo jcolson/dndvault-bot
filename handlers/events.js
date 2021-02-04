@@ -734,13 +734,16 @@ async function sendReminders() {
             for (attendee of theEvent.attendees) {
                 usersToNotify.push(attendee.userID);
             }
-            console.log('userstonotify', usersToNotify);
             usersToNotify = [...new Set(usersToNotify)];
-            console.log('userstonotify', usersToNotify);
+            console.log(`userstonotify for event ${theEvent.id}`, usersToNotify);
             for (userToNotify of usersToNotify) {
                 // let user = await (new User(client, { id: '227562842591723521' })).fetch();
-                let user = await (new User(client, { id: userToNotify })).fetch();
-                await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+                try {
+                    let user = await (new User(client, { id: userToNotify })).fetch();
+                    await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+                } catch (error) {
+                    console.log(`Could not notify user ${userToNotify} due to ${error.message}`);
+                }
             }
             await theEvent.save();
         }
