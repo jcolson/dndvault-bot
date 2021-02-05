@@ -90,7 +90,17 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         if (reaction.emoji.name == `\u{1F5D1}`) {
             if (user.id == pollAuthor || await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole)) {
                 // if (false) {
+                await reaction.users.remove(user.id);
+                if (reaction.message.embeds.length > 0) {
+                    reaction.message.embeds[0].setTitle(`Removed: ${reaction.message.embeds[0].title}`);
+                    for (aReaction of reaction.message.reactions.cache.values()) {
+                        reaction.message.embeds[0].addFields({ name: `${aReaction.emoji.name}`, value: `${aReaction.count}` });
+                        // console.log(`${aReaction.emoji.name}:${aReaction.count}`);
+                    }
+                }
+                await utils.sendDirectOrFallbackToChannelEmbeds(reaction.message.embeds, reaction.message, user);
                 await reaction.message.delete();
+
             } else {
                 await reaction.users.remove(user.id);
                 throw new Error(`Please have <@${pollAuthor}> remove, or ask an \`approver role\` to remove.`);
