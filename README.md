@@ -13,13 +13,14 @@
   - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
   - [Commands](#commands)
   - [Screenshots](#screenshots)
-    - [permissions required for bot](#permissions-required-for-bot)
     - [event list](#event-list)
     - [event](#event)
+    - [poll](#poll)
     - [show character](#show-character)
     - [list characters](#list-characters)
     - [changes in character updates](#changes-in-character-updates)
     - [config of server for guild](#config-of-server-for-guild)
+    - [permissions required for bot](#permissions-required-for-bot)
   - [Notes (can be safely ignored)](#notes-can-be-safely-ignored)
     - [Mongodb queries](#mongodb-queries)
     - [discordjs](#discordjs)
@@ -160,11 +161,6 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 
 ## Screenshots
 
-### permissions required for bot
-
-If you plan on deploying your own copy of the D&D Vault (you don't need to, you can [invite the existing bot by clicking here](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)), invite the bot to your server using these permissions.
-
-![bot_permissions](docs/images/bot_permissions.png)
 ### event list
 
 ![eventlist](docs/images/eventlist.png)
@@ -172,6 +168,10 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 ### event
 
 ![event](docs/images/event.png)
+
+### poll
+
+![poll](docs/images/poll.png)
 
 ### show character
 
@@ -188,6 +188,12 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 ### config of server for guild
 
 ![config](docs/images/config.png)
+
+### permissions required for bot
+
+If you plan on deploying your own copy of the D&D Vault (you don't need to, you can [invite the existing bot by clicking here](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)), invite the bot to your server using these permissions.
+
+![bot_permissions](docs/images/bot_permissions.png)
 
 ## Notes (can be safely ignored)
 
