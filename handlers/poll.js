@@ -1,6 +1,6 @@
 const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, User } = require('discord.js');
 
 /**
  * 
@@ -98,9 +98,16 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                         // console.log(`${aReaction.emoji.name}:${aReaction.count}`);
                     }
                 }
-                await utils.sendDirectOrFallbackToChannelEmbeds(reaction.message.embeds, reaction.message, user);
+                try {
+                    await utils.sendDirectOrFallbackToChannelEmbeds(reaction.message.embeds, reaction.message, user);
+                    if (user.id != pollAuthor) {
+                        let pollAuthUser = await (new User(reaction.client, { id: pollAuthor })).fetch();
+                        await utils.sendDirectOrFallbackToChannelEmbeds(reaction.message.embeds, reaction.message, pollAuthUser);
+                    }
+                } catch (error) {
+                    console.error("could not notify poll author and trashbin'er", error);
+                }
                 await reaction.message.delete();
-
             } else {
                 await reaction.users.remove(user.id);
                 throw new Error(`Please have <@${pollAuthor}> remove, or ask an \`approver role\` to remove.`);
