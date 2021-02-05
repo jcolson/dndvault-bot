@@ -37,9 +37,12 @@ function embedForPoll(msg, thePoll) {
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     pollEmbed.addFields({ name: 'Author', value: `<@${msg.author.id}>` });
+    let description = '';
     for (let i = 0; i < thePoll.choices.length; i++) {
-        pollEmbed.addFields({ name: thePoll.emojis[i], value: thePoll.choices[i] });
+        description += `${thePoll.emojis[i]} - ${thePoll.choices[i]}\n`;
+        // pollEmbed.addFields({ name: thePoll.emojis[i], value: thePoll.choices[i] });
     }
+    pollEmbed.setDescription(description);
     return pollEmbed;
 }
 
@@ -84,7 +87,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         let memberUser = await reaction.message.guild.members.resolve(user.id);
         if (reaction.emoji.name == `\u{1F5D1}`) {
             if (user.id == pollAuthor || await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole)) {
-            // if (false) {
+                // if (false) {
                 await reaction.message.delete();
             } else {
                 await reaction.users.remove(user);
