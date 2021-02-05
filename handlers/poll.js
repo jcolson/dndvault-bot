@@ -20,6 +20,7 @@ async function handlePoll(msg, guildConfig) {
             await sentMessage.react(thePoll.emojis[i]);
         }
         await sentMessage.react(`\u{1F5D1}`);
+        await utils.sendDirectOrFallbackToChannel({ name: '🗡 Poll Create 🛡', value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, sentMessage, msg.author);
         await msg.delete();
     } catch (error) {
         console.error('handlePoll:', error.message);
@@ -85,12 +86,14 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         pollAuthor = pollAuthor.substring(2, pollAuthor.length - 1);
         // console.log('user info %s and %s', user.id, pollAuthor);
         let memberUser = await reaction.message.guild.members.resolve(user.id);
+        // handle trashbin (delete poll)
         if (reaction.emoji.name == `\u{1F5D1}`) {
             if (user.id == pollAuthor || await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole)) {
                 // if (false) {
                 await reaction.message.delete();
             } else {
-                await reaction.users.remove(user);
+                await reaction.users.remove(user.id);
+                throw new Error(`Please have <@${pollAuthor}> remove, or ask an \`approver role\` to remove.`);
             }
         } else {
             for (aReaction of reaction.message.reactions.cache.values()) {
@@ -105,7 +108,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                         // console.log('user: ', aUser.id, user.id);
                         if (aUser.id == user.id) {
                             // console.log("removing ... ", user.id);
-                            aReaction.users.remove(user);
+                            aReaction.users.remove(user.id);
                         }
                     }
                 }
