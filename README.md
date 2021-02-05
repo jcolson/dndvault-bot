@@ -6,6 +6,7 @@
   - [Character Vault](#character-vault)
   - [Events](#events)
     - [Subscribe to the calendar](#subscribe-to-the-calendar)
+  - [Polling](#polling)
   - [Feedback Please](#feedback-please)
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
@@ -22,6 +23,9 @@
   - [Notes (can be safely ignored)](#notes-can-be-safely-ignored)
     - [Mongodb queries](#mongodb-queries)
     - [discordjs](#discordjs)
+    - [Bot Commands for testing](#bot-commands-for-testing)
+    - [Test Bot Invite](#test-bot-invite)
+    - [Mongodb docker](#mongodb-docker)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -48,6 +52,10 @@ Users have the ability to list events that are deployed or proposed (not yet app
 ### Subscribe to the calendar
 
 Once a user signs up as an attendee, or creates an event, those events will show up in that user's ICS feed.  The user can subscribe to the ICS feed within Outlook, Google Calendar, iCal, etc.  When a user clicks on the 'Timezone' button, a message is sent to them with their local timezone as well as a link to their personalized ICS calendar link.
+
+## Polling
+
+Users can create polls very simply by using the `poll` command.  `!poll "Do you like polling"` will create a default poll that has three options:  👍 (yes) 👎 (no) and 🤷 (I don't know).  A user can also create his own options, which will be automatically numbered by using this syntax: `!poll "Do you like polling" "hell no" "I LOVE polling" "What is polling?"`.
 
 ## Feedback Please
 
