@@ -15,5 +15,5 @@
     "httpServerPort": 8080,
     "calendarURL": "https://dndvault.karma.net",
     "calendarReminderCron": "0 */10 * * * *",
-    "calendarReminderMinutesOut": 45
+    "calendarReminderMinutesOut": 50
 }
