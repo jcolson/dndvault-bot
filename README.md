@@ -6,22 +6,27 @@
   - [Character Vault](#character-vault)
   - [Events](#events)
     - [Subscribe to the calendar](#subscribe-to-the-calendar)
+  - [Polling](#polling)
   - [Feedback Please](#feedback-please)
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
   - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
   - [Commands](#commands)
   - [Screenshots](#screenshots)
-    - [permissions required for bot](#permissions-required-for-bot)
     - [event list](#event-list)
     - [event](#event)
+    - [poll](#poll)
     - [show character](#show-character)
     - [list characters](#list-characters)
     - [changes in character updates](#changes-in-character-updates)
     - [config of server for guild](#config-of-server-for-guild)
+    - [permissions required for bot](#permissions-required-for-bot)
   - [Notes (can be safely ignored)](#notes-can-be-safely-ignored)
     - [Mongodb queries](#mongodb-queries)
     - [discordjs](#discordjs)
+    - [Bot Commands for testing](#bot-commands-for-testing)
+    - [Test Bot Invite](#test-bot-invite)
+    - [Mongodb docker](#mongodb-docker)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -48,6 +53,10 @@ Users have the ability to list events that are deployed or proposed (not yet app
 ### Subscribe to the calendar
 
 Once a user signs up as an attendee, or creates an event, those events will show up in that user's ICS feed.  The user can subscribe to the ICS feed within Outlook, Google Calendar, iCal, etc.  When a user clicks on the 'Timezone' button, a message is sent to them with their local timezone as well as a link to their personalized ICS calendar link.
+
+## Polling
+
+Users can create polls very simply by using the `poll` command.  `!poll "Do you like polling"` will create a default poll that has three options:  👍 (yes) 👎 (no) and 🤷 (I don't know).  A user can also create his own options, which will be automatically numbered by using this syntax: `!poll "Do you like polling" "hell no" "I LOVE polling" "What is polling?"`.
 
 ## Feedback Please
 
@@ -152,11 +161,6 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 
 ## Screenshots
 
-### permissions required for bot
-
-If you plan on deploying your own copy of the D&D Vault (you don't need to, you can [invite the existing bot by clicking here](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)), invite the bot to your server using these permissions.
-
-![bot_permissions](docs/images/bot_permissions.png)
 ### event list
 
 ![eventlist](docs/images/eventlist.png)
@@ -164,6 +168,10 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 ### event
 
 ![event](docs/images/event.png)
+
+### poll
+
+![poll](docs/images/poll.png)
 
 ### show character
 
@@ -180,6 +188,12 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 ### config of server for guild
 
 ![config](docs/images/config.png)
+
+### permissions required for bot
+
+If you plan on deploying your own copy of the D&D Vault (you don't need to, you can [invite the existing bot by clicking here](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)), invite the bot to your server using these permissions.
+
+![bot_permissions](docs/images/bot_permissions.png)
 
 ## Notes (can be safely ignored)
 
@@ -208,8 +222,10 @@ https://discordapp.com/channels/745694606372503773/790521190032474112/7958074905
 https://discordapp.com/channels/785567026512527390
 ```
 
-```
-!event create !title Let's Kill Kobols !DMGM @D&D Vault Test !at 9:00 pm !for 3.5 !on Feb 15 2021 !with 5 !campaign Kobol Killas !desc Starting Region # according to Region Map Mode (mandatory, can be more specific, bonus points for googling real life names, extra points if historic names): Christchurch
+### Bot Commands for testing
+
+```sh
+!event create !title Let's Kill Kobols !DMGM @D&D Vault Test !at 9:00 pm !for 3.5 !on Feb 4 2021 !with 5 !campaign Kobol Killas !desc Starting Region # according to Region Map Mode (mandatory, can be more specific, bonus points for googling real life names, extra points if historic names): Christchurch
 
 Mission Description/Goal: Your initiation. Are you ready?
 OR
@@ -220,8 +236,25 @@ Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue):
 @LVLone @LVL2 @LVL3 @LVL4 @LVL5
 ```
 
-test bot invite
 
-```
+### Test Bot Invite
+
+```html
 https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=223296&scope=bot
+```
+
+### Mongodb docker
+
+```sh
+export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
+docker run -d --name dnd-mongo \
+    --restart always \
+    -p 27017:27017 \
+    --ulimit nofile=64000:64000 \
+    -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+    -e MONGO_INITDB_DATABASE=dnd \
+    -e MONGO_INITDB_ROOT_PASSWORD_FILE=/data/db/mongoadmin \
+    -v ${VOLUME}:/data/db \
+    -v ${VOLUME}-init:/docker-entrypoint-initdb.d \
+    mongo:4.4.3-bionic
 ```

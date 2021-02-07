@@ -18,26 +18,31 @@ async function handleEventCreate(msg, guildConfig) {
     try {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!currUser || !currUser.timezone) {
-            throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
-        }
-        let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
-        let eventArray = parseEventString(eventString);
+            // throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
+            await utils.sendDirectOrFallbackToChannel([
+                { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
+                { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+            ], msg);
+        } else {
+            let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
+            let eventArray = parseEventString(eventString);
 
-        let validatedEvent = await validateEvent(eventArray, msg, currUser);
-        if (guildConfig.channelForEvents) {
-            eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+            let validatedEvent = await validateEvent(eventArray, msg, currUser);
+            if (guildConfig.channelForEvents) {
+                eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+            }
+            let sentMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
+            validatedEvent.channelID = sentMessage.channel.id;
+            validatedEvent.messageID = sentMessage.id;
+            await validatedEvent.save();
+            await sentMessage.react('✅');
+            await sentMessage.react('❎');
+            await sentMessage.react('▶️');
+            await sentMessage.react('🕟');
+            await sentMessage.react(`\u{1F5D1}`);
+            await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${msg.member.id}> - created event successfully.`, inline: true }], sentMessage, msg.author);
+            await msg.delete();
         }
-        let sentMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
-        validatedEvent.channelID = sentMessage.channel.id;
-        validatedEvent.messageID = sentMessage.id;
-        await validatedEvent.save();
-        await sentMessage.react('✅');
-        await sentMessage.react('❎');
-        await sentMessage.react('▶️');
-        await sentMessage.react('🕟');
-        await sentMessage.react(`\u{1F5D1}`);
-        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${msg.member.id}> - created event successfully.`, inline: true }], sentMessage, msg.author);
-        await msg.delete();
     } catch (error) {
         console.error('handleEventCreate:', error.message);
         error.message += ` For Channel: ${eventChannel.name}`;
@@ -577,7 +582,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
         } else if (reaction.emoji && reaction.emoji.name == `\u{1F5D1}`) {
-            await reaction.users.remove(user);
+            await reaction.users.remove(user.id);
             let memberUser = await reaction.message.guild.members.resolve(user.id);
             let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage._id, guildConfig);
             await utils.sendDirectOrFallbackToChannel(deleteMessage, reaction.message, user);

@@ -1,3 +1,5 @@
-config.json
-config_prod.json
-node_modules/
+/config.json
+/config_prod.json
+/node_modules/
+/dnd-mongo
+/dnd-mongo-init

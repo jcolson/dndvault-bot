@@ -1,6 +1,7 @@
 const GuildModel = require('../models/Guild');
 const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
+const { Channel } = require('discord.js');
 const GuildCache = {};
 
 /**
@@ -10,6 +11,8 @@ const GuildCache = {};
  */
 async function handleConfig(msg, guildConfig) {
     try {
+        let channelForEvents = await (new Channel(msg.client,{id: guildConfig.channelForEvents})).fetch();
+        let channelForPolls = await (new Channel(msg.client,{id: guildConfig.channelForPolls})).fetch();
         await utils.sendDirectOrFallbackToChannel(
             [{ name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
             { name: 'Prefix', value: guildConfig.prefix, inline: true },
@@ -17,8 +20,8 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Player Role', value: (await utils.retrieveRoleForID(msg.guild, guildConfig.prole)).name, inline: true },
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
             { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
-            { name: 'Event Channel', value: guildConfig.channelForEvents, inline: true },
-            { name: 'Poll Channel', value: guildConfig.channelForPolls, inline: true },
+            { name: 'Event Channel', value: channelForEvents.name, inline: true },
+            { name: 'Poll Channel', value: channelForPolls.name, inline: true },
             { name: 'BOT Version', value: vaultVersion, inline: true }],
             msg);
         await msg.delete();
