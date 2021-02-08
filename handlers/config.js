@@ -11,8 +11,22 @@ const GuildCache = {};
  */
 async function handleConfig(msg, guildConfig) {
     try {
-        let channelForEvents = await (new Channel(msg.client,{id: guildConfig.channelForEvents})).fetch();
-        let channelForPolls = await (new Channel(msg.client,{id: guildConfig.channelForPolls})).fetch();
+        let channelForEvents = {};
+        let channelForPolls = {};
+        try {
+            if (guildConfig.channelForEvents) {
+                channelForEvents = await (new Channel(msg.client, { id: guildConfig.channelForEvents })).fetch();
+            }
+        } catch (error) {
+            console.error(`handleConfig: could not resolve channel for events: ${guildConfig.channelForEvents}`, error);
+        }
+        try {
+            if (guildConfig.channelForPolls) {
+                channelForPolls = await (new Channel(msg.client, { id: guildConfig.channelForPolls })).fetch();
+            }
+        } catch (error) {
+            console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForEvents}`, error);
+        }
         await utils.sendDirectOrFallbackToChannel(
             [{ name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
             { name: 'Prefix', value: guildConfig.prefix, inline: true },
@@ -26,6 +40,7 @@ async function handleConfig(msg, guildConfig) {
             msg);
         await msg.delete();
     } catch (error) {
+        console.error("handleConfig:", error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -179,17 +194,22 @@ async function getGuildConfig(guildID) {
  * @returns {GuildModel}
  */
 async function confirmGuildConfig(msg) {
+    
     let guildConfig = GuildCache[msg.guild.id];
     try {
         let needsSave = false;
         if (!guildConfig) {
+            console.log(`confirmGuildConfig: finding guild: ${msg.guild.name}`);
             guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
             if (!guildConfig) {
+                console.log(`confirmGuildConfig: new guild: ${msg.guild.name}`);
                 guildConfig = new GuildModel({ guildID: msg.guild.id });
                 needsSave = true;
             }
+        } else {
+            console.log(`confirmGuildConfig: guild cached: ${msg.guild.name}`);
         }
-        // console.log(guildConfig);
+        // console.log("confirmGuildConfig:", guildConfig);
         if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
             guildConfig.arole = await utils.retrieveRoleIdForName(msg.guild, Config.defaultARoleName);
             needsSave = true;
