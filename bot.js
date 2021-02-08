@@ -109,22 +109,24 @@ client.on('messageReactionAdd', async (reaction, user) => {
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
-    console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}(bot?${user.bot}):${reaction.emoji.name}:${reaction.message.content}`);
-    if (!user.bot && reaction.message.author.id === reaction.message.guild.me.id) {
-        try {
-            // Now the message has been cached and is fully available
-            await utils.checkChannelPermissions(reaction.message);
-            let guildConfig = await config.confirmGuildConfig(reaction.message);
-            if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
-                console.log(`${reaction.message.author}'s POLL "${reaction.message.id}" gained a reaction!`);
-                await poll.handleReactionAdd(reaction, user, guildConfig);
-            } else {
-                console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-                await events.handleReactionAdd(reaction, user, guildConfig);
+    if (reaction.message.author.id === reaction.message.guild.me.id) {
+        console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}(bot?${user.bot}):${reaction.emoji.name}:${reaction.message.content}`);
+        if (!user.bot) {
+            try {
+                // Now the message has been cached and is fully available
+                await utils.checkChannelPermissions(reaction.message);
+                let guildConfig = await config.confirmGuildConfig(reaction.message);
+                if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
+                    console.log(`${reaction.message.author}'s POLL "${reaction.message.id}" gained a reaction!`);
+                    await poll.handleReactionAdd(reaction, user, guildConfig);
+                } else {
+                    console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+                    await events.handleReactionAdd(reaction, user, guildConfig);
+                }
+            } catch (error) {
+                console.error(`caught exception handling reaction`, error);
+                await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
             }
-        } catch (error) {
-            console.error(`caught exception handling reaction`, error);
-            await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
         }
     }
 });
