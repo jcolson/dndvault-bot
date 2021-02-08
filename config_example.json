@@ -5,6 +5,7 @@
     "mongoUser": "mongo_dnd_vault_username",
     "mongoPass": "supersecretpassword",
     "mongoSchema": "dnd",
+    "adminUser": "227562842591723521",
     "inviteURL": "https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot",
     "defaultPrefix": "!",
     "defaultARoleName": "@everyone",
