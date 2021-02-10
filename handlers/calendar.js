@@ -5,10 +5,10 @@ const events = require('../handlers/events.js');
 const he = require('he');
 
 /**
- * 
- * @param {*} request 
- * @param {*} response 
- * @param {*} url 
+ *
+ * @param {*} request
+ * @param {*} response
+ * @param {*} url
  */
 async function handleCalendarRequest(requestUrl) {
     console.log('handling calendar request: search params: ', requestUrl.searchParams);
@@ -64,9 +64,9 @@ async function handleCalendarRequest(requestUrl) {
 }
 
 /**
- * 
- * @param {String} valueToEncode 
- * @param {Boolean} heEncode 
+ *
+ * @param {String} valueToEncode
+ * @param {Boolean} heEncode
  */
 function encodeStringICS(valueToEncode, heEncode) {
     valueToEncode = valueToEncode.replace(/\r?\n|\r/g, '\\n');
@@ -84,10 +84,10 @@ function getICSdateFormat(theDate) {
 }
 
 /**
- * 
+ *
  * encodeURI
- * 
- * 
+ *
+ *
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//hacksw/handcal//NONSGML v1.0//EN

@@ -10,8 +10,8 @@ const utils = require('../utils/utils.js');
 
 /**
  * Create an event
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventCreate(msg, guildConfig) {
     let eventChannel = msg.channel;
@@ -149,8 +149,8 @@ async function removeEvent(guild, memberUser, eventID, guildConfig) {
 
 /**
  * show an event
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventShow(msg, guildConfig) {
     let eventChannel = msg.channel;
@@ -200,8 +200,8 @@ async function handleEventShow(msg, guildConfig) {
 
 /**
  * list events that are in the future or n days old
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventList(msg, guildConfig) {
     try {
@@ -222,8 +222,8 @@ async function handleEventList(msg, guildConfig) {
 
 /**
  * list PROPOSED (not deployed) events that are in the future or n days old
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventListProposed(msg, guildConfig) {
     try {
@@ -244,8 +244,8 @@ async function handleEventListProposed(msg, guildConfig) {
 
 /**
  * list DEPLOYED events that are in the future or n days old
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventListDeployed(msg, guildConfig) {
     try {
@@ -355,7 +355,7 @@ function getTimeZoneOffset(timezone) {
  * parse a message like
  * !event create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [test]
  * in order to create a mission
- * @param {String} eventString 
+ * @param {String} eventString
  */
 function parseEventString(eventString) {
     const separatorArray = ['!TITLE', '!DMGM', '!AT', '!FOR', '!ON', '!WITH', '!CAMPAIGN', '!DESC'];
@@ -393,8 +393,8 @@ function parseEventString(eventString) {
 
 /**
  * for the indexes passed, starting at startindex, find the next index value that isn't a -1
- * @param {Number} startindex 
- * @param {Array} sepIndexArray 
+ * @param {Number} startindex
+ * @param {Array} sepIndexArray
  */
 function nextValidIndex(startindex, sepIndexArray) {
     for (let i = startindex; i < sepIndexArray.length; i++) {
@@ -406,12 +406,12 @@ function nextValidIndex(startindex, sepIndexArray) {
 
 /**
  * returns the MessageEmbed(s) for an array of events passed
- * 
+ *
  * @param {Message} msg
  * @param {EventModel[]} charArray
  * @param {String} title
  * @param {Boolean} isShow
- * 
+ *
  * @returns {MessageEmbed[]}
  */
 async function embedForEvent(msg, eventArray, title, isShow) {
@@ -480,7 +480,7 @@ ${signUpInfo}Add this BOT to your server. [Click here](${Config.inviteURL})`
 
 /**
  * returns string for attendees that is not over 1024 characters (embed field value limit)
- * @param {String} event 
+ * @param {String} event
  */
 async function getStringForAttendees(event) {
     let attendees = '';

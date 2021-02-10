@@ -1,6 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+DND Vault Table of Contents
 
 - [DND Vault Discord BOT](#dnd-vault-discord-bot)
   - [Character Vault](#character-vault)
@@ -110,7 +110,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] register
     - [x] manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - register a character in the vault from dndbeyond
-- [x] update 
+- [x] update
     - [x] manual [CHAR_ID] [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - update a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
@@ -230,7 +230,7 @@ https://discordapp.com/channels/785567026512527390
 Mission Description/Goal: Your initiation. Are you ready?
 OR
 Harpy Rescue - https://discord.com/channels/787645782269624340/787645782832578576/796641944196349973
-@Robin - Day 
+@Robin - Day
 
 Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue): 50/50 Rp/Combat
 @LVLone @LVL2 @LVL3 @LVL4 @LVL5

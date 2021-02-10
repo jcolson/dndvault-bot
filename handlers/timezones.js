@@ -7,8 +7,8 @@ const luxonValidTimezones = Object.entries(zones)
     .filter(tz => DateTime.local().setZone(tz).isValid);
 
 /**
- * 
- * @param {URL} requestUrl 
+ *
+ * @param {URL} requestUrl
  */
 function handleTimezonesRequest(requestUrl) {
     console.log('handling timezones request: search params: ', requestUrl.searchParams);

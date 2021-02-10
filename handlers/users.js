@@ -4,8 +4,8 @@ const utils = require('../utils/utils.js');
 
 /**
  * set user's timezone
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleDefault(msg, guildConfig) {
     try {
@@ -36,8 +36,8 @@ async function handleDefault(msg, guildConfig) {
 
 /**
  * set user's timezone
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleTimezone(msg, guildConfig) {
     try {
@@ -86,8 +86,8 @@ function isValidTimeZone(tz) {
 
 /**
  * Check to see if the user that sent the message is in the role or an admin (so it is automatically authorized)
- * @param {GuildMember} member 
- * @param {String} roleId 
+ * @param {GuildMember} member
+ * @param {String} roleId
  */
 async function hasRoleOrIsAdmin(member, roleId) {
     // if (roleId == '792845390834958368') {
