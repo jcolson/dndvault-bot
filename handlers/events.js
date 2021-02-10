@@ -725,9 +725,8 @@ async function sendReminders(client) {
     try {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
         let guildsToRemind = client.guilds.cache.keyArray();
-        console.log(`sendReminders: guildsToRemind: `, guildsToRemind);
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
-        console.log("sending reminders for %d unreminded events events up to %s", eventsToRemind.length, toDate);
+        console.log("sendReminders: for %d unreminded events until %s for guilds %s", eventsToRemind.length, toDate, guildsToRemind);
         for (theEvent of eventsToRemind) {
             theEvent.reminderSent = new Date();
             let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
@@ -742,14 +741,14 @@ async function sendReminders(client) {
                 usersToNotify.push(attendee.userID);
             }
             usersToNotify = [...new Set(usersToNotify)];
-            console.log(`userstonotify for event ${theEvent.id}`, usersToNotify);
+            console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
             for (userToNotify of usersToNotify) {
                 // let user = await (new User(client, { id: '227562842591723521' })).fetch();
                 try {
                     let user = await (new User(client, { id: userToNotify })).fetch();
                     await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
                 } catch (error) {
-                    console.log(`Could not notify user ${userToNotify} due to ${error.message}`);
+                    console.error(`sendReminders: Could not notify user ${userToNotify} due to ${error.message}`);
                 }
             }
             await theEvent.save();
