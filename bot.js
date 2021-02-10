@@ -1,4 +1,3 @@
-require('log-timestamp');
 const cron = require('node-cron');
 const path = require('path');
 const http = require('http');
@@ -16,8 +15,9 @@ const timezones = require('./handlers/timezones.js');
 const poll = require('./handlers/poll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
+const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 
-global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+require('log-timestamp')(function () { return `[${new Date().toISOString()}] [shrd:${client.shard.ids}] %s` });
 
 global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
@@ -84,7 +84,9 @@ console.log('ics http server listening on: %s', Config.httpServerPort);
 /**
  * scheduled cron for calendar reminders
  */
-let calendarReminderCron = cron.schedule(Config.calendarReminderCron, events.sendReminders);
+const calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
+    events.sendReminders(client);
+});
 
 /**
  * listen for emitted events from discordjs

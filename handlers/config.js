@@ -309,12 +309,12 @@ async function handleConfigPollChannel(msg, guildConfig) {
 async function handleStats(msg, guildConfig) {
     try {
         if (msg.member.id == Config.adminUser) {
-            let totalGuilds = (await client.shard.fetchClientValues('guilds.cache.size')).reduce((acc, guildCount) => acc + guildCount, 0);;
-            let totalMembers = (await client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)')).reduce((acc, memberCount) => acc + memberCount, 0);
+            let totalGuilds = (await msg.client.shard.fetchClientValues('guilds.cache.size')).reduce((acc, guildCount) => acc + guildCount, 0);;
+            let totalMembers = (await msg.client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)')).reduce((acc, memberCount) => acc + memberCount, 0);
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Server count', value: totalGuilds, inline: true },
                 { name: 'Member count', value: totalMembers, inline: true },
-                { name: 'Shard count', value: client.shard.count, inline: true }
+                { name: 'Shard count', value: msg.client.shard.count, inline: true }
             ], msg);
             await msg.delete();
         }

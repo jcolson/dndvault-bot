@@ -721,10 +721,12 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
-async function sendReminders() {
+async function sendReminders(client) {
     try {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
-        let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate } });
+        let guildsToRemind = client.guilds.cache.keyArray();
+        console.log(`sendReminders: guildsToRemind: `, guildsToRemind);
+        let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
         console.log("sending reminders for %d unreminded events events up to %s", eventsToRemind.length, toDate);
         for (theEvent of eventsToRemind) {
             theEvent.reminderSent = new Date();
