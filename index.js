@@ -8,7 +8,6 @@ const http = require('http');
 
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
-const { SSL_OP_EPHEMERAL_RSA } = require('constants');
 
 let shutdown = false;
 
