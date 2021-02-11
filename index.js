@@ -1,6 +1,7 @@
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
 const { ShardingManager } = require('discord.js');
 const path = require('path');
+const { promisify } = require('util')
 const { connect, disconnect } = require('mongoose');
 
 const DEFAULT_CONFIGDIR = __dirname;
@@ -9,6 +10,9 @@ global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR,
 const http = require('http');
 const nodeStatic = require('node-static');
 const fileServer = new nodeStatic.Server(Config.httpStaticDir, { cache: 86400 });
+
+//promisify the node-static serve
+const aFileServerServe = promisify(fileServer.serve).bind(fileServer)
 
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
@@ -72,7 +76,6 @@ server.on('request', async (request, response) => {
     request.on('end', async () => {
         try {
             body = Buffer.concat(body).toString();
-            // console.log('body: ' + body);
             if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
                 let responseContent = await calendar.handleCalendarRequest(requestUrl);
                 response.setHeader('Content-Type', 'text/calendar');
@@ -82,14 +85,19 @@ server.on('request', async (request, response) => {
                 response.setHeader('Content-Type', 'text/html');
                 response.end(responseContent);
             } else {
-                fileServer.serve(request, response, (e, res) => {
-                    if (e && (e.status === 404)) { // If the file wasn't found
+                try {
+                    let res = await aFileServerServe(request, response);
+                } catch (error) {
+                    if (error.status === 404) { // If the file wasn't found
                         response.setHeader('Content-Type', 'text/html');
                         response.statusCode = 404;
                         response.end("404");
+                    } else {
+                        throw error;
                     }
-                });
+                }
             }
+            console.log(`http|${request.connection.remoteAddress}|${request.method}|${request.url}|${response.statusCode}`);
         } catch (error) {
             console.error('400 request: ', error);
             response.setHeader('Content-Type', 'text/html');
