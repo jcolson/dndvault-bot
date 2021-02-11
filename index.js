@@ -51,20 +51,22 @@ server.on('request', async (request, response) => {
             body = Buffer.concat(body).toString();
             // console.log('body: ' + body);
             if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
-                response.setHeader('Content-Type', 'text/calendar');
                 let responseContent = await calendar.handleCalendarRequest(requestUrl);
+                response.setHeader('Content-Type', 'text/calendar');
                 response.end(responseContent);
             } else if (request.method === 'GET' && requestUrl.pathname === '/timezones') {
-                response.setHeader('Content-Type', 'text/html');
                 let responseContent = await timezones.handleTimezonesRequest(requestUrl);
+                response.setHeader('Content-Type', 'text/html');
                 response.end(responseContent);
             } else {
                 console.error('404 request: ' + request.url);
+                response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 404;
                 response.end("404");
             }
         } catch (error) {
             console.error('400 request: ', error);
+            response.setHeader('Content-Type', 'text/html');
             response.statusCode = 400;
             response.end("400");
         }
