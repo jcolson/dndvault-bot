@@ -10,8 +10,8 @@ const utils = require('../utils/utils.js');
 
 /**
  * Create an event
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventCreate(msg, guildConfig) {
     let eventChannel = msg.channel;
@@ -21,7 +21,7 @@ async function handleEventCreate(msg, guildConfig) {
             // throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
-                { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
             ], msg);
         } else {
             let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
@@ -149,8 +149,8 @@ async function removeEvent(guild, memberUser, eventID, guildConfig) {
 
 /**
  * show an event
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventShow(msg, guildConfig) {
     let eventChannel = msg.channel;
@@ -200,8 +200,8 @@ async function handleEventShow(msg, guildConfig) {
 
 /**
  * list events that are in the future or n days old
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventList(msg, guildConfig) {
     try {
@@ -222,8 +222,8 @@ async function handleEventList(msg, guildConfig) {
 
 /**
  * list PROPOSED (not deployed) events that are in the future or n days old
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventListProposed(msg, guildConfig) {
     try {
@@ -244,8 +244,8 @@ async function handleEventListProposed(msg, guildConfig) {
 
 /**
  * list DEPLOYED events that are in the future or n days old
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleEventListDeployed(msg, guildConfig) {
     try {
@@ -355,7 +355,7 @@ function getTimeZoneOffset(timezone) {
  * parse a message like
  * !event create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [test]
  * in order to create a mission
- * @param {String} eventString 
+ * @param {String} eventString
  */
 function parseEventString(eventString) {
     const separatorArray = ['!TITLE', '!DMGM', '!AT', '!FOR', '!ON', '!WITH', '!CAMPAIGN', '!DESC'];
@@ -393,8 +393,8 @@ function parseEventString(eventString) {
 
 /**
  * for the indexes passed, starting at startindex, find the next index value that isn't a -1
- * @param {Number} startindex 
- * @param {Array} sepIndexArray 
+ * @param {Number} startindex
+ * @param {Array} sepIndexArray
  */
 function nextValidIndex(startindex, sepIndexArray) {
     for (let i = startindex; i < sepIndexArray.length; i++) {
@@ -406,12 +406,12 @@ function nextValidIndex(startindex, sepIndexArray) {
 
 /**
  * returns the MessageEmbed(s) for an array of events passed
- * 
+ *
  * @param {Message} msg
  * @param {EventModel[]} charArray
  * @param {String} title
  * @param {Boolean} isShow
- * 
+ *
  * @returns {MessageEmbed[]}
  */
 async function embedForEvent(msg, eventArray, title, isShow) {
@@ -480,7 +480,7 @@ ${signUpInfo}Add this BOT to your server. [Click here](${Config.inviteURL})`
 
 /**
  * returns string for attendees that is not over 1024 characters (embed field value limit)
- * @param {String} event 
+ * @param {String} event
  */
 async function getStringForAttendees(event) {
     let attendees = '';
@@ -601,13 +601,13 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
             { name: 'Timezone not set', value: `You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`, inline: true },
-            { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${reaction.message.channel.id}>` }
+            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${reaction.message.channel.id}>` }
         ];
     } else {
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
-            { name: 'Calendar Subscribe', value: `${Config.calendarURL}/calendar?userID=${user.id}`, inline: true }
+            { name: 'Calendar Subscribe', value: `${Config.httpServerURL}/calendar?userID=${user.id}`, inline: true }
         ];
     }
     await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);
@@ -721,11 +721,12 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
 }
 
-async function sendReminders() {
+async function sendReminders(client) {
     try {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
-        let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate } });
-        console.log("sending reminders for %d unreminded events events up to %s", eventsToRemind.length, toDate);
+        let guildsToRemind = client.guilds.cache.keyArray();
+        let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
+        console.log("sendReminders: for %d unreminded events until %s for guilds %s", eventsToRemind.length, toDate, guildsToRemind);
         for (theEvent of eventsToRemind) {
             theEvent.reminderSent = new Date();
             let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
@@ -740,14 +741,14 @@ async function sendReminders() {
                 usersToNotify.push(attendee.userID);
             }
             usersToNotify = [...new Set(usersToNotify)];
-            console.log(`userstonotify for event ${theEvent.id}`, usersToNotify);
+            console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
             for (userToNotify of usersToNotify) {
                 // let user = await (new User(client, { id: '227562842591723521' })).fetch();
                 try {
                     let user = await (new User(client, { id: userToNotify })).fetch();
                     await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
                 } catch (error) {
-                    console.log(`Could not notify user ${userToNotify} due to ${error.message}`);
+                    console.error(`sendReminders: Could not notify user ${userToNotify} due to ${error.message}`);
                 }
             }
             await theEvent.save();

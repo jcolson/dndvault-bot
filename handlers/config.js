@@ -5,9 +5,9 @@ const { Channel } = require('discord.js');
 const GuildCache = {};
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfig(msg, guildConfig) {
     try {
@@ -46,9 +46,9 @@ async function handleConfig(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfigCampaign(msg, guildConfig) {
     try {
@@ -68,9 +68,9 @@ async function handleConfigCampaign(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfigArole(msg, guildConfig) {
     try {
@@ -95,9 +95,9 @@ async function handleConfigArole(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfigProle(msg, guildConfig) {
     try {
@@ -134,9 +134,9 @@ async function getRoleForIdTagOrName(guild, roleIdCheck) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfigPrefix(msg, guildConfig) {
     try {
@@ -156,9 +156,9 @@ async function handleConfigPrefix(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfigApproval(msg, guildConfig) {
     try {
@@ -189,8 +189,8 @@ async function getGuildConfig(guildID) {
 }
 
 /**
- * 
- * @param {Message} msg 
+ *
+ * @param {Message} msg
  * @returns {GuildModel}
  */
 async function confirmGuildConfig(msg) {
@@ -240,9 +240,9 @@ async function confirmGuildConfig(msg) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfigEventChannel(msg, guildConfig) {
     try {
@@ -271,9 +271,9 @@ async function handleConfigEventChannel(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleConfigPollChannel(msg, guildConfig) {
     try {
@@ -302,19 +302,19 @@ async function handleConfigPollChannel(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleStats(msg, guildConfig) {
     try {
         if (msg.member.id == Config.adminUser) {
-            let totalGuilds = (await client.shard.fetchClientValues('guilds.cache.size')).reduce((acc, guildCount) => acc + guildCount, 0);;
-            let totalMembers = (await client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)')).reduce((acc, memberCount) => acc + memberCount, 0);
+            let totalGuilds = (await msg.client.shard.fetchClientValues('guilds.cache.size')).reduce((acc, guildCount) => acc + guildCount, 0);;
+            let totalMembers = (await msg.client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)')).reduce((acc, memberCount) => acc + memberCount, 0);
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Server count', value: totalGuilds, inline: true },
                 { name: 'Member count', value: totalMembers, inline: true },
-                { name: 'Shard count', value: client.shard.count, inline: true }
+                { name: 'Shard count', value: msg.client.shard.count, inline: true }
             ], msg);
             await msg.delete();
         }

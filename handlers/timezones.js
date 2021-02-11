@@ -7,8 +7,8 @@ const luxonValidTimezones = Object.entries(zones)
     .filter(tz => DateTime.local().setZone(tz).isValid);
 
 /**
- * 
- * @param {URL} requestUrl 
+ *
+ * @param {URL} requestUrl
  */
 function handleTimezonesRequest(requestUrl) {
     console.log('handling timezones request: search params: ', requestUrl.searchParams);
@@ -20,6 +20,7 @@ function handleTimezonesRequest(requestUrl) {
 <html><head>
 <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 <meta content="utf-8" http-equiv="encoding">
+<link rel="icon" href="animated_favicon.gif" type="image/gif">
 <title>D&D Vault - Timezones</title>
 <style>
 .header {

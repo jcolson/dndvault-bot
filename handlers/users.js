@@ -4,8 +4,8 @@ const utils = require('../utils/utils.js');
 
 /**
  * set user's timezone
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleDefault(msg, guildConfig) {
     try {
@@ -36,8 +36,8 @@ async function handleDefault(msg, guildConfig) {
 
 /**
  * set user's timezone
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleTimezone(msg, guildConfig) {
     try {
@@ -46,12 +46,12 @@ async function handleTimezone(msg, guildConfig) {
         if (timeZoneString == '' && currUser && currUser.timezone) {
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` },
-                { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
             ], msg);
         } else if (timeZoneString == '') {
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
-                { name: 'Timezone Lookup', value: `<${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
             ], msg);
         } else {
             timeZoneString = isValidTimeZone(timeZoneString);
@@ -67,7 +67,7 @@ async function handleTimezone(msg, guildConfig) {
         await msg.delete();
     } catch (error) {
         console.log('handleTimezone:', error);
-        error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.calendarURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>`;
+        error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -86,8 +86,8 @@ function isValidTimeZone(tz) {
 
 /**
  * Check to see if the user that sent the message is in the role or an admin (so it is automatically authorized)
- * @param {GuildMember} member 
- * @param {String} roleId 
+ * @param {GuildMember} member
+ * @param {String} roleId
  */
 async function hasRoleOrIsAdmin(member, roleId) {
     // if (roleId == '792845390834958368') {
