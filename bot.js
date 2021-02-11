@@ -1,6 +1,5 @@
 const cron = require('node-cron');
 const path = require('path');
-const http = require('http');
 const { Client } = require('discord.js');
 const { connect, disconnect } = require('mongoose');
 
@@ -9,9 +8,7 @@ const events = require('./handlers/events.js');
 const help = require('./handlers/help.js');
 const users = require('./handlers/users.js');
 const config = require('./handlers/config.js');
-const calendar = require('./handlers/calendar.js');
 const utils = require('./utils/utils.js');
-const timezones = require('./handlers/timezones.js');
 const poll = require('./handlers/poll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
@@ -21,50 +18,6 @@ require('log-timestamp')(function () { return `[${new Date().toISOString()}] [sh
 
 global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
-
-/**
- * http server used for calendar ics
- */
-const server = http.createServer();
-server.on('request', async (request, response) => {
-    request.on('error', (error) => {
-        console.error(error);
-        response.statusCode = 400;
-        response.end("400");
-    });
-    response.on('error', (error) => {
-        console.error(error);
-    });
-
-    let requestUrl = new URL(request.url, `http://${request.headers.host}`);
-    let body = [];
-    request.on('data', async (chunk) => {
-        body.push(chunk);
-    });
-    request.on('end', async () => {
-        try {
-            body = Buffer.concat(body).toString();
-            // console.log('body: ' + body);
-            if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
-                response.setHeader('Content-Type', 'text/calendar');
-                response.end(await calendar.handleCalendarRequest(requestUrl));
-            } else if (request.method === 'GET' && requestUrl.pathname === '/timezones') {
-                response.setHeader('Content-Type', 'text/html');
-                response.end(await timezones.handleTimezonesRequest(requestUrl));
-            } else {
-                console.error('404 request: ' + request.url);
-                response.statusCode = 404;
-                response.end("404");
-            }
-        } catch (error) {
-            console.error(error);
-            response.statusCode = 400;
-            response.end("400");
-        }
-    });
-});
-server.listen(Config.httpServerPort);
-console.log('ics http server listening on: %s', Config.httpServerPort);
 
 /**
  * connect to the mongodb
@@ -80,13 +33,6 @@ console.log('ics http server listening on: %s', Config.httpServerPort);
     console.log('Connected to mongo.  Logging into Discord now ...');
     return client.login(Config.token);
 })();
-
-/**
- * scheduled cron for calendar reminders
- */
-const calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
-    events.sendReminders(client);
-});
 
 /**
  * listen for emitted events from discordjs
@@ -292,28 +238,57 @@ client.on('message', async (msg) => {
 //     });
 // });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
     console.info('SIGTERM signal received.');
-    cleanShutdown();
+    await cleanShutdown(true);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
     console.info('SIGINT signal received.');
-    cleanShutdown();
+    await cleanShutdown(true);
 });
 
-function cleanShutdown() {
-    console.log('Closing out resources...');
-    server.close(() => {
-        console.log('Http server closed.');
-        client.destroy();
-        console.log('Discord client destroyed.');
+process.on('SIGUSR1', async () => {
+    console.info('SIGUSR1 signal received.');
+    await cleanShutdown(true);
+});
+
+process.on('SIGUSR2', async () => {
+    console.info('SIGUSR2 signal received.');
+    await cleanShutdown(true);
+});
+
+process.on('uncaughtException', async (error) => {
+    console.info('uncaughtException signal received.', error);
+    await cleanShutdown(true);
+});
+
+/**
+ * scheduled cron for calendar reminders
+ */
+const calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
+    events.sendReminders(client);
+});
+
+/**
+ *
+ * @param {boolean} callProcessExit
+ */
+async function cleanShutdown(callProcessExit) {
+    try {
+        console.log('Closing out shard resources...');
         calendarReminderCron.destroy();
         console.log('Scheduled calendar reminders destroyed.');
+        client.destroy();
+        console.log('Discord client destroyed.');
         // boolean means [force], see in mongoose doc
-        disconnect(() => {
-            console.log('MongoDb connection closed.');
-            process.exit(0);
-        });
-    });
+        await disconnect();
+        console.log('MongoDb connection closed.');
+    } catch (error) {
+        console.error("could not cleanly shutdown shard", error);
+    }
+    if (callProcessExit) {
+        console.log('Exiting.');
+        process.exit(0);
+    }
 }
