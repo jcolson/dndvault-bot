@@ -34,7 +34,7 @@ async function handleCalendarRequest(requestUrl) {
     let userEvents = await EventModel.find(
         {
             $and: [
-                { $or: [{ 'userID': userID }, { "attendees.userID": userID }] },
+                { $or: [{ 'dm': `<@!${userID}>` },{ 'userID': userID }, { "attendees.userID": userID }] },
                 { date_time: { $gt: cutOffDate } }
             ]
         }
