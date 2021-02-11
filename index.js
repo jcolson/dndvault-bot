@@ -3,16 +3,23 @@ const { ShardingManager } = require('discord.js');
 const path = require('path');
 const DEFAULT_CONFIGDIR = __dirname;
 const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
-const manager = new ShardingManager('./bot.js', { token: Config.token, respawn: true });
+const manager = new ShardingManager('./bot.js', { token: Config.token, respawn: false });
 const http = require('http');
 
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
+const { SSL_OP_EPHEMERAL_RSA } = require('constants');
+
+let shutdown = false;
 
 manager.on('shardCreate', (shard) => {
-    console.log(` ===== Launched shard ${shard.id} =====`);
+    console.log(`===== Launched shard ${shard.id} =====`);
     shard.on('death', (process) => {
-        console.log(` ===== Shard ${shard.id} died with exitcode ${process.exitCode} shutdown state ${shutdown} =====`);
+        console.log(`===== Shard ${shard.id} died with exitcode ${process.exitCode}; shutdown status is ${shutdown} =====`);
+        if (!shutdown) {
+            console.error(`Shard ${shard.id} should not have shutdown, something is awry, shutting down server completely.`);
+            cleanShutdown(true);
+        }
     });
 });
 manager.spawn();
@@ -103,10 +110,22 @@ process.on('uncaughtException', async (error) => {
  * @param {boolean} callProcessExit
  */
 async function cleanShutdown(callProcessExit) {
+    shutdown = true;
     try {
         console.log('Closing out manager resources...');
         await server.close();
         console.log('Http server closed.');
+        for ([number, shard] of manager.shards) {
+            if (manager.mode == 'process') {
+                while (shard.process && shard.process.exitCode === null) {
+                    console.log(`awaiting shard ${number} to exit`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                // } else if (manager.mode == 'worker') {
+            } else {
+                console.error(`unknown sharding manager mode: ${manager.mode}`);
+            }
+        }
     } catch (error) {
         console.error("caught error shutting down shardmanager", error);
     }
