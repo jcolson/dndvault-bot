@@ -1,15 +1,38 @@
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
 const { ShardingManager } = require('discord.js');
 const path = require('path');
+const { connect, disconnect } = require('mongoose');
+
 const DEFAULT_CONFIGDIR = __dirname;
-const Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
-const manager = new ShardingManager('./bot.js', { token: Config.token, respawn: false });
+global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
+
 const http = require('http');
+const nodeStatic = require('node-static');
+const fileServer = new nodeStatic.Server(Config.httpStaticDir, { cache: 86400 });
 
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
 
 let shutdown = false;
+
+/**
+ * connect to the mongodb
+ */
+(async () => {
+    console.log('mongo user: %s ... connecting', Config.mongoUser);
+    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/' + Config.mongoSchema + '?authSource=' + Config.mongoSchema, {
+        useNewUrlParser: true,
+        useFindAndModify: false,
+        useUnifiedTopology: true,
+        useCreateIndex: true
+    });
+    console.log('Manager connected to mongo.');
+})();
+
+/**
+ * invoke shardingmanager
+ */
+const manager = new ShardingManager('./bot.js', { token: Config.token, respawn: false });
 
 manager.on('shardCreate', (shard) => {
     console.log(`===== Launched shard ${shard.id} =====`);
@@ -59,10 +82,13 @@ server.on('request', async (request, response) => {
                 response.setHeader('Content-Type', 'text/html');
                 response.end(responseContent);
             } else {
-                console.error('404 request: ' + request.url);
-                response.setHeader('Content-Type', 'text/html');
-                response.statusCode = 404;
-                response.end("404");
+                fileServer.serve(request, response, (e, res) => {
+                    if (e && (e.status === 404)) { // If the file wasn't found
+                        response.setHeader('Content-Type', 'text/html');
+                        response.statusCode = 404;
+                        response.end("404");
+                    }
+                });
             }
         } catch (error) {
             console.error('400 request: ', error);
@@ -118,7 +144,11 @@ async function cleanShutdown(callProcessExit) {
         console.log('Http server closed.');
         for ([number, shard] of manager.shards) {
             if (manager.mode == 'process') {
+                let count = 0;
                 while (shard.process && shard.process.exitCode === null) {
+                    if (++count > 5) {
+                        shard.kill();
+                    }
                     console.log(`awaiting shard ${number} to exit`);
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
@@ -127,6 +157,9 @@ async function cleanShutdown(callProcessExit) {
                 console.error(`unknown sharding manager mode: ${manager.mode}`);
             }
         }
+        console.log('All shards shutdown.');
+        await disconnect();
+        console.log('MongoDb connection closed.');
     } catch (error) {
         console.error("caught error shutting down shardmanager", error);
     }

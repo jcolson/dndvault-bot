@@ -18,7 +18,7 @@ async function handleCalendarRequest(requestUrl) {
         throw new Error('No userID passed!');
     }
     let returnICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN\r\n';
-    returnICS += `URL:${Config.calendarURL}${Config.calendarURI}?userID=${userID}\r\n`;
+    returnICS += `URL:${Config.httpServerURL}/calendar?userID=${userID}\r\n`;
     returnICS += 'NAME:DND Vault\r\n';
     returnICS += 'X-WR-CALNAME:DND Vault\r\n';
     returnICS += 'DESCRIPTION:DND Vault events from Discord\r\n';
@@ -34,7 +34,8 @@ async function handleCalendarRequest(requestUrl) {
     let userEvents = await EventModel.find(
         {
             $and: [
-                { $or: [{ 'dm': `<@!${userID}>` },{ 'userID': userID }, { "attendees.userID": userID }] },
+                { $or: [{ 'dm': "<@!" + userID + ">" }, { 'userID': userID }, { "attendees.userID": userID }] },
+                // { $or: [{ 'userID': userID }, { "attendees.userID": userID }] },
                 { date_time: { $gt: cutOffDate } }
             ]
         }

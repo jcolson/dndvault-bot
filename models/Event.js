@@ -9,7 +9,8 @@ const Event = Schema({
         type: String
     },
     "dm": {
-        type: String
+        type: String,
+        index: true
     },
     "duration_hours": {
         type: Number

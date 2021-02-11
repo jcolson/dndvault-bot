@@ -18,6 +18,7 @@
     "mongoose": "^5.11.8",
     "node-cron": "^2.0.3",
     "node-fetch": "2.6.1",
+    "node-static": "^0.7.11",
     "tzdata": "^1.0.25"
   }
 }
