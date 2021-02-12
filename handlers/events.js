@@ -726,7 +726,7 @@ async function sendReminders(client) {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
         let guildsToRemind = client.guilds.cache.keyArray();
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
-        console.log("sendReminders: for %d unreminded events until %s for guilds %s", eventsToRemind.length, toDate, guildsToRemind);
+        console.log("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
         for (theEvent of eventsToRemind) {
             theEvent.reminderSent = new Date();
             let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
