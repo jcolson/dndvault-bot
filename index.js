@@ -7,15 +7,15 @@ const { connect, disconnect } = require('mongoose');
 const DEFAULT_CONFIGDIR = __dirname;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
-const http = require('http');
-const nodeStatic = require('node-static');
-const fileServer = new nodeStatic.Server(Config.httpStaticDir, { cache: 86400 });
-
-//promisify the node-static serve
-const aFileServerServe = promisify(fileServer.serve).bind(fileServer)
-
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
+
+const express = require('express');
+const session = require('express-session');
+const Grant = require('grant').express();
+const grant = new Grant(Config);
+
+// const grant = require('grant').express();
 
 let shutdown = false;
 
@@ -50,66 +50,34 @@ manager.on('shardCreate', (shard) => {
 });
 manager.spawn();
 
-/**
- * http server used for calendar ics feeds and timezone lookups
- */
-const server = http.createServer();
+let server = express()
+    .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
+    .use(grant)
+    .use('/', express.static(Config.httpStaticDir))
+    .get('/timezones', async (request, response) => {
+        let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+        if (!request.session.grant || !request.session.grant.response) {
+            // console.log('grant config', grant.config.discord.prefix);
+            response.redirect(grant.config.discord.prefix + "/discord");
+        } else {
+            // console.log(`oauth2 grant response info`, request.session.grant);
+            // response.end(JSON.stringify(req.session.grant.response, null, 2));
 
-server.on('request', async (request, response) => {
-    request.on('error', (error) => {
-        console.error(error);
-        response.statusCode = 400;
-        response.end("400");
-    });
-
-    response.on('error', (error) => {
-        console.error(error);
-    });
-
-    let requestUrl = new URL(request.url, `http://${request.headers.host}`);
-    let body = [];
-
-    request.on('data', async (chunk) => {
-        body.push(chunk);
-    });
-
-    request.on('end', async () => {
-        try {
-            body = Buffer.concat(body).toString();
-            if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
-                let responseContent = await calendar.handleCalendarRequest(requestUrl);
-                response.setHeader('Content-Type', 'text/calendar');
-                response.end(responseContent);
-            } else if (request.method === 'GET' && requestUrl.pathname === '/timezones') {
-                let responseContent = await timezones.handleTimezonesRequest(requestUrl);
-                response.setHeader('Content-Type', 'text/html');
-                response.end(responseContent);
-            } else {
-                try {
-                    let res = await aFileServerServe(request, response);
-                } catch (error) {
-                    if (error.status === 404) { // If the file wasn't found
-                        response.setHeader('Content-Type', 'text/html');
-                        response.statusCode = 404;
-                        response.end("404");
-                    } else {
-                        throw error;
-                    }
-                }
-            }
-            console.log(`http|${request.connection.remoteAddress}|${request.method}|${request.url}|${response.statusCode}`);
-        } catch (error) {
-            console.error('400 request: ', error);
+            let responseContent = await timezones.handleTimezonesRequest(requestUrl);
             response.setHeader('Content-Type', 'text/html');
-            response.statusCode = 400;
-            response.end("400");
+            response.end(responseContent);
         }
-    });
-});
+    })
+    .get('/calendar', async (request, response) => {
+        //@todo handle errors
+        let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+        let responseContent = await calendar.handleCalendarRequest(requestUrl);
+        response.setHeader('Content-Type', 'text/calendar');
+        response.end(responseContent);
+    })
+    .listen(Config.httpServerPort);
 
-server.listen(Config.httpServerPort);
 console.log('ics http server listening on: %s', Config.httpServerPort);
-
 // process.on('exit', () => {
 //     console.info('exit signal received.');
 //     cleanShutdown(false);

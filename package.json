@@ -12,6 +12,9 @@
   "dependencies": {
     "@holistics/date-parser": "2.7.2",
     "discord.js": "12.5.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "grant": "^5.4.9",
     "he": "^1.2.0",
     "log-timestamp": "0.3.0",
     "luxon": "^1.25.0",
