@@ -57,6 +57,7 @@ const ROUTE_CALENDAR = "/calendar";
 const ROUTE_TIMEZONES = "/timezones";
 
 let server = express()
+    .set('view engine', 'pug')
     .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
     .use(grant)
     .use('/', express.static(Config.httpStaticDir))
