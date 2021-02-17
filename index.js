@@ -55,29 +55,40 @@ let server = express()
     .use(grant)
     .use('/', express.static(Config.httpStaticDir))
     .get('/timezones', async (request, response) => {
-        let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-        if (!request.session.grant || !request.session.grant.response) {
-            // console.log('grant config', grant.config.discord.prefix);
-            response.redirect(grant.config.discord.prefix + "/discord");
-        } else {
-            // console.log(`oauth2 grant response info`, request.session.grant);
-            // response.end(JSON.stringify(req.session.grant.response, null, 2));
+        try {
+            let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            if (!request.session.grant || !request.session.grant.response) {
+                // console.log('grant config', grant.config.discord.prefix);
+                response.redirect(grant.config.discord.prefix + "/discord");
+            } else {
+                // console.log(`oauth2 grant response info`, request.session.grant);
+                // response.end(JSON.stringify(req.session.grant.response, null, 2));
 
-            let responseContent = await timezones.handleTimezonesRequest(requestUrl);
+                let responseContent = await timezones.handleTimezonesRequest(requestUrl);
+                response.setHeader('Content-Type', 'text/html');
+                response.end(responseContent);
+            }
+        } catch (error) {
             response.setHeader('Content-Type', 'text/html');
-            response.end(responseContent);
+            response.status(500);
+            response.end(error.message);
         }
     })
     .get('/calendar', async (request, response) => {
-        //@todo handle errors
-        let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-        let responseContent = await calendar.handleCalendarRequest(requestUrl);
-        response.setHeader('Content-Type', 'text/calendar');
-        response.end(responseContent);
+        try {
+            let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            let responseContent = await calendar.handleCalendarRequest(requestUrl);
+            response.setHeader('Content-Type', 'text/calendar');
+            response.end(responseContent);
+        } catch (error) {
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
     })
     .listen(Config.httpServerPort);
 
-console.log('ics http server listening on: %s', Config.httpServerPort);
+console.log('http server listening on: %s', Config.httpServerPort);
 // process.on('exit', () => {
 //     console.info('exit signal received.');
 //     cleanShutdown(false);
