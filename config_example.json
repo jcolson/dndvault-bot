@@ -26,7 +26,7 @@
         "prefix": "/connect",
         "client_id": "your_discord_bot_client_id",
         "secret": "your_discord_bot_secret",
-        "callback": "/timezones",
+        "callback": "/postoauth",
         "scope": [
             "identify"
         ]

@@ -2,6 +2,7 @@ require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mn
 const { ShardingManager } = require('discord.js');
 const path = require('path');
 const fetch = require('node-fetch');
+const url = require('url');
 const { promisify } = require('util')
 const { connect, disconnect } = require('mongoose');
 
@@ -55,10 +56,11 @@ let server = express()
     .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
     .use(grant)
     .use('/', express.static(Config.httpStaticDir))
-    .get('/timezones', async (request, response) => {
+    .get('/postoauth', async (request, response) => {
         try {
+            console.log('serving /postoath');
             let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-            if (!request.session.grant || !request.session.grant.response) {
+            if (!request.session.grant || !request.session.grant.response || !request.session.grant.response.raw) {
                 // console.log('grant config', grant.config);
                 response.redirect(grant.config.discord.prefix + "/discord");
             } else if (request.session.grant.response.error) {
@@ -78,12 +80,37 @@ let server = express()
                     };
                     request.session.discordMe = discordMe;
                 }
+                console.log(`redirect to actual page requested ${request.session.grant.dynamic.destination}`);
+                response.redirect(url.format({
+                    pathname: request.session.grant.dynamic.destination,
+                    query: request.session.grant.dynamic,
+                }));
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .get('/timezones', async (request, response) => {
+        try {
+            console.log('serving /timezones');
+            if (!request.session.discordMe) {
+                request.query.destination = '/timezones';
+                response.redirect(url.format({
+                    pathname: grant.config.discord.prefix + "/discord",
+                    query: request.query,
+                }));
+            } else {
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
                 // console.log(request.session.discordMe);
                 let responseContent = await timezones.handleTimezonesRequest(requestUrl, request.session.discordMe);
                 response.setHeader('Content-Type', 'text/html');
                 response.end(responseContent);
             }
         } catch (error) {
+            console.error(error.message);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.end(error.message);
@@ -91,11 +118,13 @@ let server = express()
     })
     .get('/calendar', async (request, response) => {
         try {
+            console.log('serving /calendar');
             let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
             let responseContent = await calendar.handleCalendarRequest(requestUrl);
             response.setHeader('Content-Type', 'text/calendar');
             response.end(responseContent);
         } catch (error) {
+            console.error(error.message);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.end(error.message);
