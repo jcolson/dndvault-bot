@@ -52,13 +52,17 @@ manager.on('shardCreate', (shard) => {
 });
 manager.spawn();
 
+const ROUTE_POSTOAUTH = "/postoauth";
+const ROUTE_CALENDAR = "/calendar";
+const ROUTE_TIMEZONES = "/timezones";
+
 let server = express()
     .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
     .use(grant)
     .use('/', express.static(Config.httpStaticDir))
-    .get('/postoauth', async (request, response) => {
+    .get(ROUTE_POSTOAUTH, async (request, response) => {
         try {
-            console.log('serving /postoath');
+            console.log('serving ' + ROUTE_POSTOAUTH);
             let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
             if (!request.session.grant || !request.session.grant.response || !request.session.grant.response.raw) {
                 // console.log('grant config', grant.config);
@@ -93,11 +97,11 @@ let server = express()
             response.end(error.message);
         }
     })
-    .get('/timezones', async (request, response) => {
+    .get(ROUTE_TIMEZONES, async (request, response) => {
         try {
-            console.log('serving /timezones');
+            console.log('serving ' + ROUTE_TIMEZONES);
             if (!request.session.discordMe) {
-                request.query.destination = '/timezones';
+                request.query.destination = ROUTE_TIMEZONES;
                 response.redirect(url.format({
                     pathname: grant.config.discord.prefix + "/discord",
                     query: request.query,
@@ -116,9 +120,9 @@ let server = express()
             response.end(error.message);
         }
     })
-    .get('/calendar', async (request, response) => {
+    .get(ROUTE_CALENDAR, async (request, response) => {
         try {
-            console.log('serving /calendar');
+            console.log('serving ' + ROUTE_CALENDAR);
             let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
             let responseContent = await calendar.handleCalendarRequest(requestUrl);
             response.setHeader('Content-Type', 'text/calendar');
@@ -133,6 +137,7 @@ let server = express()
     .listen(Config.httpServerPort);
 
 console.log('http server listening on: %s', Config.httpServerPort);
+
 // process.on('exit', () => {
 //     console.info('exit signal received.');
 //     cleanShutdown(false);
