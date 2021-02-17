@@ -1,6 +1,7 @@
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
 const { ShardingManager } = require('discord.js');
 const path = require('path');
+const fetch = require('node-fetch');
 const { promisify } = require('util')
 const { connect, disconnect } = require('mongoose');
 
@@ -58,13 +59,27 @@ let server = express()
         try {
             let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
             if (!request.session.grant || !request.session.grant.response) {
-                // console.log('grant config', grant.config.discord.prefix);
+                // console.log('grant config', grant.config);
                 response.redirect(grant.config.discord.prefix + "/discord");
+            } else if (request.session.grant.response.error) {
+                throw new Error(`Discord API error: ${request.session.grant.response.error.error}`);
             } else {
                 // console.log(`oauth2 grant response info`, request.session.grant);
-                // response.end(JSON.stringify(req.session.grant.response, null, 2));
-
-                let responseContent = await timezones.handleTimezonesRequest(requestUrl);
+                if (!request.session.discordMe) {
+                    console.log('Making discord.com/api/users/@me call');
+                    let discordMeResponse = await fetch('https://discord.com/api/users/@me', {
+                        headers: {
+                            authorization: `${request.session.grant.response.raw.token_type} ${request.session.grant.response.access_token}`,
+                        },
+                    });
+                    let discordMe = await discordMeResponse.json();
+                    if (discordMeResponse.status != 200 || discordMe.error) {
+                        throw new Error(`Discord response code; ${discordMeResponse.status} Discord API error: ${discordMe.error}`);
+                    };
+                    request.session.discordMe = discordMe;
+                }
+                // console.log(request.session.discordMe);
+                let responseContent = await timezones.handleTimezonesRequest(requestUrl, request.session.discordMe);
                 response.setHeader('Content-Type', 'text/html');
                 response.end(responseContent);
             }

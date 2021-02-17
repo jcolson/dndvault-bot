@@ -10,7 +10,7 @@ const luxonValidTimezones = Object.entries(zones)
  *
  * @param {URL} requestUrl
  */
-function handleTimezonesRequest(requestUrl) {
+function handleTimezonesRequest(requestUrl, discordMe) {
     console.log('handling timezones request: search params: ', requestUrl.searchParams);
     let tzName = requestUrl.searchParams.get('name');
     let guildConfigPrefix = requestUrl.searchParams.get('guildConfigPrefix');
@@ -84,7 +84,7 @@ function handleTimezonesRequest(requestUrl) {
 </head><body>
 <div class="header">
 <div><img src="${Config.dndVaultIcon}">
-D&amp;D Vault - Timezones<br/>
+D&amp;D Vault - Timezones (@${discordMe.username})</br>
 <form method="get" action="/timezones" id="timezones-form">
 <input name="name" id="timezones-name">
 <input name="auto" id="timezones-auto" type="hidden">
