@@ -107,7 +107,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('message', async (msg) => {
     try {
         if (msg.partial) {
-            // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+            // If the message this was removed the fetching might result in an API error, which we need to handle
             try {
                 await msg.fetch();
             } catch (error) {
@@ -130,15 +130,17 @@ client.on('message', async (msg) => {
         }
         let guildConfig = await config.confirmGuildConfig(msg);
         if (!msg.content.startsWith(guildConfig.prefix)) return;
-        await utils.checkChannelPermissions(msg);
         console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
+        if (msg.content === guildConfig.prefix + 'help') {
+            help.handleHelp(msg, guildConfig, Config.inviteURL);
+            return;
+        }
+        await utils.checkChannelPermissions(msg);
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
             await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
             return;
         }
-        if (msg.content === guildConfig.prefix + 'help') {
-            help.handleHelp(msg, guildConfig, Config.inviteURL);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'register manual')) {
+        if (msg.content.startsWith(guildConfig.prefix + 'register manual')) {
             characters.handleRegisterManual(msg, guildConfig);
         } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
             characters.handleRegister(msg, guildConfig);

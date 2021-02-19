@@ -17,5 +17,18 @@
     "httpStaticDir": "./http_root",
     "httpServerURL": "https://dndvault.karma.net",
     "calendarReminderCron": "0 */10 * * * *",
-    "calendarReminderMinutesOut": 50
+    "calendarReminderMinutesOut": 50,
+    "defaults": {
+        "origin": "https://dndvault.karma.net",
+        "transport": "session"
+    },
+    "discord": {
+        "prefix": "/connect",
+        "client_id": "your_discord_bot_client_id",
+        "secret": "your_discord_bot_secret",
+        "callback": "/postoauth",
+        "scope": [
+            "identify"
+        ]
+    }
 }

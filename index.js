@@ -1,21 +1,23 @@
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
 const { ShardingManager } = require('discord.js');
 const path = require('path');
-const { promisify } = require('util')
+const fetch = require('node-fetch');
+const url = require('url');
+const GuildModel = require('./models/Guild');
 const { connect, disconnect } = require('mongoose');
 
 const DEFAULT_CONFIGDIR = __dirname;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
-const http = require('http');
-const nodeStatic = require('node-static');
-const fileServer = new nodeStatic.Server(Config.httpStaticDir, { cache: 86400 });
-
-//promisify the node-static serve
-const aFileServerServe = promisify(fileServer.serve).bind(fileServer)
-
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
+
+const express = require('express');
+const session = require('express-session');
+const Grant = require('grant').express();
+const grant = new Grant(Config);
+
+// const grant = require('grant').express();
 
 let shutdown = false;
 
@@ -50,65 +52,106 @@ manager.on('shardCreate', (shard) => {
 });
 manager.spawn();
 
-/**
- * http server used for calendar ics feeds and timezone lookups
- */
-const server = http.createServer();
+const ROUTE_ROOT = "/";
+const ROUTE_POSTOAUTH = "/postoauth";
+const ROUTE_CALENDAR = "/calendar";
+const ROUTE_TIMEZONES = "/timezones";
 
-server.on('request', async (request, response) => {
-    request.on('error', (error) => {
-        console.error(error);
-        response.statusCode = 400;
-        response.end("400");
-    });
+let app = express();
 
-    response.on('error', (error) => {
-        console.error(error);
-    });
-
-    let requestUrl = new URL(request.url, `http://${request.headers.host}`);
-    let body = [];
-
-    request.on('data', async (chunk) => {
-        body.push(chunk);
-    });
-
-    request.on('end', async () => {
+app.locals.pretty = true;
+let server = app
+    .set('views', Config.httpPugDir)
+    .set('view engine', 'pug')
+    .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
+    .use(grant)
+    .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
+    .get(ROUTE_ROOT, function (request, response) {
+        response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe })
+    })
+    .get(ROUTE_TIMEZONES, function (request, response) {
         try {
-            body = Buffer.concat(body).toString();
-            if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
-                let responseContent = await calendar.handleCalendarRequest(requestUrl);
-                response.setHeader('Content-Type', 'text/calendar');
-                response.end(responseContent);
-            } else if (request.method === 'GET' && requestUrl.pathname === '/timezones') {
-                let responseContent = await timezones.handleTimezonesRequest(requestUrl);
-                response.setHeader('Content-Type', 'text/html');
-                response.end(responseContent);
+            console.log('serving ' + ROUTE_TIMEZONES);
+            if (!request.session.discordMe) {
+                request.query.destination = ROUTE_TIMEZONES;
+                response.redirect(url.format({
+                    pathname: grant.config.discord.prefix + "/discord",
+                    query: request.query,
+                }));
             } else {
-                try {
-                    let res = await aFileServerServe(request, response);
-                } catch (error) {
-                    if (error.status === 404) { // If the file wasn't found
-                        response.setHeader('Content-Type', 'text/html');
-                        response.statusCode = 404;
-                        response.end("404");
-                    } else {
-                        throw error;
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+                // console.log(request.session.discordMe);
+                let responseData = timezones.handleTimezonesDataRequest(requestUrl);
+                response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .get(ROUTE_POSTOAUTH, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_POSTOAUTH);
+            // let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            if (!request.session.grant || !request.session.grant.response || !request.session.grant.response.raw) {
+                // console.log('grant config', grant.config);
+                response.redirect(grant.config.discord.prefix + "/discord");
+            } else if (request.session.grant.response.error) {
+                throw new Error(`Discord API error: ${request.session.grant.response.error.error}`);
+            } else {
+                // console.log(`oauth2 grant response info`, request.session.grant);
+                if (!request.session.discordMe) {
+                    console.log('Making discord.com/api/users/@me call');
+                    let discordMeResponse = await fetch('https://discord.com/api/users/@me', {
+                        headers: {
+                            authorization: `${request.session.grant.response.raw.token_type} ${request.session.grant.response.access_token}`,
+                        },
+                    });
+                    let discordMe = await discordMeResponse.json();
+                    if (discordMeResponse.status != 200 || discordMe.error) {
+                        throw new Error(`Discord response code; ${discordMeResponse.status} Discord API error: ${discordMe.error}`);
+                    };
+                    request.session.discordMe = discordMe;
+                }
+                if (!request.session.guildConfig) {
+                    console.log(`Retrieving guild info for ${request.session.grant.dynamic.guildID}`);
+                    if (request.session.grant.dynamic.guildID) {
+                        let guildConfig = await GuildModel.findOne({ guildID: request.session.grant.dynamic.guildID });
+                        request.session.guildConfig = guildConfig;
                     }
                 }
+                console.log(`redirect to actual page requested ${request.session.grant.dynamic.destination}`);
+                response.redirect(url.format({
+                    pathname: request.session.grant.dynamic.destination,
+                    query: request.session.grant.dynamic,
+                }));
             }
-            console.log(`http|${request.connection.remoteAddress}|${request.method}|${request.url}|${response.statusCode}`);
         } catch (error) {
-            console.error('400 request: ', error);
+            console.error(error.message);
             response.setHeader('Content-Type', 'text/html');
-            response.statusCode = 400;
-            response.end("400");
+            response.status(500);
+            response.end(error.message);
         }
-    });
-});
+    })
+    .get(ROUTE_CALENDAR, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_CALENDAR);
+            let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            let responseContent = await calendar.handleCalendarRequest(requestUrl);
+            response.setHeader('Content-Type', 'text/calendar');
+            response.end(responseContent);
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .listen(Config.httpServerPort);
 
-server.listen(Config.httpServerPort);
-console.log('ics http server listening on: %s', Config.httpServerPort);
+console.log('http server listening on: %s', Config.httpServerPort);
 
 // process.on('exit', () => {
 //     console.info('exit signal received.');
