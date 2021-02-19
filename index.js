@@ -74,7 +74,10 @@ let server = app
     .get(ROUTE_TIMEZONESSET, async function (request, response) {
         try {
             console.log('serving ' + ROUTE_TIMEZONESSET);
-            if (request.session.guildConfig) {
+            if (!request.session.discordMe) {
+                console.log(`User not authenticated.`);
+                response.json({ status: 'false' });
+            } else if (request.session.guildConfig) {
                 console.log('we know the guild so we can set the timezone for user.');
                 let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
                 // console.log(request.session.discordMe);
