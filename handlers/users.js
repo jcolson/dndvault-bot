@@ -46,12 +46,12 @@ async function handleTimezone(msg, guildConfig) {
         if (timeZoneString == '' && currUser && currUser.timezone) {
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` },
-                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
             ], msg);
         } else if (timeZoneString == '') {
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
-                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
             ], msg);
         } else {
             timeZoneString = isValidTimeZone(timeZoneString);
@@ -67,7 +67,7 @@ async function handleTimezone(msg, guildConfig) {
         await msg.delete();
     } catch (error) {
         console.log('handleTimezone:', error);
-        error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>`;
+        error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }

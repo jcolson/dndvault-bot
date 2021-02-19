@@ -21,7 +21,7 @@ async function handleEventCreate(msg, guildConfig) {
             // throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
-                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${msg.channel.id}>` }
+                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
             ], msg);
         } else {
             let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
@@ -601,7 +601,7 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
             { name: 'Timezone not set', value: `You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`, inline: true },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildConfigPrefix=${guildConfig.prefix}&channel=${reaction.message.channel.id}>` }
+            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${reaction.message.channel.id}>` }
         ];
     } else {
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);

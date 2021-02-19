@@ -1,0 +1,48 @@
+//- timezones.pug
+extends layout.pug
+
+block content
+    .top
+        input(name="name" id="timezones-name")
+        .header-text
+            .
+                Click a row below to 'copy' the discord command to run to set your timezone.
+        div(id="timezones-info")
+    .thebody
+        table(id="timezones")
+            tr: th Timezone List
+            -
+                let prefix = guildConfig?guildConfig.prefix:'!'
+            each tz of timezoneData.timezones
+                tr: td(onclick='navigator.clipboard.writeText(\''+prefix+'timezone '+tz+'\');document.getElementById(\'timezones-info\').innerHTML=\'COPIED &quot;'+prefix+'timezone '+tz+'&quot; - now PASTE that into discord.\'')= tz
+    script.
+        function filterTable() {
+            // Declare variables
+            let input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("timezones-name");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("timezones");
+            tr = table.getElementsByTagName("tr");
+            // Loop through all table rows, and hide those who don't match the search query
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[0];
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+        const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const source=document.getElementById('timezones-name');
+        const inputHandler = function(e) {
+            //- alert(e.target.value);
+            filterTable();
+        }
+        source.addEventListener('input', inputHandler);
+        source.addEventListener('propertychange', inputHandler);
+        document.getElementById('timezones-name').value = timezone;
+        filterTable();
