@@ -96,7 +96,7 @@ let server = app
             console.error(error.message);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
-            response.end(error.message);
+            response.json({ status: 'false' });
         }
     })
     .get(ROUTE_TIMEZONES, function (request, response) {
