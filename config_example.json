@@ -15,6 +15,7 @@
     "dndVaultIcon": "https://dndvault.karma.net/images/dndvault_morph.gif",
     "httpServerPort": 8080,
     "httpStaticDir": "./http_root",
+    "httpPugDir": "./http_views",
     "httpServerURL": "https://dndvault.karma.net",
     "calendarReminderCron": "0 */10 * * * *",
     "calendarReminderMinutesOut": 50,
@@ -24,7 +25,7 @@
     },
     "discord": {
         "prefix": "/connect",
-        "client_id": "your_discord_bot_client_id",
+        "key": "your_discord_bot_client_id",
         "secret": "your_discord_bot_secret",
         "callback": "/postoauth",
         "scope": [
