@@ -34,6 +34,25 @@ async function handleDefault(msg, guildConfig) {
     }
 }
 
+async function handleWebTimezone(userID, channelID, timezone, guildConfig) {
+    console.log(`${userID} ${channelID} ${timezone} ${guildConfig.prefix}`);
+    try {
+        let currUser = await UserModel.findOne({ userID: userID, guildID: guildConfig.guildID });
+        timezone = isValidTimeZone(timezone);
+        if (!currUser) {
+            currUser = new UserModel({ guildID: guildConfig.guildID, userID: userID, timezone: timezone });
+        } else {
+            // console.log('setting timezone to "%s"', timeZoneString);
+            currUser.timezone = timezone;
+        }
+        await currUser.save();
+    } catch (error) {
+        console.error(`handleWebTimezone ${error.message}`);
+        return false;
+    }
+    return true;
+}
+
 /**
  * set user's timezone
  * @param {Message} msg
@@ -117,3 +136,4 @@ async function hasRoleOrIsAdmin(member, roleId) {
 exports.handleTimezone = handleTimezone;
 exports.hasRoleOrIsAdmin = hasRoleOrIsAdmin;
 exports.handleDefault = handleDefault;
+exports.handleWebTimezone = handleWebTimezone;

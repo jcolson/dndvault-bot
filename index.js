@@ -3,6 +3,7 @@ const { ShardingManager } = require('discord.js');
 const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
+const users = require('./handlers/users.js');
 const GuildModel = require('./models/Guild');
 const { connect, disconnect } = require('mongoose');
 
@@ -56,6 +57,7 @@ const ROUTE_ROOT = "/";
 const ROUTE_POSTOAUTH = "/postoauth";
 const ROUTE_CALENDAR = "/calendar";
 const ROUTE_TIMEZONES = "/timezones";
+const ROUTE_TIMEZONESSET = "/timezones/set";
 
 let app = express();
 
@@ -68,6 +70,31 @@ let server = app
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .get(ROUTE_ROOT, function (request, response) {
         response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe })
+    })
+    .get(ROUTE_TIMEZONESSET, async function (request, response) {
+        try {
+            console.log('serving ' + ROUTE_TIMEZONESSET);
+            if (request.session.guildConfig) {
+                console.log('we know the guild so we can set the timezone for user.');
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+                // console.log(request.session.discordMe);
+                // console.log(requestUrl);
+                let status = await users.handleWebTimezone(
+                    request.session.discordMe.id,
+                    request.session.grant.dynamic.channel,
+                    requestUrl.searchParams.get('timezone'),
+                    request.session.guildConfig);
+                response.json({ status: status });
+            } else {
+                console.log(`we don't know the guild so we will error and let the user copy/paste`);
+                response.json({ status: 'false' });
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
     })
     .get(ROUTE_TIMEZONES, function (request, response) {
         try {

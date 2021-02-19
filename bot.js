@@ -116,21 +116,27 @@ client.on('message', async (msg) => {
                 return;
             }
         }
-        if (!msg.guild) {
-            console.log(`msg: DIRECT:${msg.author.nickname}:${msg.content}`);
-            if (msg.content === 'help') {
-                help.handleHelp(msg, null, Config.inviteURL);
+        if (msg.author.bot) {
+            // it's a message from a bot, ignore
+            if (!msg.guild) {
+                console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}:bot message, ignoring`);
+            } else {
+                console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}:bot message, ignoring`);
             }
             return;
         }
-        if (msg.author.bot) {
-            // it's a message from a bot, ignore
-            console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}:bot message, ignoring`);
+        if (!msg.guild) {
+            console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}`);
+            if (msg.content === 'help') {
+                help.handleHelp(msg, null, Config.inviteURL);
+            } else {
+                await utils.sendDirectOrFallbackToChannel({name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.'}, msg);
+            }
             return;
         }
         let guildConfig = await config.confirmGuildConfig(msg);
         if (!msg.content.startsWith(guildConfig.prefix)) return;
-        console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
+        console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}`);
         if (msg.content === guildConfig.prefix + 'help') {
             help.handleHelp(msg, guildConfig, Config.inviteURL);
             return;
