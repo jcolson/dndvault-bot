@@ -1,6 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+DND Vault Table of Contents
 
 - [DND Vault Discord BOT](#dnd-vault-discord-bot)
   - [Character Vault](#character-vault)
@@ -32,13 +32,13 @@
 
 # DND Vault Discord BOT
 
-D&D Character Vault and Event Management for Discord.
+D&D Character Vault, Event Management and Polling for Discord.  The most complete Dungeons and Dragons event scheduling and character management bot out there!
 
 ## Character Vault
 
-This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) (or 'stub' characters not on dndbeyond) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
+This "vault bot" enables a party to enable an approval concept of Dungeons and Dragons characters from [DND Beyond](https://dndbeyond.com/my-characters) (or 'stub' characters not on dndbeyond using the `!register manual` command) and the changes they make to them via [Discord](https://discordapp.com).  This allows a (or multiple) DMs to ensure that the character changes that a user makes on [DND Beyond](https://dndbeyond.com/my-characters) are accurate for their campaigns.
 
-The primary driver for this functionality was watching so many DM/GMs trying to manage [West Marches](http://arsludi.lamemage.com/index.php/78/grand-experiments-west-marches/) type Discord servers using spreadsheets/etc.  Hopefully this can make things a bit easier to maintain.
+The primary driver for this functionality was watching so many DM/GMs trying to manage [West Marches](http://arsludi.lamemage.com/index.php/78/grand-experiments-west-marches/) type Discord servers using spreadsheets/etc.  The bot works great for "non" West Marches type campaigns as well!  This can make things a bit easier to maintain for online Dungeons and Dragons players and DMs.
 
 Approval functionality is configured 'false' by default, enable it by running `!config approval true`.
 
@@ -46,7 +46,7 @@ Approval functionality is configured 'false' by default, enable it by running `!
 
 The bot also offers the ability to schedule events (missions) and allow attendees (party members) to sign up for attendance, or remove themselves from attendance.  The bot will also convert the default time (GMT) to the user's local timezone upon request via the clock reaction on the event.  Events can be 'deployed' to show that they are 'approved' and have all the proper components (DM/GM, attendees, etc).
 
-Event campaign enforcement is configured off ('false') by default.  Turning it on ensures that the players that sign up for an event have a 'character' in the vault that is also related to the event's campaign (if set) via `!campaign` or dndbeyond's campaign).  Turn this on by issuing `!config campaign true`
+Event campaign enforcement is configured off ('false') by default.  Turning it on ensures that the players that sign up for an event have a 'character' in the vault that is also related to the event's campaign (if set) via `!campaign` or a dndbeyond's campaign).  Turn this on by issuing `!config campaign true`
 
 Users have the ability to list events that are deployed or proposed (not yet approved/deployed).
 
@@ -110,7 +110,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] register
     - [x] manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - register a character in the vault from dndbeyond
-- [x] update 
+- [x] update
     - [x] manual [CHAR_ID] [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - update a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
@@ -230,7 +230,7 @@ https://discordapp.com/channels/785567026512527390
 Mission Description/Goal: Your initiation. Are you ready?
 OR
 Harpy Rescue - https://discord.com/channels/787645782269624340/787645782832578576/796641944196349973
-@Robin - Day 
+@Robin - Day
 
 Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue): 50/50 Rp/Combat
 @LVLone @LVL2 @LVL3 @LVL4 @LVL5

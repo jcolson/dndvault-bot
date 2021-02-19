@@ -5,10 +5,10 @@ const events = require('../handlers/events.js');
 const he = require('he');
 
 /**
- * 
- * @param {*} request 
- * @param {*} response 
- * @param {*} url 
+ *
+ * @param {*} request
+ * @param {*} response
+ * @param {*} url
  */
 async function handleCalendarRequest(requestUrl) {
     console.log('handling calendar request: search params: ', requestUrl.searchParams);
@@ -18,7 +18,7 @@ async function handleCalendarRequest(requestUrl) {
         throw new Error('No userID passed!');
     }
     let returnICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN\r\n';
-    returnICS += `URL:${Config.calendarURL}${Config.calendarURI}?userID=${userID}\r\n`;
+    returnICS += `URL:${Config.httpServerURL}/calendar?userID=${userID}\r\n`;
     returnICS += 'NAME:DND Vault\r\n';
     returnICS += 'X-WR-CALNAME:DND Vault\r\n';
     returnICS += 'DESCRIPTION:DND Vault events from Discord\r\n';
@@ -34,7 +34,8 @@ async function handleCalendarRequest(requestUrl) {
     let userEvents = await EventModel.find(
         {
             $and: [
-                { $or: [{ 'userID': userID }, { "attendees.userID": userID }] },
+                { $or: [{ 'dm': "<@!" + userID + ">" }, { 'userID': userID }, { "attendees.userID": userID }] },
+                // { $or: [{ 'userID': userID }, { "attendees.userID": userID }] },
                 { date_time: { $gt: cutOffDate } }
             ]
         }
@@ -64,9 +65,9 @@ async function handleCalendarRequest(requestUrl) {
 }
 
 /**
- * 
- * @param {String} valueToEncode 
- * @param {Boolean} heEncode 
+ *
+ * @param {String} valueToEncode
+ * @param {Boolean} heEncode
  */
 function encodeStringICS(valueToEncode, heEncode) {
     valueToEncode = valueToEncode.replace(/\r?\n|\r/g, '\\n');
@@ -84,10 +85,10 @@ function getICSdateFormat(theDate) {
 }
 
 /**
- * 
+ *
  * encodeURI
- * 
- * 
+ *
+ *
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//hacksw/handcal//NONSGML v1.0//EN

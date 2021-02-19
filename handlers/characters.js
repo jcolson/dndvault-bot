@@ -26,8 +26,8 @@ const RacialBonusLookup = {
  * Parse the incoming url for the character id and then use
  * https://character-service.dndbeyond.com/character/v3/character/xxxxxx
  * to retrieve the json
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleRegister(msg, guildConfig) {
     try {
@@ -63,8 +63,8 @@ async function handleRegister(msg, guildConfig) {
 
 /**
  * create a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleRegisterManual(msg, guildConfig) {
     try {
@@ -102,10 +102,10 @@ async function handleRegisterManual(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {String} commandStringWithURL 
- * @param {String} command 
- * @param {String} prefix 
+ *
+ * @param {String} commandStringWithURL
+ * @param {String} command
+ * @param {String} prefix
  * @returns {String}
  */
 function parseCharIdFromURL(commandStringWithURL, command, prefix) {
@@ -133,8 +133,8 @@ function parseCharIdFromURL(commandStringWithURL, command, prefix) {
  * Parse the incoming url for the character id and then use
  * https://character-service.dndbeyond.com/character/v3/character/xxxxxx
  * to retrieve the json
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleUpdate(msg, guildConfig) {
     try {
@@ -185,8 +185,8 @@ async function handleUpdate(msg, guildConfig) {
 
 /**
  * update a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleUpdateManual(msg, guildConfig) {
     try {
@@ -258,8 +258,8 @@ async function handleUpdateManual(msg, guildConfig) {
 
 /**
  * Handler for displaying character changes
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleChanges(msg, guildConfig) {
     try {
@@ -282,9 +282,9 @@ async function handleChanges(msg, guildConfig) {
 
 /**
  * Create a rich embedded message with all the character changes between two characters
- * @param {Message} msg 
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {Message} msg
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {MessageEmbed}
  */
 function embedForChanges(msg, approvedChar, updatedChar) {
@@ -368,8 +368,8 @@ function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
 
 /**
  * returns an array of currency changes between characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForCurrenciesChange(approvedChar, updatedChar) {
@@ -394,8 +394,8 @@ function arrayForCurrenciesChange(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the race modifiers changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForRaceModifiersChanges(approvedChar, updatedChar) {
@@ -404,8 +404,8 @@ function arrayForRaceModifiersChanges(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the item modifiers changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForItemModifiersChanges(approvedChar, updatedChar) {
@@ -415,8 +415,8 @@ function arrayForItemModifiersChanges(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the feat modifiers changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForFeatModifiersChanges(approvedChar, updatedChar) {
@@ -426,8 +426,8 @@ function arrayForFeatModifiersChanges(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the condition modifiers changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForConditionModifiersChanges(approvedChar, updatedChar) {
@@ -436,8 +436,8 @@ function arrayForConditionModifiersChanges(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the class modifiers changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForClassModifiersChanges(approvedChar, updatedChar) {
@@ -446,8 +446,8 @@ function arrayForClassModifiersChanges(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the background modifiers changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForBackgroundModifiersChanges(approvedChar, updatedChar) {
@@ -456,8 +456,8 @@ function arrayForBackgroundModifiersChanges(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the modifier changes between two characters
- * @param {Array} approvedMod 
- * @param {Array} updatedMod 
+ * @param {Array} approvedMod
+ * @param {Array} updatedMod
  * @returns {Array}
  */
 function arrayForModifiersChanges(approvedMod, updatedMod) {
@@ -508,8 +508,8 @@ function concatArrayOfArrays(arrays) {
 
 /**
  * returns an array of all the racial traits changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForTraitsChanges(approvedChar, updatedChar) {
@@ -543,8 +543,8 @@ function arrayForTraitsChanges(approvedChar, updatedChar) {
 
 /**
  * returns an array of all the inventory changes between two characters
- * @param {CharModel} approvedChar 
- * @param {CharModel} updatedChar 
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
  * @returns {Array}
  */
 function arrayForInventoryChanges(approvedChar, updatedChar) {
@@ -639,8 +639,8 @@ function stringForNameChange(approvedChar, updatedChar) {
 
 /**
  * list all characters for the campaign requested
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleListCampaign(msg, guildConfig) {
     try {
@@ -702,13 +702,13 @@ async function handleListUser(msg, guildConfig) {
 
 /**
  * returns the MessageEmbed(s) for an array of characters passed
- * 
+ *
  * @param {Message} msg
  * @param {CharModel[]} charArray
  * @param {String} title
  * @param {Boolean} isShow
  * @param {UserModel} vaultUser
- * 
+ *
  * @returns {MessageEmbed[]}
  */
 function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
@@ -736,7 +736,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         charEmbed.addFields(
             {
                 name: `\:dagger: Name | ID | Status | Campaign \:shield:`,
-                value: `${defCharString}[${char.name}](${char.readonlyUrl}) | ${char.id} | 
+                value: `${defCharString}[${char.name}](${char.readonlyUrl}) | ${char.id} |
                     ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
@@ -796,8 +796,8 @@ function stringForCampaign(char) {
 }
 
 /**
- * 
- * @param {CharModel} char 
+ *
+ * @param {CharModel} char
  */
 function stringForStats(char) {
     if (char.stats.length < 1) {
@@ -816,7 +816,7 @@ function stringForStats(char) {
 
 /**
  * Return a string describing the current state of the character
- * @param {CharModel} char 
+ * @param {CharModel} char
  * @returns {String}
  */
 function stringForApprovalsAndUpdates(char) {
@@ -850,9 +850,9 @@ async function handleListAll(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleListQueued(msg, guildConfig) {
     try {
@@ -870,9 +870,9 @@ async function handleListQueued(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleList(msg, guildConfig) {
     try {
@@ -895,9 +895,9 @@ async function handleList(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleRemove(msg, guildConfig) {
     try {
@@ -937,9 +937,9 @@ async function handleRemove(msg, guildConfig) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleApprove(msg, guildConfig) {
     try {
@@ -973,8 +973,8 @@ async function handleApprove(msg, guildConfig) {
 
 /**
  * Show a character
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleShow(msg, guildConfig) {
     try {
@@ -993,8 +993,8 @@ async function handleShow(msg, guildConfig) {
 
 /**
  * allow editing of campaign to override dndbeyond
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handleCampaign(msg, guildConfig) {
     try {

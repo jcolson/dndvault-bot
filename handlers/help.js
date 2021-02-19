@@ -20,7 +20,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
 - [x] register
     - [x] manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - register a character in the vault from dndbeyond
-- [x] update 
+- [x] update
     - [x] manual [CHAR_ID] [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - update a stub character, do not use spaces in any of the parameters except the campaign
     - [x] [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
 - [x] remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
@@ -99,10 +99,15 @@ async function handleHelp(msg, guildConfig, inviteURL) {
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
         if (msg.guild) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`handleHelp: ${error.message}`);
+            }
         }
     } catch (error) {
         await msg.channel.send(`unrecoverable ... ${error.message}`);
+        console.error(`handleHelp: ${error.message}`);
     }
 }
 exports.handleHelp = handleHelp;

@@ -1,70 +1,25 @@
-require('log-timestamp');
-const cron = require('node-cron');
-const http = require('http');
+require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
+const { ShardingManager } = require('discord.js');
 const path = require('path');
-const { Client } = require('discord.js');
+const fetch = require('node-fetch');
+const url = require('url');
+const GuildModel = require('./models/Guild');
 const { connect, disconnect } = require('mongoose');
 
-const characters = require('./handlers/characters.js');
-const events = require('./handlers/events.js');
-const help = require('./handlers/help.js');
-const users = require('./handlers/users.js');
-const config = require('./handlers/config.js');
-const calendar = require('./handlers/calendar.js');
-const utils = require('./utils/utils.js');
-const timezones = require('./handlers/timezones.js');
-const poll = require('./handlers/poll.js');
-
 const DEFAULT_CONFIGDIR = __dirname;
-
-global.client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
-
-global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 
-/**
- * http server used for calendar ics
- */
-const server = http.createServer();
-server.on('request', async (request, response) => {
-    request.on('error', (error) => {
-        console.error(error);
-        response.statusCode = 400;
-        response.end("400");
-    });
-    response.on('error', (error) => {
-        console.error(error);
-    });
+const timezones = require('./handlers/timezones.js');
+const calendar = require('./handlers/calendar.js');
 
-    let requestUrl = new URL(request.url, `http://${request.headers.host}`);
-    let body = [];
-    request.on('data', async (chunk) => {
-        body.push(chunk);
-    });
-    request.on('end', async () => {
-        try {
-            body = Buffer.concat(body).toString();
-            // console.log('body: ' + body);
-            if (request.method === 'GET' && requestUrl.pathname === '/calendar') {
-                response.setHeader('Content-Type', 'text/calendar');
-                response.end(await calendar.handleCalendarRequest(requestUrl));
-            } else if (request.method === 'GET' && requestUrl.pathname === '/timezones') {
-                response.setHeader('Content-Type', 'text/html');
-                response.end(await timezones.handleTimezonesRequest(requestUrl));
-            } else {
-                console.error('404 request: ' + request.url);
-                response.statusCode = 404;
-                response.end("404");
-            }
-        } catch (error) {
-            console.error(error);
-            response.statusCode = 400;
-            response.end("400");
-        }
-    });
-});
-server.listen(Config.httpServerPort);
-console.log('ics http server listening on: %s', Config.httpServerPort);
+const express = require('express');
+const session = require('express-session');
+const Grant = require('grant').express();
+const grant = new Grant(Config);
+
+// const grant = require('grant').express();
+
+let shutdown = false;
 
 /**
  * connect to the mongodb
@@ -77,237 +32,190 @@ console.log('ics http server listening on: %s', Config.httpServerPort);
         useUnifiedTopology: true,
         useCreateIndex: true
     });
-    console.log('Connected to mongo.  Logging into Discord now ...');
-    return client.login(Config.token);
+    console.log('Manager connected to mongo.');
 })();
 
 /**
- * scheduled cron for calendar reminders
+ * invoke shardingmanager
  */
-let calendarReminderCron = cron.schedule(Config.calendarReminderCron, events.sendReminders);
+const manager = new ShardingManager('./bot.js', { token: Config.token, respawn: false });
 
-/**
- * listen for emitted events from discordjs
- */
-client.on('ready', () => {
-    console.info(`logged in as ${client.user.tag}`);
-    client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
+manager.on('shardCreate', (shard) => {
+    console.log(`===== Launched shard ${shard.id} =====`);
+    shard.on('death', (process) => {
+        console.log(`===== Shard ${shard.id} died with exitcode ${process.exitCode}; shutdown status is ${shutdown} =====`);
+        if (!shutdown) {
+            console.error(`Shard ${shard.id} should not have shutdown, something is awry, shutting down server completely.`);
+            cleanShutdown(true);
+        }
+    });
 });
+manager.spawn();
 
-client.on('messageReactionAdd', async (reaction, user) => {
-    // When we receive a reaction we check if the reaction is partial or not
-    try {
-        if (reaction.partial) {
-            // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-            await reaction.fetch();
-        }
-        if (reaction.message.partial) {
-            await reaction.message.fetch();
-        }
-    } catch (error) {
-        console.error('Something went wrong when fetching the message: ', error);
-        // Return as `reaction.message.author` may be undefined/null
-        return;
-    }
-    console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}(bot?${user.bot}):${reaction.emoji.name}:${reaction.message.content}`);
-    if (!user.bot && reaction.message.author.id === reaction.message.guild.me.id) {
+const ROUTE_ROOT = "/";
+const ROUTE_POSTOAUTH = "/postoauth";
+const ROUTE_CALENDAR = "/calendar";
+const ROUTE_TIMEZONES = "/timezones";
+
+let app = express();
+
+app.locals.pretty = true;
+let server = app
+    .set('views', Config.httpPugDir)
+    .set('view engine', 'pug')
+    .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
+    .use(grant)
+    .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
+    .get(ROUTE_ROOT, function (request, response) {
+        response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe })
+    })
+    .get(ROUTE_TIMEZONES, function (request, response) {
         try {
-            // Now the message has been cached and is fully available
-            await utils.checkChannelPermissions(reaction.message);
-            let guildConfig = await config.confirmGuildConfig(reaction.message);
-            if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
-                console.log(`${reaction.message.author}'s POLL "${reaction.message.id}" gained a reaction!`);
-                await poll.handleReactionAdd(reaction, user, guildConfig);
+            console.log('serving ' + ROUTE_TIMEZONES);
+            if (!request.session.discordMe) {
+                request.query.destination = ROUTE_TIMEZONES;
+                response.redirect(url.format({
+                    pathname: grant.config.discord.prefix + "/discord",
+                    query: request.query,
+                }));
             } else {
-                console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-                await events.handleReactionAdd(reaction, user, guildConfig);
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+                // console.log(request.session.discordMe);
+                let responseData = timezones.handleTimezonesDataRequest(requestUrl);
+                response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
             }
         } catch (error) {
-            console.error(`caught exception handling reaction`, error);
-            await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
         }
-    }
-});
+    })
+    .get(ROUTE_POSTOAUTH, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_POSTOAUTH);
+            // let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            if (!request.session.grant || !request.session.grant.response || !request.session.grant.response.raw) {
+                // console.log('grant config', grant.config);
+                response.redirect(grant.config.discord.prefix + "/discord");
+            } else if (request.session.grant.response.error) {
+                throw new Error(`Discord API error: ${request.session.grant.response.error.error}`);
+            } else {
+                // console.log(`oauth2 grant response info`, request.session.grant);
+                if (!request.session.discordMe) {
+                    console.log('Making discord.com/api/users/@me call');
+                    let discordMeResponse = await fetch('https://discord.com/api/users/@me', {
+                        headers: {
+                            authorization: `${request.session.grant.response.raw.token_type} ${request.session.grant.response.access_token}`,
+                        },
+                    });
+                    let discordMe = await discordMeResponse.json();
+                    if (discordMeResponse.status != 200 || discordMe.error) {
+                        throw new Error(`Discord response code; ${discordMeResponse.status} Discord API error: ${discordMe.error}`);
+                    };
+                    request.session.discordMe = discordMe;
+                }
+                if (!request.session.guildConfig) {
+                    console.log(`Retrieving guild info for ${request.session.grant.dynamic.guildID}`);
+                    if (request.session.grant.dynamic.guildID) {
+                        let guildConfig = await GuildModel.findOne({ guildID: request.session.grant.dynamic.guildID });
+                        request.session.guildConfig = guildConfig;
+                    }
+                }
+                console.log(`redirect to actual page requested ${request.session.grant.dynamic.destination}`);
+                response.redirect(url.format({
+                    pathname: request.session.grant.dynamic.destination,
+                    query: request.session.grant.dynamic,
+                }));
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .get(ROUTE_CALENDAR, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_CALENDAR);
+            let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            let responseContent = await calendar.handleCalendarRequest(requestUrl);
+            response.setHeader('Content-Type', 'text/calendar');
+            response.end(responseContent);
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .listen(Config.httpServerPort);
 
-// client.on('messageReactionRemove', async (reaction, user) => {
-//     console.log('messageReactionRemove');
-//     // When we receive a reaction we check if the reaction is partial or not
-//     try {
-//         if (reaction.partial) {
-//             // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-//             await reaction.fetch();
-//         }
-//         if (reaction.message.partial) {
-//             await reaction.message.fetch();
-//         }
-//     } catch (error) {
-//         console.error('Something went wrong when fetching the message: ', error);
-//         // Return as `reaction.message.author` may be undefined/null
-//         return;
-//     }
-//     if (!user.bot) {
-//         // Now the message has been cached and is fully available
-//         console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-//         await events.handleReactionRemove(reaction, user);
-//     } else {
-//         console.log('bot reacted');
-//     }
+console.log('http server listening on: %s', Config.httpServerPort);
+
+// process.on('exit', () => {
+//     console.info('exit signal received.');
+//     cleanShutdown(false);
 // });
 
-client.on('message', async (msg) => {
-    try {
-        if (msg.partial) {
-            // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-            try {
-                await msg.fetch();
-            } catch (error) {
-                console.error('Something went wrong when fetching the message: ', error);
-                // Return as `reaction.message.author` may be undefined/null
-                return;
-            }
-        }
-        if (!msg.guild) {
-            console.log(`msg: DIRECT:${msg.author.nickname}:${msg.content}`);
-            if (msg.content === 'help') {
-                help.handleHelp(msg, null, Config.inviteURL);
-            }
-            return;
-        }
-        if (msg.author.bot) {
-            // it's a message from a bot, ignore
-            console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}:bot message, ignoring`);
-            return;
-        }
-        let guildConfig = await config.confirmGuildConfig(msg);
-        if (!msg.content.startsWith(guildConfig.prefix)) return;
-        await utils.checkChannelPermissions(msg);
-        console.log(`msg: ${msg.guild.name}:${msg.member.displayName}:${msg.content}`);
-        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
-            await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
-            return;
-        }
-        if (msg.content === guildConfig.prefix + 'help') {
-            help.handleHelp(msg, guildConfig, Config.inviteURL);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'register manual')) {
-            characters.handleRegisterManual(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'register')) {
-            characters.handleRegister(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'update manual')) {
-            characters.handleUpdateManual(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'update')) {
-            characters.handleUpdate(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'changes')) {
-            characters.handleChanges(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'campaign')) {
-            characters.handleCampaign(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'list campaign')) {
-            characters.handleListCampaign(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'list user')) {
-            characters.handleListUser(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'list all')) {
-            characters.handleListAll(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'list queued')) {
-            characters.handleListQueued(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'list')) {
-            characters.handleList(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'remove')) {
-            characters.handleRemove(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'approve')) {
-            characters.handleApprove(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'show')) {
-            characters.handleShow(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'event create')) {
-            events.handleEventCreate(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'event edit')) {
-            events.handleEventEdit(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'event remove')) {
-            events.handleEventRemove(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'event show')) {
-            events.handleEventShow(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'event list proposed')) {
-            events.handleEventListProposed(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'event list deployed')) {
-            events.handleEventListDeployed(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'event list')) {
-            events.handleEventList(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'poll')) {
-            poll.handlePoll(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'default')) {
-            users.handleDefault(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'timezone')) {
-            users.handleTimezone(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config approval')) {
-            config.handleConfigApproval(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config eventchannel')) {
-            config.handleConfigEventChannel(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config pollchannel')) {
-            config.handleConfigPollChannel(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config prefix')) {
-            config.handleConfigPrefix(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config arole')) {
-            config.handleConfigArole(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config prole')) {
-            config.handleConfigProle(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config campaign')) {
-            config.handleConfigCampaign(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'config')) {
-            config.handleConfig(msg, guildConfig);
-        }
-    } catch (error) {
-        console.error('on_message: ', error);
-        await utils.sendDirectOrFallbackToChannelError(error, msg);
-    }
-});
-
-// client.on('raw', packet => {
-//     // We don't want this to run on unrelated packets
-//     if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) return;
-//     console.log('received raw event for reaction');
-//     // Grab the channel to check the message from
-//     const channel = client.channels.get(packet.d.channel_id);
-//     // There's no need to emit if the message is cached, because the event will fire anyway for that
-//     if (channel.messages.has(packet.d.message_id)) return;
-//     // Since we have confirmed the message is not cached, let's fetch it
-//     console.log('fetching message for reaction');
-//     channel.fetchMessage(packet.d.message_id).then(message => {
-//         // Emojis can have identifiers of name:id format, so we have to account for that case as well
-//         const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
-//         // This gives us the reaction we need to emit the event properly, in top of the message object
-//         const reaction = message.reactions.get(emoji);
-//         // Adds the currently reacting user to the reaction's users collection.
-//         if (reaction) reaction.users.set(packet.d.user_id, client.users.get(packet.d.user_id));
-//         // Check which type of event it is before emitting
-//         if (packet.t === 'MESSAGE_REACTION_ADD') {
-//             client.emit('messageReactionAdd', reaction, client.users.get(packet.d.user_id));
-//         }
-//         if (packet.t === 'MESSAGE_REACTION_REMOVE') {
-//             client.emit('messageReactionRemove', reaction, client.users.get(packet.d.user_id));
-//         }
-//     });
-// });
-
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
     console.info('SIGTERM signal received.');
-    cleanShutdown();
+    await cleanShutdown(true);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
     console.info('SIGINT signal received.');
-    cleanShutdown();
+    await cleanShutdown(true);
 });
 
-function cleanShutdown() {
-    console.log('Closing out resources...');
-    server.close(() => {
+process.on('SIGUSR1', async () => {
+    console.info('SIGUSR1 signal received.');
+    await cleanShutdown(true);
+});
+
+process.on('SIGUSR2', async () => {
+    console.info('SIGUSR2 signal received.');
+    await cleanShutdown(true);
+});
+
+process.on('uncaughtException', async (error) => {
+    console.info('uncaughtException signal received.', error);
+    await cleanShutdown(true);
+});
+
+/**
+ *
+ * @param {boolean} callProcessExit
+ */
+async function cleanShutdown(callProcessExit) {
+    shutdown = true;
+    try {
+        console.log('Closing out manager resources...');
+        await server.close();
         console.log('Http server closed.');
-        client.destroy();
-        console.log('Discord client destroyed.');
-        calendarReminderCron.destroy();
-        console.log('Scheduled calendar reminders destroyed.');
-        // boolean means [force], see in mongoose doc
-        disconnect(() => {
-            console.log('MongoDb connection closed.');
-            process.exit(0);
-        });
-    });
+        for ([number, shard] of manager.shards) {
+            if (manager.mode == 'process') {
+                let count = 0;
+                while (shard.process && shard.process.exitCode === null) {
+                    if (++count > 5) {
+                        shard.kill();
+                    }
+                    console.log(`awaiting shard ${number} to exit`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                // } else if (manager.mode == 'worker') {
+            } else {
+                console.error(`unknown sharding manager mode: ${manager.mode}`);
+            }
+        }
+        console.log('All shards shutdown.');
+        await disconnect();
+        console.log('MongoDb connection closed.');
+    } catch (error) {
+        console.error("caught error shutting down shardmanager", error);
+    }
+    if (callProcessExit) {
+        console.log('Exiting.');
+        process.exit(0);
+    }
 }

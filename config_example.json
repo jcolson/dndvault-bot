@@ -5,15 +5,31 @@
     "mongoUser": "mongo_dnd_vault_username",
     "mongoPass": "supersecretpassword",
     "mongoSchema": "dnd",
+    "adminUser": "227562842591723521",
     "inviteURL": "https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot",
     "defaultPrefix": "!",
     "defaultARoleName": "@everyone",
     "defaultPRoleName": "@everyone",
     "dndBeyondUrl": "https://www.dndbeyond.com",
     "dndBeyondCharServiceUrl": "https://character-service.dndbeyond.com/character/v3/character/",
-    "dndVaultIcon": "https://lh3.googleusercontent.com/pw/ACtC-3fTM0DIzO7w58L5SJSnTuNJG17uRWIfuTiZgCd7e2iWtk7eze2_cKsHX96er_2hQzNsyxS8t9f1xmQ74ctFMX5AP1ApYRcrln_8U8Xy9RJ1c06uDCMWnA88nOfhkAQXODFgoX7Xp5DvdibwBswUqw__Pw=s256-no",
+    "dndVaultIcon": "https://dndvault.karma.net/images/dndvault_morph.gif",
     "httpServerPort": 8080,
-    "calendarURL": "https://dndvault.karma.net",
+    "httpStaticDir": "./http_root",
+    "httpPugDir": "./http_views",
+    "httpServerURL": "https://dndvault.karma.net",
     "calendarReminderCron": "0 */10 * * * *",
-    "calendarReminderMinutesOut": 50
+    "calendarReminderMinutesOut": 50,
+    "defaults": {
+        "origin": "https://dndvault.karma.net",
+        "transport": "session"
+    },
+    "discord": {
+        "prefix": "/connect",
+        "key": "your_discord_bot_client_id",
+        "secret": "your_discord_bot_secret",
+        "callback": "/postoauth",
+        "scope": [
+            "identify"
+        ]
+    }
 }

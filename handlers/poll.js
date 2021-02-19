@@ -3,9 +3,9 @@ const users = require('../handlers/users.js');
 const { MessageEmbed, User } = require('discord.js');
 
 /**
- * 
- * @param {Message} msg 
- * @param {GuildModel} guildConfig 
+ *
+ * @param {Message} msg
+ * @param {GuildModel} guildConfig
  */
 async function handlePoll(msg, guildConfig) {
     let pollChannel = msg.channel;

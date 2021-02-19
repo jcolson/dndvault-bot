@@ -1,11 +1,11 @@
 const { MessageEmbed } = require("discord.js");
 
 /**
- * 
- * @param {EmbedFieldData[]} fields 
+ *
+ * @param {EmbedFieldData[]} fields
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
- * @param {Boolean} skipDM 
+ * @param {Boolean} skipDM
  */
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
     let embed = new MessageEmbed()
@@ -15,11 +15,11 @@ async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
 }
 
 /**
- * 
- * @param {EmbedFieldData[]} fields 
+ *
+ * @param {EmbedFieldData[]} fields
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
- * @param {Boolean} skipDM 
+ * @param {Boolean} skipDM
  */
 async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
     if (!Array.isArray(fields)) {
@@ -36,11 +36,11 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
 }
 
 /**
- * 
- * @param {MessageEmbed[]} embedsArray 
+ *
+ * @param {MessageEmbed[]} embedsArray
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
- * @param {Boolean} skipDM 
+ * @param {Boolean} skipDM
  */
 async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM) {
     try {
@@ -94,7 +94,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
 
 /**
  * find the approximate size of an embed
- * @param {MessageEmbed} embed 
+ * @param {MessageEmbed} embed
  * @returns {number}
  */
 function lengthOfEmbed(embed) {
@@ -112,9 +112,9 @@ function lengthOfEmbed(embed) {
 }
 
 /**
- * 
- * @param {Message} msg 
- * @param {String} roleID 
+ *
+ * @param {Message} msg
+ * @param {String} roleID
  * @returns {Role}
  */
 async function retrieveRoleForID(guild, roleID) {
@@ -125,9 +125,9 @@ async function retrieveRoleForID(guild, roleID) {
 }
 
 /**
- * 
- * @param {Guild} guild 
- * @param {String} roleName 
+ *
+ * @param {Guild} guild
+ * @param {String} roleName
  * @returns {Role}
  */
 async function retrieveRoleIdForName(guild, roleName) {
@@ -199,7 +199,7 @@ function isTrue(value) {
 
 /**
  * ensure that the bot has proper permissions in the channel
- * @param {Message} msg 
+ * @param {Message} msg
  */
 async function checkChannelPermissions(msg) {
     //check that I have the proper permissions

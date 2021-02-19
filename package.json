@@ -1,6 +1,6 @@
 {
   "name": "dndvault",
-  "version": "1.0.21",
+  "version": "1.0.25",
   "description": "D&D Character Vault and Event Management for Discord.",
   "main": "index.js",
   "scripts": {
@@ -12,12 +12,16 @@
   "dependencies": {
     "@holistics/date-parser": "2.7.2",
     "discord.js": "12.5.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "grant": "^5.4.9",
     "he": "^1.2.0",
     "log-timestamp": "0.3.0",
     "luxon": "^1.25.0",
     "mongoose": "^5.11.8",
     "node-cron": "^2.0.3",
     "node-fetch": "2.6.1",
+    "pug": "^3.0.0",
     "tzdata": "^1.0.25"
   }
 }
