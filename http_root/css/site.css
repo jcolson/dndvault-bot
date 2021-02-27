@@ -5,7 +5,7 @@
     font-weight: bold;
     height: 130px;
     width: 100%;
-    padding-left: 20px;
+    padding-left: 1px;
     padding-top: 1px;
     padding-bottom: 15px;
     background-color: lightblue;
@@ -14,12 +14,12 @@
 .top {
     text-align: center;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: x-large;
+    font-size: medium;
     font-weight: bold;
     height: 70px;
     width: 100%;
-    padding-left: 20px;
-    padding-top: 15px;
+    padding-left: 1px;
+    padding-top: 1px;
     padding-bottom: 15px;
     background-color: lightblue;
 }

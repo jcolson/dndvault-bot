@@ -68,6 +68,56 @@ let server = app
     .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
     .use(grant)
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
+    .use(async function (request, response, next) {
+        console.log('in middleware checking if I need to update guildID');
+        let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+        let guildID = requestUrl.searchParams.get('guildID');
+        if (guildID) {
+            if (!request.session.guildConfig || request.session.guildConfig.guildID != guildID) {
+                console.log(`Retrieving guild info for ${guildID}`);
+                let guildConfig = await GuildModel.findOne({ guildID: guildID });
+                request.session.guildConfig = guildConfig;
+            }
+        }
+        next();
+    })
+    .get(ROUTE_POSTOAUTH, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_POSTOAUTH);
+            // let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            if (!request.session.grant || !request.session.grant.response || !request.session.grant.response.raw) {
+                // console.log('grant config', grant.config);
+                response.redirect(grant.config.discord.prefix + "/discord");
+            } else if (request.session.grant.response.error) {
+                throw new Error(`Discord API error: ${request.session.grant.response.error.error}`);
+            } else {
+                // console.log(`oauth2 grant response info`, request.session.grant);
+                if (!request.session.discordMe) {
+                    console.log('Making discord.com/api/users/@me call');
+                    let discordMeResponse = await fetch('https://discord.com/api/users/@me', {
+                        headers: {
+                            authorization: `${request.session.grant.response.raw.token_type} ${request.session.grant.response.access_token}`,
+                        },
+                    });
+                    let discordMe = await discordMeResponse.json();
+                    if (discordMeResponse.status != 200 || discordMe.error) {
+                        throw new Error(`Discord response code; ${discordMeResponse.status} Discord API error: ${discordMe.error}`);
+                    };
+                    request.session.discordMe = discordMe;
+                }
+                console.log(`redirect to actual page requested ${request.session.grant.dynamic.destination}`);
+                response.redirect(url.format({
+                    pathname: request.session.grant.dynamic.destination,
+                    query: request.session.grant.dynamic,
+                }));
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
     .get(ROUTE_ROOT, function (request, response) {
         response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe })
     })
@@ -113,50 +163,6 @@ let server = app
                 // console.log(request.session.discordMe);
                 let responseData = timezones.handleTimezonesDataRequest(requestUrl);
                 response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
-            }
-        } catch (error) {
-            console.error(error.message);
-            response.setHeader('Content-Type', 'text/html');
-            response.status(500);
-            response.end(error.message);
-        }
-    })
-    .get(ROUTE_POSTOAUTH, async (request, response) => {
-        try {
-            console.log('serving ' + ROUTE_POSTOAUTH);
-            // let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-            if (!request.session.grant || !request.session.grant.response || !request.session.grant.response.raw) {
-                // console.log('grant config', grant.config);
-                response.redirect(grant.config.discord.prefix + "/discord");
-            } else if (request.session.grant.response.error) {
-                throw new Error(`Discord API error: ${request.session.grant.response.error.error}`);
-            } else {
-                // console.log(`oauth2 grant response info`, request.session.grant);
-                if (!request.session.discordMe) {
-                    console.log('Making discord.com/api/users/@me call');
-                    let discordMeResponse = await fetch('https://discord.com/api/users/@me', {
-                        headers: {
-                            authorization: `${request.session.grant.response.raw.token_type} ${request.session.grant.response.access_token}`,
-                        },
-                    });
-                    let discordMe = await discordMeResponse.json();
-                    if (discordMeResponse.status != 200 || discordMe.error) {
-                        throw new Error(`Discord response code; ${discordMeResponse.status} Discord API error: ${discordMe.error}`);
-                    };
-                    request.session.discordMe = discordMe;
-                }
-                if (!request.session.guildConfig) {
-                    console.log(`Retrieving guild info for ${request.session.grant.dynamic.guildID}`);
-                    if (request.session.grant.dynamic.guildID) {
-                        let guildConfig = await GuildModel.findOne({ guildID: request.session.grant.dynamic.guildID });
-                        request.session.guildConfig = guildConfig;
-                    }
-                }
-                console.log(`redirect to actual page requested ${request.session.grant.dynamic.destination}`);
-                response.redirect(url.format({
-                    pathname: request.session.grant.dynamic.destination,
-                    query: request.session.grant.dynamic,
-                }));
             }
         } catch (error) {
             console.error(error.message);
