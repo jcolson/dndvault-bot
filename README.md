@@ -135,6 +135,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] {no args} - view your timezone
   - [x] [TIMEZONE] - set your timezone (required for interacting with events)
 - [x] poll ["Poll Question"] {"Response 0"} {"Response 1"} {"Response 2"} {"Response 3"} ...
+- [x] roll {notation} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
 - [ ] event
   - [x] create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] {!campaign [CAMPAIGN]} !desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
   - [x] edit [MISSION_ID] !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [MISSION_DESC_REGION_PLAYSTYLE] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
@@ -248,8 +249,8 @@ https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permission
 ```sh
 export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
 docker run -d --name dnd-mongo \
-    --restart always \
     -p 27017:27017 \
+    --restart always \
     --ulimit nofile=64000:64000 \
     -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
     -e MONGO_INITDB_DATABASE=dnd \
@@ -257,4 +258,11 @@ docker run -d --name dnd-mongo \
     -v ${VOLUME}:/data/db \
     -v ${VOLUME}-init:/docker-entrypoint-initdb.d \
     mongo:4.4.3-bionic
+```
+
+repair mongodb in container
+
+```sh
+export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
+docker run -it -v ${VOLUME}:/data/db mongo:4.4.3-bionic mongod --repair
 ```

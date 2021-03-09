@@ -10,6 +10,7 @@ const users = require('./handlers/users.js');
 const config = require('./handlers/config.js');
 const utils = require('./utils/utils.js');
 const poll = require('./handlers/poll.js');
+const roll = require('./handlers/roll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
@@ -213,6 +214,8 @@ client.on('message', async (msg) => {
             config.handleConfigCampaign(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config')) {
             config.handleConfig(msg, guildConfig);
+        } else if (msg.content.startsWith(guildConfig.prefix + 'roll')) {
+            roll.handleDiceRoll(msg, guildConfig);
         }
     } catch (error) {
         console.error('on_message: ', error);
