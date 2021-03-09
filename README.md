@@ -248,8 +248,8 @@ https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permission
 ```sh
 export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
 docker run -d --name dnd-mongo \
-    --restart always \
     -p 27017:27017 \
+    --restart always \
     --ulimit nofile=64000:64000 \
     -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
     -e MONGO_INITDB_DATABASE=dnd \
@@ -257,4 +257,11 @@ docker run -d --name dnd-mongo \
     -v ${VOLUME}:/data/db \
     -v ${VOLUME}-init:/docker-entrypoint-initdb.d \
     mongo:4.4.3-bionic
+```
+
+repair mongodb in container
+
+```sh
+export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
+docker run -it -v ${VOLUME}:/data/db mongo:4.4.3-bionic mongod --repair
 ```
