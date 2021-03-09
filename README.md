@@ -7,6 +7,9 @@ DND Vault Table of Contents
   - [Events](#events)
     - [Subscribe to the calendar](#subscribe-to-the-calendar)
   - [Polling](#polling)
+  - [Rolling dice](#rolling-dice)
+    - [Die quantity](#die-quantity)
+    - [Example usages](#example-usages)
   - [Feedback Please](#feedback-please)
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
@@ -57,6 +60,48 @@ Once a user signs up as an attendee, or creates an event, those events will show
 ## Polling
 
 Users can create polls very simply by using the `poll` command.  `!poll "Do you like polling"` will create a default poll that has three options:  👍 (yes) 👎 (no) and 🤷 (I don't know).  A user can also create his own options, which will be automatically numbered by using this syntax: `!poll "Do you like polling" "hell no" "I LOVE polling" "What is polling?"`.
+
+## Rolling dice
+
+Users can roll dice by using the `roll` command.  The dice roller uses [notation](https://greenimp.github.io/rpg-dice-roller/guide/notation/).
+
+### Die quantity
+
+- A single die has a minimum quantity of 1, and a maximum quantity of 999.
+- These are valid: d8, 1d10, 999d6, 20d4 + 999d10
+- These are not: 0d10, 1000d6, -1d20
+
+### Example usages
+
+```diff
+roll 2 20 sided dice
+!roll 2d20
+
+roll 8 20 sided dice and drop the lowest 1
+!roll 8d20dl1
+
+values less than 3 are treated as 3
+!roll 4d6min3
+
+values greater than 3 are treated as 3
+!roll 4d6max3
+
+reroll dice if a 1 is rolled
+!roll 1d6r
+
+reroll dice if one is less than 3
+!roll 1d6r<3
+
+roll 4 100 sided dice
+!roll 4d100
+
+above is the same as rolling percentile dice
+!roll 4d%
+
+roll 4 fudge dice
+!roll 4dF
+
+```
 
 ## Feedback Please
 
