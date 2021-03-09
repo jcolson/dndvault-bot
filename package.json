@@ -1,6 +1,6 @@
 {
   "name": "dndvault",
-  "version": "1.0.25",
+  "version": "1.0.27",
   "description": "D&D Character Vault and Event Management for Discord.",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
     "node-cron": "^2.0.3",
     "node-fetch": "2.6.1",
     "pug": "^3.0.0",
+    "rpg-dice-roller": "^4.5.2",
     "tzdata": "^1.0.25"
   }
 }
