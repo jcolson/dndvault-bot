@@ -58,17 +58,17 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         // console.log('user: ' + user.id);
         // console.log('msg member: ' + msg.member.id);
-        if (msg.url) {
-            let goBackMessage = '[Go Back To Message]';
-            // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
-            let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
-            if (!lastFieldValue.startsWith(goBackMessage)) {
-                embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${msg.url})`, inline: false });
-            }
-        }
         let messageSent = false;
         if (user && !skipDM) {
             try {
+                if (msg.url) {
+                    let goBackMessage = '[Go Back To Message]';
+                    // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
+                    let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
+                    if (!lastFieldValue.startsWith(goBackMessage)) {
+                        embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${msg.url})`, inline: false });
+                    }
+                }
                 for (let embed of embedsArray) {
                     await user.send(embed);
                 }
@@ -80,6 +80,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         if (!messageSent && msg.channel) {
             try {
                 for (let embed of embedsArray) {
+                    embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
                     await msg.channel.send(embed);
                 }
             } catch (error) {
