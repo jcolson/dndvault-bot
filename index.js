@@ -119,7 +119,7 @@ let server = app
         }
     })
     .get(ROUTE_ROOT, function (request, response) {
-        response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe })
+        response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe });
     })
     .get(ROUTE_TIMEZONESSET, async function (request, response) {
         try {
@@ -174,10 +174,26 @@ let server = app
     .get(ROUTE_CALENDAR, async (request, response) => {
         try {
             console.log('serving ' + ROUTE_CALENDAR);
-            let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-            let responseContent = await calendar.handleCalendarRequest(requestUrl);
-            response.setHeader('Content-Type', 'text/calendar');
-            response.end(responseContent);
+            const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            let userID = requestUrl.searchParams.get('userID');
+            const excludeGuild = requestUrl.searchParams.get('exclude') ? requestUrl.searchParams.get('exclude').split(',') : [];
+            if (!userID && request.session.discordMe) {
+                // console.log(`have discordMe, setting userID`);
+                userID = request.session.discordMe.id;
+            }
+            if (!userID) {
+                // console.log(`don't have userID, redirecting to discord to login`);
+                request.query.destination = ROUTE_CALENDAR;
+                response.redirect(url.format({
+                    pathname: grant.config.discord.prefix + "/discord",
+                    query: request.query,
+                }));
+            } else {
+                // console.log(`have userid, heading to handleCalendarRequest`);
+                let responseContent = await calendar.handleCalendarRequest(userID, excludeGuild);
+                response.setHeader('Content-Type', 'text/calendar');
+                response.end(responseContent);
+            }
         } catch (error) {
             console.error(error.message);
             response.setHeader('Content-Type', 'text/html');
