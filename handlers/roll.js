@@ -6,7 +6,7 @@ async function handleDiceRoll(msg, guildConfig) {
         let diceParam = msg.content.substring((guildConfig.prefix + 'roll').length + 1);
         const rollit = new DiceRoll(diceParam);
 
-        await utils.sendDirectOrFallbackToChannel({ name: 'Roll Output', value: `${rollit.output}` }, msg, undefined, true);
+        await utils.sendDirectOrFallbackToChannel({ name: '🎲🎲🎲🎲🎲', value: `${rollit.output}` }, msg, undefined, true);
         await msg.delete();
 
     } catch (error) {
