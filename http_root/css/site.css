@@ -1,9 +1,71 @@
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+}
+
+input[type=text] {
+    width: 100%;
+    resize: vertical;
+    padding: 10px;
+    margin: 10px 0;
+    border: 0;
+    box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+}
+
+input[type=date] {
+    width: 100%;
+    resize: vertical;
+    padding: 10px;
+    margin: 10px 0;
+    border: 0;
+    box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+}
+
+input[type=time] {
+    width: 100%;
+    resize: vertical;
+    padding: 10px;
+    margin: 10px 0;
+    border: 0;
+    box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+}
+
+input[type=textarea] {
+    width: 100%;
+    resize: vertical;
+    padding: 15px;
+    border-radius: 15px;
+    border: 0;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.06);
+    height: 150px;
+}
+
+input[type=submit] {
+    /* remove default behavior */
+    appearance: none;
+    -webkit-appearance: none;
+
+    /* usual styles */
+    padding: 10px;
+    border: none;
+    background-color: #3F51B5;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 5px;
+    width: 100%;
+
+}
+
 .header {
     text-align: center;
     font-family: Arial, Helvetica, sans-serif;
     font-size: x-large;
     font-weight: bold;
-    height: 130px;
+    height: 150px;
     width: 100%;
     padding-left: 1px;
     padding-top: 1px;
@@ -16,7 +78,7 @@
     font-family: Arial, Helvetica, sans-serif;
     font-size: medium;
     font-weight: bold;
-    height: 70px;
+    height: 80px;
     width: 100%;
     padding-left: 1px;
     padding-top: 1px;
@@ -30,15 +92,21 @@
 }
 
 #timezones-name {
-    background-image: url('/images/searchicon.png'); /* Add a search icon to input */
-    background-position: 10px 12px; /* Position the search icon */
-    background-repeat: no-repeat; /* Do not repeat the icon image */
+    background-image: url('/images/searchicon.png');
+    /* Add a search icon to input */
+    background-position: 10px 12px;
+    /* Position the search icon */
+    background-repeat: no-repeat;
+    /* Do not repeat the icon image */
     /* width: 100%; Full-width */
     /* font-size: 16px; Increase font-size */
-    padding: 12px 20px 12px 40px; /* Add some padding */
-    border: 1px solid #ddd; /* Add a grey border */
-    margin-bottom: 12px; /* Add some space below the input */
-  }
+    padding: 12px 20px 12px 40px;
+    /* Add some padding */
+    border: 1px solid #ddd;
+    /* Add a grey border */
+    margin-bottom: 12px;
+    /* Add some space below the input */
+}
 
 .header-text {
     font-size: small;
@@ -50,30 +118,49 @@
 }
 
 .thebody {
+    /* text-align: center; */
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 10px;
+    /* font-size: medium;
+    font-weight: bold;
+    height: 70px;
+    width: 100%;
+    padding-left: 1px;
+    padding-top: 1px;
+    padding-bottom: 15px; */
+    background-color: #4CAF50;
+}
+
+.tzbody {
     overflow-y: scroll;
     font-family: Arial, Helvetica, sans-serif;
     border-collapse: collapse;
     width: 250px;
     top: 270px;
-    left:0px;
-    right:0px;
-    bottom:0px;
-    position:absolute;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    position: absolute;
     text-align: center;
     margin-left: auto;
     margin-right: auto;
 }
 
-.thebody td, .thebody th {
+.tzbody td,
+.tzbody th {
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-.thebody tr:nth-child(even){background-color: #f2f2f2;}
+.tzbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
 
-.thebody tr:hover {background-color: #ddd;}
+.tzbody tr:hover {
+    background-color: #ddd;
+}
 
-.thebody th {
+.tzbody th {
     padding-top: 12px;
     padding-bottom: 12px;
     background-color: #4CAF50;

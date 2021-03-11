@@ -1,0 +1,25 @@
+//- index.pug
+extends layout.pug
+
+block content
+    h1 Welcome to D&amp;D Vault Bot
+    .thebody
+        form(action=`${Config.httpServerURL}/events/set`, method="POST")
+            p
+                | Title:
+                input(type='text' name='title', placeholder='Title', value=`${event?event.title:''}`)
+                | DM/GM:
+                input(type='text' name='dm', placeholder='DM/GM', value=`${event?event.dm:''}`)
+                | Duration (in hours):
+                input(type='text' name='duration_hours', placeholder='Duration (in hours)', value=`${event?event.duration_hours:''}`)
+                | Start (Date):
+                input(type='date' name='date', value=`${event?event.date_time:''}`)
+                | Start (Time):
+                input(type='time' name='time', value=`${event?event.date_time:''}`)
+                | Number of Players:
+                input(type='text' name='number_player_slots', placeholder='Number of Players', value=`${event?event.number_player_slots:''}`)
+                | Campaign:
+                input(type='text' name='campaign', placeholder='Campaign', value=`${event?event.campaign:''}`)
+                | Description:
+                input(type='textarea' name='description', placeholder='Description', value=`${event?event.description:''}`)
+            input(type='submit' value='Submit')

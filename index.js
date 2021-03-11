@@ -58,6 +58,7 @@ const ROUTE_POSTOAUTH = "/postoauth";
 const ROUTE_CALENDAR = "/calendar";
 const ROUTE_TIMEZONES = "/timezones";
 const ROUTE_TIMEZONESSET = "/timezones/set";
+const ROUTE_EVENTS = "/events";
 
 let app = express();
 
@@ -163,6 +164,28 @@ let server = app
                 // console.log(request.session.discordMe);
                 let responseData = timezones.handleTimezonesDataRequest(requestUrl);
                 response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .get(ROUTE_EVENTS, function (request, response) {
+        try {
+            console.log('serving ' + ROUTE_EVENTS);
+            if (!request.session.discordMe) {
+                request.query.destination = ROUTE_EVENTS;
+                response.redirect(url.format({
+                    pathname: grant.config.discord.prefix + "/discord",
+                    query: request.query,
+                }));
+            } else {
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+                // console.log(request.session.discordMe);
+                // let responseData = events.handleEventsRequest(requestUrl);
+                response.render('events', { title: 'Events', Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
             }
         } catch (error) {
             console.error(error.message);
