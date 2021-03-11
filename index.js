@@ -4,8 +4,10 @@ const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
 const users = require('./handlers/users.js');
-const GuildModel = require('./models/Guild');
 const { connect, disconnect } = require('mongoose');
+
+const GuildModel = require('./models/Guild');
+const EventModel = require('./models/Event');
 
 const DEFAULT_CONFIGDIR = __dirname;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
@@ -172,7 +174,7 @@ let server = app
             response.end(error.message);
         }
     })
-    .get(ROUTE_EVENTS, function (request, response) {
+    .get(ROUTE_EVENTS, async function (request, response) {
         try {
             console.log('serving ' + ROUTE_EVENTS);
             if (!request.session.discordMe) {
@@ -184,8 +186,9 @@ let server = app
             } else {
                 let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
                 // console.log(request.session.discordMe);
-                // let responseData = events.handleEventsRequest(requestUrl);
-                response.render('events', { title: 'Events', Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
+                let eventID = requestUrl.searchParams.get('eventID');
+                let event = await EventModel.findOne({eventID: eventID});
+                response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
             }
         } catch (error) {
             console.error(error.message);
