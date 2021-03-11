@@ -126,6 +126,7 @@ client.on('message', async (msg) => {
             }
             return;
         }
+
         let messageContentLowercase = msg.content.toLowerCase();
         if (!msg.guild) {
             console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}`);
@@ -214,7 +215,7 @@ client.on('message', async (msg) => {
             config.handleConfigCampaign(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config')) {
             config.handleConfig(msg, guildConfig);
-        } else if (msg.content.startsWith(guildConfig.prefix + 'roll')) {
+        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'roll')) {
             roll.handleDiceRoll(msg, guildConfig);
         }
     } catch (error) {
