@@ -188,6 +188,9 @@ let server = app
                 // console.log(request.session.discordMe);
                 let eventID = requestUrl.searchParams.get('eventID');
                 let event = await EventModel.findById(eventID);
+                if (event && event.userID != request.session.discordMe.id) {
+                    event = undefined;
+                }
                 response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
             }
         } catch (error) {
