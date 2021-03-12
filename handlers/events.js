@@ -74,7 +74,7 @@ async function handleEventEdit(msg, guildConfig) {
             throw new Error('Event not found.');
         }
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole) && msg.member.id != existingEvent.userID) {
-            throw new Error(`Please have <@${msg.member.id}> edit, or ask an <@&${guildConfig.arole}> to edit.`);
+            throw new Error(`Please have <@${existingEvent.userID}> edit, or ask an <@&${guildConfig.arole}> to edit.`);
         }
         let eventArray = parseEventString(eventString, existingEvent);
         let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);

@@ -187,7 +187,7 @@ let server = app
                 let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
                 // console.log(request.session.discordMe);
                 let eventID = requestUrl.searchParams.get('eventID');
-                let event = await EventModel.findOne({eventID: eventID});
+                let event = await EventModel.findById(eventID);
                 response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
             }
         } catch (error) {
