@@ -7,7 +7,7 @@ async function handleDiceRoll(msg, guildConfig) {
         const rollit = new DiceRoll(diceParam);
         // console.debug(`JSON:`, rollit.toJSON());
         // console.debug(`Index of ${rollit.notation} in ${rollit.output} is ${rollit.output.lastIndexOf(':')}`);
-        await utils.sendDirectOrFallbackToChannel({ name: `🎲${rollit.notation}🎲`, value: `${rollit.output.substr(rollit.output.lastIndexOf(': ')+2)}` }, msg, undefined, true);
+        await utils.sendDirectOrFallbackToChannel({ name: `🎲${rollit.notation}🎲`, value: `${rollit.output.substring(rollit.output.lastIndexOf(': ')+2)}` }, msg, undefined, true);
         await msg.delete();
 
     } catch (error) {

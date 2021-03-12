@@ -14,7 +14,7 @@ block content
                 input(type='text' name='duration_hours' placeholder='Duration (in hours)', value=`${event?event.duration_hours:''}`)
                 | Start (Date):
                 input(type='date' name='date', value=`${event?event.date_time.toISOString().substring(0,10):''}`)
-                | Start (Time):
+                | Start (Time): #{event.date_time.toISOString().substring()}
                 input(type='time' name='time', value=`${event?event.date_time.getHours()+":"+event.date_time.getMinutes():''}`)
                 | Number of Players:
                 input(type='text' name='number_player_slots' placeholder='Number of Players', value=`${event?event.number_player_slots:''}`)
