@@ -3,23 +3,42 @@ extends layout.pug
 
 block content
     h1 Welcome to D&amp;D Vault Bot
+    script.
+        event=!{JSON.stringify(event)}
+        async function setEvent() {
+            console.log('setEvent fired: '+event.guildID);
+            event.title=document.getElementById('event-info').value;
+            event.dm=document.getElementById('event-dm').value;
+            event.duration_hours=document.getElementById('event-duration_hours').value;
+            event.number_player_slots=document.getElementById('event-number_player_slots').value;
+            event.campaign=document.getElementById('event-campaign').value;
+            event.description=document.getElementById('event-description').value;
+            event.date_time=new Date(document.getElementById('event-date').value+'T'+document.getElementById('event-time').value);
+            try {
+                const jsonResponse = await postData('#{Config.httpServerURL}/events/set', event);
+                document.getElementById('event-info').innerHTML='Updated!';
+            } catch (error) {
+                document.getElementById('event-info').innerHTML='Error: '+error.message;
+            }
+        }
     .thebody
-        form(action=`${Config.httpServerURL}/events/set`, method="POST")
+        div(id="event-info")
+        form
             p
                 | Title:
-                input(type='text' name='title' placeholder='Title', value=`${event?event.title:''}`)
+                input(type='text' name='title' id='event-title' placeholder='Title', value=`${event&&event.title?event.title:''}`)
                 | DM/GM:
-                input(type='text' name='dm' placeholder='DM/GM', value=`${event?event.dm:''}`)
+                input(type='text' name='dm' id='event-dm' placeholder='DM/GM', value=`${event&&event.dm?event.dm:''}`)
                 | Duration (in hours):
-                input(type='text' name='duration_hours' placeholder='Duration (in hours)', value=`${event?event.duration_hours:''}`)
+                input(type='text' name='duration_hours' id='event-duration_hours' placeholder='Duration (in hours)', value=`${event&&event.duration_hours?event.duration_hours:''}`)
                 | Start (Date):
-                input(type='date' name='date', value=`${event?event.date_time.toISOString().substring(0,10):''}`)
+                input(type='date' name='date' id='event-date' value=`${event?event.date_time.toISOString().substring(0,10):''}`)
                 | Start (Time):
-                input(type='time' name='time', value=`${event?event.date_time.toISOString().substring(11,16):''}`)
+                input(type='time' name='time' id='event-time' value=`${event?event.date_time.toISOString().substring(11,16):''}`)
                 | Number of Players:
-                input(type='text' name='number_player_slots' placeholder='Number of Players', value=`${event?event.number_player_slots:''}`)
+                input(type='text' name='number_player_slots' id='event-number_player_slots' placeholder='Number of Players', value=`${event&&event.number_player_slots?event.number_player_slots:''}`)
                 | Campaign:
-                input(type='text' name='campaign' placeholder='Campaign', value=`${event?event.campaign:''}`)
+                input(type='text' name='campaign' id='event-campaign' placeholder='Campaign', value=`${event&&event.campaign?event.campaign:''}`)
                 | Description:
-                input(type='textarea' name='description' placeholder='Description', value=`${event?event.description:''}`)
-            input(type='submit' value='Submit')
+                input(type='textarea' name='description' id='event-description' placeholder='Description', value=`${event&&event.description?event.description:''}`)
+            button(type='button' onclick='setEvent();') Save

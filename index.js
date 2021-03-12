@@ -61,6 +61,7 @@ const ROUTE_CALENDAR = "/calendar";
 const ROUTE_TIMEZONES = "/timezones";
 const ROUTE_TIMEZONESSET = "/timezones/set";
 const ROUTE_EVENTS = "/events";
+const ROUTE_EVENTSSET = "/events/set";
 
 let app = express();
 
@@ -124,82 +125,6 @@ let server = app
     .get(ROUTE_ROOT, function (request, response) {
         response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe });
     })
-    .get(ROUTE_TIMEZONESSET, async function (request, response) {
-        try {
-            console.log('serving ' + ROUTE_TIMEZONESSET);
-            if (!request.session.discordMe) {
-                console.log(`User not authenticated.`);
-                response.json({ status: 'false' });
-            } else if (request.session.guildConfig) {
-                console.log('we know the guild so we can set the timezone for user.');
-                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-                // console.log(request.session.discordMe);
-                // console.log(requestUrl);
-                let status = await users.handleWebTimezone(
-                    request.session.discordMe.id,
-                    request.session.grant.dynamic.channel,
-                    requestUrl.searchParams.get('timezone'),
-                    request.session.guildConfig);
-                response.json({ status: status });
-            } else {
-                console.log(`we don't know the guild so we will error and let the user copy/paste`);
-                response.json({ status: 'false' });
-            }
-        } catch (error) {
-            console.error(error.message);
-            response.setHeader('Content-Type', 'text/html');
-            response.status(500);
-            response.json({ status: 'false' });
-        }
-    })
-    .get(ROUTE_TIMEZONES, function (request, response) {
-        try {
-            console.log('serving ' + ROUTE_TIMEZONES);
-            if (!request.session.discordMe) {
-                request.query.destination = ROUTE_TIMEZONES;
-                response.redirect(url.format({
-                    pathname: grant.config.discord.prefix + "/discord",
-                    query: request.query,
-                }));
-            } else {
-                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-                // console.log(request.session.discordMe);
-                let responseData = timezones.handleTimezonesDataRequest(requestUrl);
-                response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
-            }
-        } catch (error) {
-            console.error(error.message);
-            response.setHeader('Content-Type', 'text/html');
-            response.status(500);
-            response.end(error.message);
-        }
-    })
-    .get(ROUTE_EVENTS, async function (request, response) {
-        try {
-            console.log('serving ' + ROUTE_EVENTS);
-            if (!request.session.discordMe) {
-                request.query.destination = ROUTE_EVENTS;
-                response.redirect(url.format({
-                    pathname: grant.config.discord.prefix + "/discord",
-                    query: request.query,
-                }));
-            } else {
-                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-                // console.log(request.session.discordMe);
-                let eventID = requestUrl.searchParams.get('eventID');
-                let event = await EventModel.findById(eventID);
-                if (event && event.userID != request.session.discordMe.id) {
-                    event = undefined;
-                }
-                response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
-            }
-        } catch (error) {
-            console.error(error.message);
-            response.setHeader('Content-Type', 'text/html');
-            response.status(500);
-            response.end(error.message);
-        }
-    })
     .get(ROUTE_CALENDAR, async (request, response) => {
         try {
             console.log('serving ' + ROUTE_CALENDAR);
@@ -229,6 +154,104 @@ let server = app
             response.status(500);
             response.end(error.message);
         }
+    })
+    .use(async function (request, response, next) {
+        console.log('in middleware, ensuring user is logged in');
+        let desiredDestination = request.path;
+        // console.log('desiredDestination ' + desiredDestination);
+        if (!request.session.discordMe) {
+            console.log(`user is _not_ logged in, redirecting`);
+            request.query.destination = desiredDestination;
+            response.redirect(url.format({
+                pathname: grant.config.discord.prefix + "/discord",
+                query: request.query,
+            }));
+        } else {
+            console.log(`${request.session.discordMe.username} user is logged in`);
+            next();
+        }
+    })
+    .get(ROUTE_TIMEZONESSET, async function (request, response) {
+        try {
+            console.log('serving ' + ROUTE_TIMEZONESSET);
+            //@todo can remove
+            if (!request.session.discordMe) {
+                console.log(`User not authenticated.`);
+                response.json({ status: 'false' });
+            } else if (request.session.guildConfig) {
+                console.log('we know the guild so we can set the timezone for user.');
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+                // console.log(request.session.discordMe);
+                // console.log(requestUrl);
+                let status = await users.handleWebTimezone(
+                    request.session.discordMe.id,
+                    request.session.grant.dynamic.channel,
+                    requestUrl.searchParams.get('timezone'),
+                    request.session.guildConfig);
+                response.json({ status: status });
+            } else {
+                console.log(`we don't know the guild so we will error and let the user copy/paste`);
+                response.json({ status: 'false' });
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.json({ status: 'false' });
+        }
+    })
+    .get(ROUTE_TIMEZONES, function (request, response) {
+        try {
+            console.log('serving ' + ROUTE_TIMEZONES);
+            //@todo can remove
+            if (!request.session.discordMe) {
+                request.query.destination = ROUTE_TIMEZONES;
+                response.redirect(url.format({
+                    pathname: grant.config.discord.prefix + "/discord",
+                    query: request.query,
+                }));
+            } else {
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+                // console.log(request.session.discordMe);
+                let responseData = timezones.handleTimezonesDataRequest(requestUrl);
+                response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .get(ROUTE_EVENTS, async function (request, response) {
+        try {
+            console.log('serving ' + ROUTE_EVENTS);
+            //@todo can remove
+            if (!request.session.discordMe) {
+                request.query.destination = ROUTE_EVENTS;
+                response.redirect(url.format({
+                    pathname: grant.config.discord.prefix + "/discord",
+                    query: request.query,
+                }));
+            } else {
+                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+                // console.log(request.session.discordMe);
+                let eventID = requestUrl.searchParams.get('eventID');
+                let event = await EventModel.findById(eventID);
+                if (event && event.userID != request.session.discordMe.id) {
+                    event = undefined;
+                }
+                response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
+            }
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
+    })
+    .get(ROUTE_EVENTSSET, async (request, resposne) => {
+
     })
     .listen(Config.httpServerPort);
 

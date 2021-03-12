@@ -44,7 +44,7 @@ input[type=textarea] {
     height: 150px;
 }
 
-input[type=submit] {
+button {
     /* remove default behavior */
     appearance: none;
     -webkit-appearance: none;
