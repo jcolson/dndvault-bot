@@ -156,8 +156,8 @@ let server = app
         }
     })
     .use(async function (request, response, next) {
-        console.log('in middleware, ensuring user is logged in');
-        let desiredDestination = request.path;
+        const desiredDestination = request.path;
+        console.log(`in middleware, ensuring user is logged in for ${desiredDestination}`);
         // console.log('desiredDestination ' + desiredDestination);
         if (!request.session.discordMe) {
             console.log(`user is _not_ logged in, redirecting`);
@@ -250,8 +250,17 @@ let server = app
             response.end(error.message);
         }
     })
-    .get(ROUTE_EVENTSSET, async (request, resposne) => {
-
+    .post(ROUTE_EVENTSSET, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_EVENTSSET);
+            console.log(request.body);
+            response.json({ status: 'false' });
+        } catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
     })
     .listen(Config.httpServerPort);
 
