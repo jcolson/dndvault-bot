@@ -4,11 +4,12 @@
         img(src= Config.dndVaultIcon)
         .
             D&amp;D Vault - #{title} #{discordMe?' ('+discordMe.username+'#'+discordMe.discriminator+')':''}
+.topnav
     a(href= '/') Home
-    |&nbsp;|&nbsp;
+    //- |&nbsp;|&nbsp;
     a(href= '/timezones') Timezones
     if discordMe
-        |&nbsp;|&nbsp;
+        //- |&nbsp;|&nbsp;
         a(href= '/events') Events
-        |&nbsp;|&nbsp;
+        //- |&nbsp;|&nbsp;
         a(href= '/calendar?userID='+discordMe.id) Calendar ICS
