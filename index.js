@@ -8,6 +8,7 @@ const { connect, disconnect } = require('mongoose');
 
 const GuildModel = require('./models/Guild');
 const EventModel = require('./models/Event');
+const UserModel = require('./models/User');
 
 const DEFAULT_CONFIGDIR = __dirname;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
@@ -73,15 +74,26 @@ let server = app
     .use(grant)
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .use(async function (request, response, next) {
-        console.log('in middleware checking if I need to update guildID');
-        let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-        let guildID = requestUrl.searchParams.get('guildID');
+        console.log(`in middleware checking if I need to update guildID, guildID status: ${request.session.guildConfig ? true : false}`);
+        const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+        const guildID = requestUrl.searchParams.get('guildID');
         if (guildID) {
             if (!request.session.guildConfig || request.session.guildConfig.guildID != guildID) {
                 console.log(`Retrieving guild info for ${guildID}`);
-                let guildConfig = await GuildModel.findOne({ guildID: guildID });
+                const guildConfig = await GuildModel.findOne({ guildID: guildID });
+                if (guildConfig) {
+                    request.session.guildConfig = guildConfig;
+                }
+            }
+        } else if (!request.session.guildConfig && request.session.discordMe) {
+            console.log(`Retrieving any guild for user, ${request.session.discordMe.id}`);
+            const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
+            const guildConfig = await GuildModel.findOne({ guildID: userConfig.guildID });
+            if (guildConfig) {
                 request.session.guildConfig = guildConfig;
             }
+        } else {
+            console.log(`Don't need to (or can't) retrieve a guild ...`);
         }
         next();
     })
@@ -155,6 +167,7 @@ let server = app
             response.end(error.message);
         }
     })
+    // all routes past this point require authentication
     .use(async function (request, response, next) {
         const desiredDestination = request.path;
         console.log(`in middleware, ensuring user is logged in for ${desiredDestination}`);
@@ -174,11 +187,7 @@ let server = app
     .get(ROUTE_TIMEZONESSET, async function (request, response) {
         try {
             console.log('serving ' + ROUTE_TIMEZONESSET);
-            //@todo can remove
-            if (!request.session.discordMe) {
-                console.log(`User not authenticated.`);
-                response.json({ status: 'false' });
-            } else if (request.session.guildConfig) {
+            if (request.session.guildConfig) {
                 console.log('we know the guild so we can set the timezone for user.');
                 let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
                 // console.log(request.session.discordMe);
@@ -203,19 +212,10 @@ let server = app
     .get(ROUTE_TIMEZONES, function (request, response) {
         try {
             console.log('serving ' + ROUTE_TIMEZONES);
-            //@todo can remove
-            if (!request.session.discordMe) {
-                request.query.destination = ROUTE_TIMEZONES;
-                response.redirect(url.format({
-                    pathname: grant.config.discord.prefix + "/discord",
-                    query: request.query,
-                }));
-            } else {
-                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-                // console.log(request.session.discordMe);
-                let responseData = timezones.handleTimezonesDataRequest(requestUrl);
-                response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
-            }
+            let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            // console.log(request.session.discordMe);
+            let responseData = timezones.handleTimezonesDataRequest(requestUrl);
+            response.render('timezones', { title: 'Timezones', timezoneData: responseData, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
         } catch (error) {
             console.error(error.message);
             response.setHeader('Content-Type', 'text/html');
@@ -226,23 +226,15 @@ let server = app
     .get(ROUTE_EVENTS, async function (request, response) {
         try {
             console.log('serving ' + ROUTE_EVENTS);
-            //@todo can remove
-            if (!request.session.discordMe) {
-                request.query.destination = ROUTE_EVENTS;
-                response.redirect(url.format({
-                    pathname: grant.config.discord.prefix + "/discord",
-                    query: request.query,
-                }));
-            } else {
-                let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-                // console.log(request.session.discordMe);
-                let eventID = requestUrl.searchParams.get('eventID');
-                let event = await EventModel.findById(eventID);
-                if (event && event.userID != request.session.discordMe.id) {
-                    event = undefined;
-                }
-                response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
+            let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            // console.log(request.session.discordMe);
+            let eventID = requestUrl.searchParams.get('eventID');
+            let event = await EventModel.findById(eventID);
+            if (event && event.userID != request.session.discordMe.id) {
+                console.log(`event is not owned by current user, dereferencing`);
+                event = undefined;
             }
+            response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
         } catch (error) {
             console.error(error.message);
             response.setHeader('Content-Type', 'text/html');

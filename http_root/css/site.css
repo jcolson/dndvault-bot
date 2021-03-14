@@ -34,7 +34,7 @@ input[type=time] {
     border-radius: 10px;
 }
 
-input[type=textarea] {
+textarea {
     width: 100%;
     resize: vertical;
     padding: 10px;
@@ -42,7 +42,21 @@ input[type=textarea] {
     border-radius: 10px;
     border: 0;
     box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.06);
+    height: 175px;
+    word-wrap: break-word;
+}
+
+textareax {
+    width: 100%;
     height: 150px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    flex-wrap: wrap;
+    word-break: break-all;
+    overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    overflow: -moz-scrollbars-vertical;
 }
 
 button {
