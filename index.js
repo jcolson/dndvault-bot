@@ -73,6 +73,7 @@ let server = app
     .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
     .use(grant)
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
+    .use(express.json())
     .use(async function (request, response, next) {
         console.log(`in middleware checking if I need to update guildID, guildID status: ${request.session.guildConfig ? true : false}`);
         const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
@@ -234,7 +235,9 @@ let server = app
                 console.log(`event is not owned by current user, dereferencing`);
                 event = undefined;
             }
-            response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe })
+            let userConfig = await UserModel.findOne({userID: request.session.discordMe.id, guildID: request.session.guildConfig.guildID});
+            // console.log(userConfig);
+            response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe, userConfig: userConfig })
         } catch (error) {
             console.error(error.message);
             response.setHeader('Content-Type', 'text/html');

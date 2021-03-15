@@ -9,7 +9,17 @@ input[type=text] {
     resize: vertical;
     padding: 10px;
     margin: 10px 0;
-    border: 0;
+    border: 2px solid;
+    box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+}
+
+input[type=number] {
+    width: 100%;
+    resize: vertical;
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid;
     box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
     border-radius: 10px;
 }
@@ -19,7 +29,7 @@ input[type=date] {
     resize: vertical;
     padding: 10px;
     margin: 10px 0;
-    border: 0;
+    border: 2px solid;
     box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
     border-radius: 10px;
 }
@@ -29,9 +39,21 @@ input[type=time] {
     resize: vertical;
     padding: 10px;
     margin: 10px 0;
-    border: 0;
+    border: 2px solid;
     box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
     border-radius: 10px;
+}
+
+input:optional {
+    border-color: gray;
+}
+
+input:required:valid {
+    border-color: green;
+}
+
+input:invalid {
+    border-color: red;
 }
 
 textarea {
@@ -40,13 +62,25 @@ textarea {
     padding: 10px;
     margin: 10px 0;
     border-radius: 10px;
-    border: 0;
+    border: 2px solid;
     box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.06);
     height: 175px;
     word-wrap: break-word;
 }
 
-textareax {
+textarea:optional {
+    border-color: gray;
+}
+
+textarea:required:valid {
+    border-color: green;
+}
+
+textarea:invalid {
+    border-color: red;
+}
+
+/* textareax {
     width: 100%;
     height: 150px;
     overflow-wrap: break-word;
@@ -57,7 +91,7 @@ textareax {
     overflow-y: scroll;
     overflow-x: hidden;
     overflow: -moz-scrollbars-vertical;
-}
+} */
 
 button {
     /* remove default behavior */
@@ -87,8 +121,12 @@ button {
     display: block;
     color: lightblue;
     text-align: center;
-    padding: 14px 16px;
+    padding: 14px;
+    /* 14px 16px; */
     text-decoration: none;
+    border-radius: 10px;
+    border: 0;
+    box-shadow: 4px 4px 10px lightblue;
 }
 
 /* Links - change color on hover */
