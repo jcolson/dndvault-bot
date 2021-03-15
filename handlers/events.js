@@ -14,40 +14,64 @@ const utils = require('../utils/utils.js');
  * @param {GuildModel} guildConfig
  */
 async function handleEventCreate(msg, guildConfig) {
-    let eventChannel = msg.channel;
+    let eventChannelID = guildConfig.channelForEvents ? guildConfig.channelForEvents : msg.channel.id;
     try {
-        let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (!currUser || !currUser.timezone) {
-            // throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
-            await utils.sendDirectOrFallbackToChannel([
-                { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
-                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
-            ], msg);
-        } else {
-            let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
-            let eventArray = parseEventString(eventString);
-
-            let validatedEvent = await validateEvent(eventArray, msg, currUser);
-            if (guildConfig.channelForEvents) {
-                eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
-            }
-            let sentMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
-            validatedEvent.channelID = sentMessage.channel.id;
-            validatedEvent.messageID = sentMessage.id;
-            await validatedEvent.save();
-            await sentMessage.react('✅');
-            await sentMessage.react('❎');
-            await sentMessage.react('▶️');
-            await sentMessage.react('🕟');
-            await sentMessage.react(`\u{1F5D1}`);
-            await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${msg.member.id}> - created event successfully.`, inline: true }], sentMessage, msg.author);
+        let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
+        let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, eventString);
+        if (eventCreateResult) {
             await msg.delete();
+        } else {
+            throw new Error("Could not create event.");
         }
     } catch (error) {
-        console.error('handleEventCreate:', error.message);
-        error.message += ` For Channel: ${eventChannel.name}`;
-        await utils.sendDirectOrFallbackToChannelError(error, msg);
+        console.error('events.handleEventCreate:', error.message);
+        await utils.sendDirectOrFallbackToChannel([
+            { name: 'Error', value: `${error.message}` },
+            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+        ], msg);
     }
+}
+
+/**
+ * broadcast safe method of event creation
+ * @param {String} currUserId
+ * @param {String} channelIDForEvent
+ * @param {String} guildID
+ * @param {String} eventString
+ * @returns
+ */
+async function bc_eventCreate(currUserId, channelIDForEvent, guildID, eventString) {
+    try {
+        let theGuild = client.guilds.cache.get(guildID);
+        if (theGuild) {
+            let currUser = await UserModel.findOne({ userID: currUserId, guildID: guildID });
+            if (!currUser || !currUser.timezone) {
+                throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
+            } else {
+                let eventArray = parseEventString(eventString);
+                let validatedEvent = await validateEvent(eventArray, guildID, currUser);
+                let eventChannel = await theGuild.channels.resolve(channelIDForEvent);
+                let sentMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
+                validatedEvent.channelID = sentMessage.channel.id;
+                validatedEvent.messageID = sentMessage.id;
+                await validatedEvent.save();
+                await sentMessage.react('✅');
+                await sentMessage.react('❎');
+                await sentMessage.react('▶️');
+                await sentMessage.react('🕟');
+                await sentMessage.react(`\u{1F5D1}`);
+                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${currUserId}> - created event successfully.`, inline: true }], sentMessage, await client.users.resolve(currUserId));
+                return true;
+            }
+        } else {
+            console.log('events.bc_eventCreate: unknown guild on this shard, ignoring');
+        }
+    } catch (error) {
+        console.error('events.bc_eventCreate:', error.message);
+        error.message += ` For Channel: ${channelIDForEvent}`;
+        throw error;
+    }
+    return false;
 }
 
 async function handleEventEdit(msg, guildConfig) {
@@ -77,7 +101,7 @@ async function handleEventEdit(msg, guildConfig) {
             throw new Error(`Please have <@${existingEvent.userID}> edit, or ask an <@&${guildConfig.arole}> to edit.`);
         }
         let eventArray = parseEventString(eventString, existingEvent);
-        let validatedEvent = await validateEvent(eventArray, msg, currUser, existingEvent);
+        let validatedEvent = await validateEvent(eventArray, msg.guild.id, currUser, existingEvent);
         validatedEvent.reminderSent = undefined;
         let eventMessage;
         try {
@@ -271,7 +295,7 @@ async function handleEventListDeployed(msg, guildConfig) {
  * @param {UserModel} currUser
  * @returns {EventModel}
  */
-async function validateEvent(eventArray, msg, currUser, existingEvent) {
+async function validateEvent(eventArray, guildID, currUser, existingEvent) {
     if ((!eventArray['!TITLE'] && !existingEvent && !existingEvent.title) || eventArray['!TITLE'] === null) {
         throw new Error('You must include a title for your event.');
     } else if ((!eventArray['!FOR'] && eventArray['!FOR'] === null && !existingEvent && !existingEvent.duration) || eventArray['!FOR'] === null) {
@@ -290,7 +314,7 @@ async function validateEvent(eventArray, msg, currUser, existingEvent) {
         throw new Error(`The number of player slots needs to be a number, not: "${eventArray['!WITH']}"`);
     }
 
-    let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: msg.guild.id, userID: msg.member.id });
+    let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: guildID, userID: currUser.userID });
 
     if (eventArray['!ON'] || eventArray['!AT']) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
@@ -407,14 +431,14 @@ function nextValidIndex(startindex, sepIndexArray) {
 /**
  * returns the MessageEmbed(s) for an array of events passed
  *
- * @param {Message} msg
+ * @param {String} guildIconURL
  * @param {EventModel[]} charArray
  * @param {String} title
  * @param {Boolean} isShow
  *
  * @returns {MessageEmbed[]}
  */
-async function embedForEvent(msg, eventArray, title, isShow) {
+async function embedForEvent(guildIconURL, eventArray, title, isShow) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 1 : 4;
@@ -429,7 +453,8 @@ async function embedForEvent(msg, eventArray, title, isShow) {
         // .setURL('https://discord.js.org/')
         .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
-        .setThumbnail(msg.guild.iconURL());
+        .setThumbnail(guildIconURL);
+    // .setThumbnail(msg.guild.iconURL());
     let i = 0;
     for (let theEvent of eventArray) {
         if (i++ >= charPerEmbed) {
@@ -769,3 +794,4 @@ exports.handleEventListProposed = handleEventListProposed;
 exports.handleEventListDeployed = handleEventListDeployed;
 exports.getLinkForEvent = getLinkForEvent;
 exports.sendReminders = sendReminders;
+exports.bc_eventCreate = bc_eventCreate;

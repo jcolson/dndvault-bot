@@ -34,23 +34,33 @@ async function handleDefault(msg, guildConfig) {
     }
 }
 
-async function handleWebTimezone(userID, channelID, timezone, guildConfig) {
-    console.log(`${userID} ${channelID} ${timezone} ${guildConfig.prefix}`);
+/**
+ * handle updating timezone in a broadcast safe manner
+ * @param {String} userID
+ * @param {String} channelID
+ * @param {String} timezone
+ * @param {String} guildID
+ * @returns boolean
+ */
+async function bc_setUsersTimezone(userID, channelID, timezone, guildID) {
+    console.log(`users.bc_setUsersTimezone: ${userID} ${channelID} ${timezone} ${guildID}`);
     try {
-        let currUser = await UserModel.findOne({ userID: userID, guildID: guildConfig.guildID });
-        timezone = isValidTimeZone(timezone);
-        if (!currUser) {
-            currUser = new UserModel({ guildID: guildConfig.guildID, userID: userID, timezone: timezone });
-        } else {
-            // console.log('setting timezone to "%s"', timeZoneString);
-            currUser.timezone = timezone;
+        if (client.guilds.cache.get(guildID)) {
+            let currUser = await UserModel.findOne({ userID: userID, guildID: guildID });
+            timezone = isValidTimeZone(timezone);
+            if (!currUser) {
+                currUser = new UserModel({ guildID: guildID, userID: userID, timezone: timezone });
+            } else {
+                console.log('users.bc_setUsersTimezone: setting timezone to "%s"', timezone);
+                currUser.timezone = timezone;
+            }
+            await currUser.save();
+            return true;
         }
-        await currUser.save();
     } catch (error) {
-        console.error(`handleWebTimezone ${error.message}`);
-        return false;
+        console.error(`users.bc_setUsersTimezone ${error.message}`);
     }
-    return true;
+    return false;
 }
 
 /**
@@ -73,19 +83,24 @@ async function handleTimezone(msg, guildConfig) {
                 { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
             ], msg);
         } else {
-            timeZoneString = isValidTimeZone(timeZoneString);
-            if (!currUser) {
-                currUser = new UserModel({ guildID: msg.guild.id, userID: msg.member.id, timezone: timeZoneString });
+            let timezoneResult = await bc_setUsersTimezone(msg.member.id, msg.channel.id, timeZoneString, msg.guild.id);
+            // timeZoneString = isValidTimeZone(timeZoneString);
+            // if (!currUser) {
+            //     currUser = new UserModel({ guildID: msg.guild.id, userID: msg.member.id, timezone: timeZoneString });
+            // } else {
+            //     // console.log('setting timezone to "%s"', timeZoneString);
+            //     currUser.timezone = timeZoneString;
+            // }
+            // await currUser.save();
+            if (timezoneResult) {
+                await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone was successfully set to: ${currUser.timezone}` }], msg);
             } else {
-                // console.log('setting timezone to "%s"', timeZoneString);
-                currUser.timezone = timeZoneString;
+                throw new Error(`Could not set timezone: ${timeZoneString}`);
             }
-            await currUser.save();
-            await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone was successfully set to: ${currUser.timezone}` }], msg);
         }
         await msg.delete();
     } catch (error) {
-        console.log('handleTimezone:', error);
+        console.log('users.handleTimezone:', error);
         error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -136,4 +151,4 @@ async function hasRoleOrIsAdmin(member, roleId) {
 exports.handleTimezone = handleTimezone;
 exports.hasRoleOrIsAdmin = hasRoleOrIsAdmin;
 exports.handleDefault = handleDefault;
-exports.handleWebTimezone = handleWebTimezone;
+exports.bc_setUsersTimezone = bc_setUsersTimezone;

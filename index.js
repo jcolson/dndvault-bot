@@ -3,7 +3,6 @@ const { ShardingManager } = require('discord.js');
 const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
-const users = require('./handlers/users.js');
 const { connect, disconnect } = require('mongoose');
 
 const GuildModel = require('./models/Guild');
@@ -20,8 +19,6 @@ const express = require('express');
 const session = require('express-session');
 const Grant = require('grant').express();
 const grant = new Grant(Config);
-
-// const grant = require('grant').express();
 
 let shutdown = false;
 
@@ -193,18 +190,22 @@ let server = app
                 let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
                 // console.log(request.session.discordMe);
                 // console.log(requestUrl);
-                let status = await users.handleWebTimezone(
-                    request.session.discordMe.id,
-                    request.session.grant.dynamic.channel,
-                    requestUrl.searchParams.get('timezone'),
-                    request.session.guildConfig);
-                response.json({ status: status });
+                const timezoneToSet = requestUrl.searchParams.get('timezone');
+                let status = await manager.broadcastEval(
+                    `this.dnd_users.bc_setUsersTimezone
+                        ('${request.session.discordMe.id}',
+                        '${request.session.grant.dynamic.channel}',
+                        '${timezoneToSet}',
+                        '${request.session.guildConfig.guildID}');`
+                );
+                console.log(`users.bc_setUsersTimezone response: ${status.includes(true)}`);
+                response.json({ status: status.includes(true) });
             } else {
                 console.log(`we don't know the guild so we will error and let the user copy/paste`);
                 response.json({ status: 'false' });
             }
         } catch (error) {
-            console.error(error.message);
+            console.error(`error: route: ${ROUTE_TIMEZONESSET} - ${error.message}`);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.json({ status: 'false' });
@@ -235,7 +236,7 @@ let server = app
                 console.log(`event is not owned by current user, dereferencing`);
                 event = undefined;
             }
-            let userConfig = await UserModel.findOne({userID: request.session.discordMe.id, guildID: request.session.guildConfig.guildID});
+            let userConfig = await UserModel.findOne({ userID: request.session.discordMe.id, guildID: request.session.guildConfig.guildID });
             // console.log(userConfig);
             response.render('events', { title: 'Events', event: event, Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe, userConfig: userConfig })
         } catch (error) {
