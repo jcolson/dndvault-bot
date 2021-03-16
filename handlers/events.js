@@ -26,7 +26,7 @@ async function handleEventCreate(msg, guildConfig) {
     } catch (error) {
         console.error('events.handleEventCreate:', error.message);
         await utils.sendDirectOrFallbackToChannel([
-            { name: 'Error', value: `${error.message}` },
+            { name: 'Event Create Error', value: `${error.message}` },
             { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
         ], msg);
     }
@@ -75,62 +75,97 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, eventStrin
 }
 
 async function handleEventEdit(msg, guildConfig) {
-    let eventChannel = msg.channel;
+    let eventChannelID = guildConfig.channelForEvents ? guildConfig.channelForEvents : msg.channel.id;
+    // let eventChannel = msg.channel;
     try {
-        let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (!currUser || !currUser.timezone) {
-            throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
-        }
         let eventString = msg.content.substring((guildConfig.prefix + 'event edit').length + 1);
-        const eventID = eventString.substring(0, eventString.indexOf(' '));
+        const indexForEventID = eventString.indexOf(' ');
+        const eventID = eventString.substring(0, indexForEventID);
         // console.log(eventID);
         if (eventID.length < 1) {
             throw new Error('Not enough parameters');
         }
-        eventString = eventString.substring(eventString.indexOf(' '));
-        let existingEvent;
-        try {
-            existingEvent = await EventModel.findById(eventID);
-            if (!existingEvent) {
-                throw new Error();
-            }
-        } catch (error) {
-            throw new Error('Event not found.');
+        eventString = eventString.substring(indexForEventID);
+        let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, eventString);
+        if (eventEditResult) {
+            await msg.delete();
+        } else {
+            throw new Error("Could not edit event.");
         }
-        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole) && msg.member.id != existingEvent.userID) {
-            throw new Error(`Please have <@${existingEvent.userID}> edit, or ask an <@&${guildConfig.arole}> to edit.`);
-        }
-        let eventArray = parseEventString(eventString, existingEvent);
-        let validatedEvent = await validateEvent(eventArray, msg.guild.id, currUser, existingEvent);
-        validatedEvent.reminderSent = undefined;
-        let eventMessage;
-        try {
-            eventMessage = await (
-                msg.guild.channels.resolve(validatedEvent.channelID)
-            ).messages.fetch(validatedEvent.messageID);
-            await eventMessage.edit(await embedForEvent(msg, [validatedEvent], undefined, true));
-        } catch (error) {
-            console.log(`couldn't edit old event message on edit: ${error.message}`);
-            if (guildConfig.channelForEvents) {
-                eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
-            }
-            eventMessage = await eventChannel.send(await embedForEvent(msg, [validatedEvent], undefined, true));
-            validatedEvent.channelID = eventMessage.channel.id;
-            validatedEvent.messageID = eventMessage.id;
-            await eventMessage.react('✅');
-            await eventMessage.react('❎');
-            await eventMessage.react('▶️');
-            await eventMessage.react('🕟');
-            await sentMessage.react(`\u{1F5D1}`);
-        }
-        await validatedEvent.save();
-        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${msg.member.id}> - edited event successfully.`, inline: true }], eventMessage, msg.author);
-        await msg.delete();
     } catch (error) {
-        console.error('handleEventEdit:', error.message);
-        error.message += ` For Channel: ${eventChannel.name}`;
-        await utils.sendDirectOrFallbackToChannelError(error, msg);
+        console.error('events.handleEventEdit:', error.message);
+        await utils.sendDirectOrFallbackToChannel([
+            { name: 'Event Edit Error', value: `${error.message}` },
+            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+        ], msg);
     }
+}
+
+/**
+ * broadcast safe method of event creation
+ * @param {String} currUserId
+ * @param {String} channelIDForEvent
+ * @param {String} guildID
+ * @param {String} eventString
+ * @returns
+ */
+async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString) {
+    try {
+        // check and make sure that this client is servicing this guild (broadcast safe)
+        let theGuild = client.guilds.cache.get(guildID);
+        if (theGuild) {
+            let currUser = await UserModel.findOne({ userID: currUserId, guildID: guildID });
+            if (!currUser || !currUser.timezone) {
+                throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
+            } else {
+                let existingEvent;
+                try {
+                    existingEvent = await EventModel.findById(eventID);
+                    if (!existingEvent) {
+                        throw new Error();
+                    }
+                } catch (error) {
+                    throw new Error('Event not found.');
+                }
+                const guildMember = await theGuild.members.resolve(currUserId);
+                if (!await users.hasRoleOrIsAdmin(guildMember, guildApprovalRole) && currUserId != existingEvent.userID) {
+                    throw new Error(`Please have <@${existingEvent.userID}> edit, or ask an <@&${guildApprovalRole}> to edit.`);
+                }
+                let eventArray = parseEventString(eventString, existingEvent);
+                let validatedEvent = await validateEvent(eventArray, guildID, currUser, existingEvent);
+                validatedEvent.reminderSent = undefined;
+                let eventMessage;
+                try {
+                    eventMessage = await (
+                        theGuild.channels.resolve(validatedEvent.channelID)
+                    ).messages.fetch(validatedEvent.messageID);
+                    //@todo find all embedForEvent(msg and change to theGuild.iconURL()
+                    await eventMessage.edit(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
+                } catch (error) {
+                    console.log(`couldn't edit old event message on edit: ${error.message}`);
+                    let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
+                    eventMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
+                    validatedEvent.channelID = eventMessage.channel.id;
+                    validatedEvent.messageID = eventMessage.id;
+                    await eventMessage.react('✅');
+                    await eventMessage.react('❎');
+                    await eventMessage.react('▶️');
+                    await eventMessage.react('🕟');
+                    await sentMessage.react(`\u{1F5D1}`);
+                }
+                await validatedEvent.save();
+                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${currUserId}> - edited event successfully.`, inline: true }], eventMessage, await client.users.resolve(currUserId));
+                return true;
+            }
+        } else {
+            console.log('events.bc_eventEdit: unknown guild on this shard, ignoring');
+        }
+    } catch (error) {
+        console.error('events.bc_eventEdit:', error.message);
+        error.message += ` For Channel: ${channelIDForEvent}`;
+        throw error;
+    }
+    return false;
 }
 
 async function handleEventRemove(msg, guildConfig) {
@@ -192,7 +227,7 @@ async function handleEventShow(msg, guildConfig) {
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
         }
-        const embedEvent = await embedForEvent(msg, [showEvent], undefined, true);
+        const embedEvent = await embedForEvent(msg.guild.iconURL(), [showEvent], undefined, true);
         if (guildConfig.channelForEvents) {
             eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
         }
@@ -233,7 +268,7 @@ async function handleEventList(msg, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 3);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg, eventsArray, `All Events`, false);
+            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `All Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             await msg.delete();
         } else {
@@ -255,7 +290,7 @@ async function handleEventListProposed(msg, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 1);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: null }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg, eventsArray, `PROPOSED Events`, false);
+            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             await msg.delete();
         } else {
@@ -277,7 +312,7 @@ async function handleEventListDeployed(msg, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 1);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $ne: null } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg, eventsArray, `DEPLOYED Events`, false);
+            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             await msg.delete();
         } else {
@@ -666,7 +701,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = user.id;
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
+    await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
 }
 
 async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
@@ -727,7 +762,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
     // console.log('Character will be playing: ' + character.name);
     // console.log('attendees: ', eventForMessage.attendees);
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
+    await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
 }
 
 async function attendeeRemove(reaction, user, eventForMessage) {
@@ -743,7 +778,7 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     });
     // console.log(eventForMessage);
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message, [eventForMessage], undefined, true));
+    await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
 }
 
 async function sendReminders(client) {
@@ -757,7 +792,7 @@ async function sendReminders(client) {
             let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
             let channel = new TextChannel(guild, { id: theEvent.channelID });
             let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
-            let eventEmbeds = await embedForEvent(msg, [theEvent], "Reminder of Upcoming Event", true);
+            let eventEmbeds = await embedForEvent(guild.iconURL(), [theEvent], "Reminder of Upcoming Event", true);
             let usersToNotify = [];
             if (theEvent.dm) {
                 usersToNotify.push(theEvent.dm.substring(3, theEvent.dm.length - 1));
@@ -795,3 +830,4 @@ exports.handleEventListDeployed = handleEventListDeployed;
 exports.getLinkForEvent = getLinkForEvent;
 exports.sendReminders = sendReminders;
 exports.bc_eventCreate = bc_eventCreate;
+exports.bc_eventEdit = bc_eventEdit;
