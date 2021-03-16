@@ -17,6 +17,7 @@ const calendar = require('./handlers/calendar.js');
 
 const express = require('express');
 const session = require('express-session');
+const { Stats } = require('fs');
 const Grant = require('grant').express();
 const grant = new Grant(Config);
 
@@ -72,7 +73,7 @@ let server = app
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .use(express.json())
     .use(async function (request, response, next) {
-        console.log(`in middleware checking if I need to update guildID, guildID status: ${request.session.guildConfig ? true : false}`);
+        console.log(`in middleware checking if I need to update guildID (and channelID), guildID status: ${request.session.guildConfig ? true : false}`);
         const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
         const guildID = requestUrl.searchParams.get('guildID');
         if (guildID) {
@@ -92,6 +93,10 @@ let server = app
             }
         } else {
             console.log(`Don't need to (or can't) retrieve a guild ...`);
+        }
+        const channelID = requestUrl.searchParams.get('channel');
+        if (channelID) {
+            request.session.channelID = channelID;
         }
         next();
     })
@@ -194,7 +199,7 @@ let server = app
                 let status = await manager.broadcastEval(
                     `this.dnd_users.bc_setUsersTimezone
                         ('${request.session.discordMe.id}',
-                        '${request.session.grant.dynamic.channel}',
+                        '${request.session.channelID}',
                         '${timezoneToSet}',
                         '${request.session.guildConfig.guildID}');`
                 );
@@ -249,8 +254,39 @@ let server = app
     .post(ROUTE_EVENTSSET, async (request, response) => {
         try {
             console.log('serving ' + ROUTE_EVENTSSET);
-            console.log(request.body);
-            response.json({ status: 'false' });
+            // console.log(request.body);
+            let status = false;
+            if (request.session.guildConfig) {
+                if (request.body._id) {
+                    console.log(`must be an edit ... _id exists ${request.body._id}`);
+                    let channelIDForEvent = request.session.guildConfig.channelForEvents?request.session.guildConfig.channelForEvents:request.session.channelID;
+                    // @todo build eventString;
+                    let eventString = '';
+
+                        //eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString
+                        status = await manager.broadcastEval(
+                            `this.dnd_users.bc_eventEdit
+                        ('${request.body._id}',
+                        '${request.session.discordMe.id}',
+                        '${channelIDForEvent}',
+                        '${request.session.guildConfig.guildID}',
+                        '${request.session.guildConfig.arole}',
+                        '${eventString}');`
+                        );
+                } else {
+                    // @todo implement create
+                    console.log(`new event, no _id`);
+                    //currUserId, channelIDForEvent, guildID, eventString
+                    status = await manager.broadcastEval(
+                        `this.dnd_users.bc_eventCreate
+                        ('${request.session.discordMe.id}',
+                        '${request.session.grant.dynamic.channel}',
+                        '${timezoneToSet}',
+                        '${request.session.guildConfig.guildID}');`
+                    );
+                }
+            }
+            response.json({ status: status });
         } catch (error) {
             console.error(error.message);
             response.setHeader('Content-Type', 'text/html');
