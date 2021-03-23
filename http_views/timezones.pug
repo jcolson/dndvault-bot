@@ -3,7 +3,7 @@ extends layout.pug
 
 block content
     .top
-        input(name="name" id="timezones-name")
+        input(name='name' id='timezones-name' type='text')
         .header-text
             .
                 Click a row below to set your timezone.
@@ -26,7 +26,7 @@ block content
                 document.getElementById('timezones-info').innerHTML='Your timezone has been set to &quot;'+timezone+'&quot;';
             }
         }
-    .thebody
+    .tzbody
         table(id="timezones")
             tr: th Timezone List
             -
