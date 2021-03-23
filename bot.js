@@ -125,7 +125,7 @@ client.on('message', async (msg) => {
             if (!msg.guild) {
                 console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}:bot message, ignoring`);
             } else {
-                console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}:bot message, ignoring`);
+                console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member?msg.member.displayName:'unknown'}):${msg.content}:bot message, ignoring`);
             }
             return;
         }
