@@ -15,10 +15,13 @@ const roll = require('./handlers/roll.js');
 const DEFAULT_CONFIGDIR = __dirname;
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 
+Client.prototype.dnd_users = users;
+
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [shrd:${client.shard.ids}] %s` });
 
 global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
+global.client = client;
 
 /**
  * connect to the mongodb
@@ -122,7 +125,7 @@ client.on('message', async (msg) => {
             if (!msg.guild) {
                 console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}:bot message, ignoring`);
             } else {
-                console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}:bot message, ignoring`);
+                console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member?msg.member.displayName:'unknown'}):${msg.content}:bot message, ignoring`);
             }
             return;
         }

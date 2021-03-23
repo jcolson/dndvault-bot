@@ -944,7 +944,7 @@ async function handleRemove(msg, guildConfig) {
 async function handleApprove(msg, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            const charIdToApprove = msg.content.substr((guildConfig.prefix + 'approve').length + 1);
+            const charIdToApprove = msg.content.substring((guildConfig.prefix + 'approve').length + 1);
             // console.log('charid: ' + charIdToApprove);
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
@@ -978,7 +978,7 @@ async function handleApprove(msg, guildConfig) {
  */
 async function handleShow(msg, guildConfig) {
     try {
-        const charID = msg.content.substr((guildConfig.prefix + 'show').length + 1);
+        const charID = msg.content.substring((guildConfig.prefix + 'show').length + 1);
         const showUser = (await CharModel.find({ id: charID, guildID: msg.guild.id }).sort({ isUpdate: 'desc' }))[0];
         if (!showUser) {
             throw new Error(`That character (${charID}) doesn't exist`);
@@ -998,7 +998,7 @@ async function handleShow(msg, guildConfig) {
  */
 async function handleCampaign(msg, guildConfig) {
     try {
-        const parameterString = msg.content.substr((guildConfig.prefix + 'campaign').length + 1);
+        const parameterString = msg.content.substring((guildConfig.prefix + 'campaign').length + 1);
         const charID = parameterString.substring(0, parameterString.indexOf(' '));
         const campaignID = parameterString.substring(parameterString.indexOf(' ') + 1);
         // console.log(`charid: ${charID} campaignID: ${campaignID}`);

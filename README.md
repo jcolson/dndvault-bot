@@ -35,7 +35,7 @@ DND Vault Table of Contents
 
 # DND Vault Discord BOT
 
-D&D Character Vault, Event Management and Polling for Discord.  The most complete Dungeons and Dragons event scheduling and character management bot out there!
+The most complete Dungeons and Dragons Character Vault, Event Management, Polling and Dice Roller for your Discord server!
 
 ## Character Vault
 

@@ -6,14 +6,10 @@ const he = require('he');
 
 /**
  *
- * @param {*} request
- * @param {*} response
- * @param {*} url
+ * @param {String} userID
+ * @param {Array} excludeGuild
  */
-async function handleCalendarRequest(requestUrl) {
-    console.log('handling calendar request: search params: ', requestUrl.searchParams);
-    const userID = requestUrl.searchParams.get('userID');
-    const excludeGuild = requestUrl.searchParams.get('exclude') ? requestUrl.searchParams.get('exclude').split(',') : [];
+async function handleCalendarRequest(userID, excludeGuild) {
     if (!userID) {
         throw new Error('No userID passed!');
     }

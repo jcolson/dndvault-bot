@@ -3,7 +3,15 @@
     h3
         img(src= Config.dndVaultIcon)
         .
-            D&amp;D Vault - #{title} #{discordMe?' ('+discordMe.username+'#'+discordMe.discriminator+')':''}
+            D&amp;D Vault - #{title} #{discordMe?'('+discordMe.username+'#'+discordMe.discriminator+')':''}
+    .
+        #{guildConfig?'@ '+guildConfig.name:''}
+.topnav
     a(href= '/') Home
-    |&nbsp;|&nbsp;
+    //- |&nbsp;|&nbsp;
     a(href= '/timezones') Timezones
+    if discordMe
+        //- |&nbsp;|&nbsp;
+        a(href= '/events') Events
+        //- |&nbsp;|&nbsp;
+        a(href= '/calendar?userID='+discordMe.id) Calendar ICS

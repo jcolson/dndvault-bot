@@ -1,0 +1,70 @@
+//- index.pug
+extends layout.pug
+
+block content
+    .thebody
+        b Work in progress - this form does not work yet ... please move on ...
+        div(id='event-info')
+        form(id='event-form')
+            .row
+                .column
+                .column
+                    | Title:
+                    input(type='text' name='title' id='event-title' placeholder='Title' required value=`${event&&event.title?event.title:''}`)
+                    | DM/GM:
+                    input(type='text' name='dm' id='event-dm' placeholder='DM/GM' value=`${event&&event.dm?event.dm:''}`)
+                    | Duration (in hours):
+                    input(type='number' name='duration_hours' id='event-duration_hours' min='0' step='.01' required placeholder='Duration (in hours)' value=`${event&&event.duration_hours?event.duration_hours:''}`)
+                    | Start Date (in #{userConfig.timezone} TZ):
+                    input(type='date' name='date' id='event-date' required value=`${event?event.date_time.toISOString().substring(0,10):''}`)
+                    | Start Time (in #{userConfig.timezone} TZ):
+                    input(type='time' name='time' id='event-time' required value=`${event?event.date_time.toISOString().substring(11,16):''}`)
+                .column
+                    | Number of Players:
+                    input(type='number' name='number_player_slots' id='event-number_player_slots' placeholder='Number of Players' min='1' required value=`${event&&event.number_player_slots?event.number_player_slots:''}`)
+                    | Campaign:
+                    input(type='text' name='campaign' id='event-campaign' placeholder='Campaign' value=`${event&&event.campaign?event.campaign:''}`)
+                    | Description:
+                    textarea(name='description' id='event-description' placeholder='Description' required) #{event&&event.description?event.description:''}
+                .column
+            button(type='button' id='event-save' onclick='setEvent();') Save
+    script.
+        event=!{event?JSON.stringify(event):'{}'};
+        // if timezone isn't set yet, disable the form
+        if ('#{userConfig?userConfig.timezone:''}' == '') {
+            document.getElementById('event-info').innerHTML='You must set your timezone prior to editing / creating events.';
+            document.getElementById('event-save').disabled=true;
+            document.getElementById('event-form').style.display='none';
+        }
+        async function setEvent() {
+            console.log(`setEvent fired: ${event.guildID} or #{guildConfig.guildID}`);
+            const invalids = document.querySelectorAll(':invalid');
+            if (invalids.length > 0) {
+                for (invalid of invalids) {
+                    console.log('invalid input: '+invalid.name);
+                }
+                document.getElementById('event-info').innerHTML='Invalid form fields, please check your entries.';
+            } else if ('#{guildConfig?guildConfig.guildID:''}' == '') {
+                document.getElementById('event-info').innerHTML='Unknown guild to create for, please follow the link from `!event create` on discord.';
+            } else {
+                event.guildID=#{guildConfig.guildID};
+                event.userID=#{discordMe.id};
+                event.title=document.getElementById('event-title').value;
+                event.dm=document.getElementById('event-dm').value;
+                event.duration_hours=document.getElementById('event-duration_hours').value;
+                event.number_player_slots=document.getElementById('event-number_player_slots').value;
+                event.campaign=document.getElementById('event-campaign').value;
+                event.description=document.getElementById('event-description').value;
+                event.date_time=new Date(document.getElementById('event-date').value+'T'+document.getElementById('event-time').value);
+                try {
+                    const responseJson = await postData('#{Config.httpServerURL}/events/set', event);
+                    if (responseJson.status == 'false') {
+                        document.getElementById('event-info').innerHTML='Could not update due to error from backend, sorry.';
+                    } else {
+                        document.getElementById('event-info').innerHTML='Updated!';
+                    }
+                } catch (error) {
+                    document.getElementById('event-info').innerHTML='Error: '+error.message;
+                }
+            }
+        }
