@@ -7,7 +7,13 @@ async function handleDiceRoll(msg, guildConfig) {
         const rollit = new DiceRoll(diceParam);
         // console.debug(`JSON:`, rollit.toJSON());
         // console.debug(`Index of ${rollit.notation} in ${rollit.output} is ${rollit.output.lastIndexOf(':')}`);
-        await utils.sendDirectOrFallbackToChannel({ name: `🎲${rollit.notation}🎲`, value: `${rollit.output.substring(rollit.output.lastIndexOf(': ')+2)}` }, msg, undefined, true);
+        let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ')+2);
+        let embedFields = [];
+        for (let i = 0; i < rollitValut.length; i += 1000) {
+            const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + 1000));
+            embedFields.push({ name: `🎲${rollit.notation}🎲`, value: `${cont}` });
+        }
+        await utils.sendDirectOrFallbackToChannel(embedFields, msg, undefined, true);
         await msg.delete();
 
     } catch (error) {
