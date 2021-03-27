@@ -103,13 +103,13 @@ let server = app
             if (channelID) {
                 request.session.channelID = channelID;
             }
+            next();
         } catch (error) {
             console.error("guildID/channelID middleware error", error);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.end("ERROR PROCESSING");
         }
-        next();
     })
     .get(ROUTE_POSTOAUTH, async (request, response) => {
         try {
