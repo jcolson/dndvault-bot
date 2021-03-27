@@ -30,6 +30,7 @@ DND Vault Table of Contents
     - [Bot Commands for testing](#bot-commands-for-testing)
     - [Test Bot Invite](#test-bot-invite)
     - [Mongodb docker](#mongodb-docker)
+    - [Run bot locally in container](#run-bot-locally-in-container)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -310,4 +311,15 @@ repair mongodb in container
 ```sh
 export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
 docker run -it -v ${VOLUME}:/data/db mongo:4.4.3-bionic mongod --repair
+```
+
+### Run bot locally in container
+
+```sh
+docker build -t dndvaultlocal . && \
+docker container stop dndvault && docker container rm dndvault && \
+export VOLUME=/Users/jcolson/src/personal/dndvault && \
+docker run --name dndvault -v ${VOLUME}:/config \
+    -p 8080:8080 \
+    --restart always -d dndvaultlocal
 ```
