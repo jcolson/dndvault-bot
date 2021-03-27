@@ -74,29 +74,36 @@ let server = app
     .use(express.json())
     .use(async function (request, response, next) {
         console.log(`in middleware checking if I need to update guildID (and channelID), guildID status: ${request.session.guildConfig ? true : false}`);
-        const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-        const guildID = requestUrl.searchParams.get('guildID');
-        if (guildID) {
-            if (!request.session.guildConfig || request.session.guildConfig.guildID != guildID) {
-                console.log(`Retrieving guild info for ${guildID}`);
-                const guildConfig = await GuildModel.findOne({ guildID: guildID });
+        try {
+            const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            const guildID = requestUrl.searchParams.get('guildID');
+            if (guildID) {
+                if (!request.session.guildConfig || request.session.guildConfig.guildID != guildID) {
+                    console.log(`Retrieving guild info for ${guildID}`);
+                    const guildConfig = await GuildModel.findOne({ guildID: guildID });
+                    if (guildConfig) {
+                        request.session.guildConfig = guildConfig;
+                    }
+                }
+            } else if (!request.session.guildConfig && request.session.discordMe) {
+                console.log(`Retrieving any guild for user, ${request.session.discordMe.id}`);
+                const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
+                const guildConfig = await GuildModel.findOne({ guildID: userConfig.guildID });
                 if (guildConfig) {
                     request.session.guildConfig = guildConfig;
                 }
+            } else {
+                console.log(`Don't need to (or can't) retrieve a guild ...`);
             }
-        } else if (!request.session.guildConfig && request.session.discordMe) {
-            console.log(`Retrieving any guild for user, ${request.session.discordMe.id}`);
-            const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
-            const guildConfig = await GuildModel.findOne({ guildID: userConfig.guildID });
-            if (guildConfig) {
-                request.session.guildConfig = guildConfig;
+            const channelID = requestUrl.searchParams.get('channel');
+            if (channelID) {
+                request.session.channelID = channelID;
             }
-        } else {
-            console.log(`Don't need to (or can't) retrieve a guild ...`);
-        }
-        const channelID = requestUrl.searchParams.get('channel');
-        if (channelID) {
-            request.session.channelID = channelID;
+        } catch (error) {
+            console.error("guildID/channelID middleware error", error);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end("ERROR PROCESSING");
         }
         next();
     })
@@ -259,20 +266,20 @@ let server = app
             if (request.session.guildConfig) {
                 if (request.body._id) {
                     console.log(`must be an edit ... _id exists ${request.body._id}`);
-                    let channelIDForEvent = request.session.guildConfig.channelForEvents?request.session.guildConfig.channelForEvents:request.session.channelID;
+                    let channelIDForEvent = request.session.guildConfig.channelForEvents ? request.session.guildConfig.channelForEvents : request.session.channelID;
                     // @todo build eventString;
                     let eventString = '';
 
-                        //eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString
-                        status = await manager.broadcastEval(
-                            `this.dnd_users.bc_eventEdit
+                    //eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString
+                    status = await manager.broadcastEval(
+                        `this.dnd_users.bc_eventEdit
                         ('${request.body._id}',
                         '${request.session.discordMe.id}',
                         '${channelIDForEvent}',
                         '${request.session.guildConfig.guildID}',
                         '${request.session.guildConfig.arole}',
                         '${eventString}');`
-                        );
+                    );
                 } else {
                     // @todo implement create
                     console.log(`new event, no _id`);
