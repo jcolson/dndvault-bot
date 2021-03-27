@@ -61,6 +61,7 @@ const ROUTE_TIMEZONES = "/timezones";
 const ROUTE_TIMEZONESSET = "/timezones/set";
 const ROUTE_EVENTS = "/events";
 const ROUTE_EVENTSSET = "/events/set";
+const ROUTE_HEALTH = "/health";
 
 let app = express();
 
@@ -72,6 +73,9 @@ let server = app
     .use(grant)
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .use(express.json())
+    .get(ROUTE_HEALTH, async(request, response) => {
+        response.json({ status: 'UP' });
+    })
     .use(async function (request, response, next) {
         console.log(`in middleware checking if I need to update guildID (and channelID), guildID status: ${request.session.guildConfig ? true : false}`);
         try {
