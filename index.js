@@ -1,5 +1,6 @@
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
 const { ShardingManager } = require('discord.js');
+const AutoPoster = require('topgg-autoposter');
 const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
@@ -52,6 +53,13 @@ manager.on('shardCreate', (shard) => {
         }
     });
 });
+
+// TOP.GG stats poster
+const poster = AutoPoster(Config.topggToken, manager);
+poster.on('posted', () => {
+    console.log('TOP.GG: Posted stats');
+})
+
 manager.spawn();
 
 const ROUTE_ROOT = "/";
@@ -73,7 +81,7 @@ let server = app
     .use(grant)
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .use(express.json())
-    .get(ROUTE_HEALTH, async(request, response) => {
+    .get(ROUTE_HEALTH, async (request, response) => {
         response.json({ status: 'UP' });
     })
     .use(async function (request, response, next) {
