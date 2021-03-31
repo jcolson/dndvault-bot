@@ -10,7 +10,7 @@ const { MessageEmbed } = require("discord.js");
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
     let embed = new MessageEmbed()
         .setColor('#0099ff');
-    embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.member ? msg.member.id : 'unknown user'}> - ${error.message}` });
+    embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM);
 }
 

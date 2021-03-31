@@ -35,8 +35,8 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
             { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
             { name: 'Event Channel', value: channelForEvents.name, inline: true },
-            { name: 'Poll Channel', value: channelForPolls.name, inline: true },
-            { name: 'BOT Version', value: vaultVersion, inline: true }],
+            { name: 'Poll Channel', value: channelForPolls.name, inline: true }
+            ],
             msg);
         await msg.delete();
     } catch (error) {
@@ -304,11 +304,10 @@ async function handleConfigPollChannel(msg, guildConfig) {
 /**
  *
  * @param {Message} msg
- * @param {GuildModel} guildConfig
  */
-async function handleStats(msg, guildConfig) {
+async function handleStats(msg) {
     try {
-        if (msg.member.id == Config.adminUser) {
+        if (msg.author.id == Config.adminUser) {
             let totalGuilds = (await msg.client.shard.fetchClientValues('guilds.cache.size'))
                 .reduce((acc, guildCount) => acc + guildCount, 0);;
             let totalMembers = (await msg.client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'))
@@ -317,9 +316,16 @@ async function handleStats(msg, guildConfig) {
                 { name: 'Server count', value: totalGuilds, inline: true },
                 { name: 'Member count', value: totalMembers, inline: true },
                 { name: 'Shard count', value: msg.client.shard.count, inline: true },
-                { name: 'Uptime', value: getUptime(), inline: true }
+                { name: 'Uptime', value: getUptime(), inline: true },
+                { name: 'BOT Version', value: vaultVersion, inline: true }
             ], msg);
-            await msg.delete();
+            if (msg.guild) {
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`handleStats: ${error.message}`);
+                }
+            }
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);

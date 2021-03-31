@@ -132,12 +132,14 @@ client.on('message', async (msg) => {
 
         let messageContentLowercase = msg.content.toLowerCase();
         if (!msg.guild) {
-            console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}`);
             if (messageContentLowercase.startsWith('help')) {
                 help.handleHelp(msg, null, Config.inviteURL);
+            } else if (messageContentLowercase.startsWith('stats')) {
+                config.handleStats(msg);
             } else {
-                await utils.sendDirectOrFallbackToChannel({name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.'}, msg);
+                await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
             }
+            console.log(`msg processed: DIRECT:${msg.author.tag}:${msg.content}`);
             return;
         }
         let guildConfig = await config.confirmGuildConfig(msg);
@@ -202,7 +204,7 @@ client.on('message', async (msg) => {
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'timezone')) {
             users.handleTimezone(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'stats')) {
-            config.handleStats(msg, guildConfig);
+            config.handleStats(msg);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config approval')) {
             config.handleConfigApproval(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config eventchannel')) {
