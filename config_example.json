@@ -1,5 +1,6 @@
 {
     "token": "your_discord_bot_token",
+    "topggToken": "your_topgg_token",
     "mongoServer": "localhost",
     "mongoPort": 27017,
     "mongoUser": "mongo_dnd_vault_username",

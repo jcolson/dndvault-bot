@@ -27,14 +27,14 @@ global.client = client;
  * connect to the mongodb
  */
 (async () => {
-    console.log('mongo user: %s ... connecting', Config.mongoUser);
+    console.info('connecting as mongo user: %s ...', Config.mongoUser);
     await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/' + Config.mongoSchema + '?authSource=' + Config.mongoSchema, {
         useNewUrlParser: true,
         useFindAndModify: false,
         useUnifiedTopology: true,
         useCreateIndex: true
     });
-    console.log('Connected to mongo.  Logging into Discord now ...');
+    console.info('Connected to mongo DB.  Logging into Discord now ...');
     return client.login(Config.token);
 })();
 
@@ -42,7 +42,7 @@ global.client = client;
  * listen for emitted events from discordjs
  */
 client.on('ready', () => {
-    console.info(`logged in as ${client.user.tag}`);
+    console.info(`D&D Vault Bot - logged in as ${client.user.tag}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
 });
 
@@ -62,21 +62,21 @@ client.on('messageReactionAdd', async (reaction, user) => {
         return;
     }
     if (reaction.message.author.id === reaction.message.guild.me.id) {
-        console.log(`reactionadd: ${reaction.message.guild.name}:${user.username}(bot?${user.bot}):${reaction.emoji.name}:${reaction.message.content}`);
+        console.info(`messageReactionAdd:${reaction.message.guild.name}:${user.username}(bot?${user.bot}):${reaction.emoji.name}:${reaction.message.content}`);
         if (!user.bot) {
             try {
                 // Now the message has been cached and is fully available
                 await utils.checkChannelPermissions(reaction.message);
                 let guildConfig = await config.confirmGuildConfig(reaction.message);
                 if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
-                    console.log(`${reaction.message.author}'s POLL "${reaction.message.id}" gained a reaction!`);
+                    console.debug(`messageReactionAdd:POLL:${reaction.message.author}'s"${reaction.message.id}" gained a reaction!`);
                     await poll.handleReactionAdd(reaction, user, guildConfig);
                 } else {
-                    console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
+                    console.debug(`messageReactionAdd:EVENT:${reaction.message.author}'s "${reaction.message.id}" gained a reaction!`);
                     await events.handleReactionAdd(reaction, user, guildConfig);
                 }
             } catch (error) {
-                console.error(`caught exception handling reaction`, error);
+                console.error(`messageReactionAdd:caught exception handling reaction`, error);
                 await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
             }
         }
@@ -122,27 +122,29 @@ client.on('message', async (msg) => {
         }
         if (msg.author.bot) {
             // it's a message from a bot, ignore
-            if (!msg.guild) {
-                console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}:bot message, ignoring`);
-            } else {
-                console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member?msg.member.displayName:'unknown'}):${msg.content}:bot message, ignoring`);
-            }
+            // if (!msg.guild) {
+            //     console.info(`msg: DIRECT:${msg.author.tag}:${msg.content}:bot message, ignoring`);
+            // } else {
+            //     console.debug(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member?msg.member.displayName:'unknown'}):${msg.content}:bot message, ignoring`);
+            // }
             return;
         }
 
         let messageContentLowercase = msg.content.toLowerCase();
         if (!msg.guild) {
-            console.log(`msg: DIRECT:${msg.author.tag}:${msg.content}`);
             if (messageContentLowercase.startsWith('help')) {
                 help.handleHelp(msg, null, Config.inviteURL);
+            } else if (messageContentLowercase.startsWith('stats')) {
+                config.handleStats(msg);
             } else {
-                await utils.sendDirectOrFallbackToChannel({name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.'}, msg);
+                await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
             }
+            console.log(`msg processed: DIRECT:${msg.author.tag}:${msg.content}`);
             return;
         }
         let guildConfig = await config.confirmGuildConfig(msg);
         if (!messageContentLowercase.startsWith(guildConfig.prefix)) return;
-        console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}`);
+        // console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}`);
         if (messageContentLowercase.startsWith(guildConfig.prefix + 'help')) {
             help.handleHelp(msg, guildConfig, Config.inviteURL);
             return;
@@ -152,6 +154,7 @@ client.on('message', async (msg) => {
             await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
             return;
         }
+        let dontLog = false;
         if (messageContentLowercase.startsWith(guildConfig.prefix + 'register manual')) {
             characters.handleRegisterManual(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'register')) {
@@ -201,7 +204,7 @@ client.on('message', async (msg) => {
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'timezone')) {
             users.handleTimezone(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'stats')) {
-            config.handleStats(msg, guildConfig);
+            config.handleStats(msg);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config approval')) {
             config.handleConfigApproval(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config eventchannel')) {
@@ -220,6 +223,11 @@ client.on('message', async (msg) => {
             config.handleConfig(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'roll')) {
             roll.handleDiceRoll(msg, guildConfig);
+        } else {
+            dontLog = true;
+        }
+        if (!dontLog) {
+            console.log(`msg processed: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}`);
         }
     } catch (error) {
         console.error('on_message: ', error);
