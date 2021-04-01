@@ -26,12 +26,11 @@ async function handleCalendarRequest(userID, excludeGuild) {
     returnICS += 'COLOR:34:50:105\r\n';
     returnICS += 'CALSCALE:GREGORIAN\r\n';
     let cutOffDate = new Date();
-    cutOffDate.setDate(cutOffDate.getDate() - 7);
+    cutOffDate.setDate(cutOffDate.getDate() - 365);
     let userEvents = await EventModel.find(
         {
             $and: [
                 { $or: [{ 'dm': "<@!" + userID + ">" }, { 'userID': userID }, { "attendees.userID": userID }] },
-                // { $or: [{ 'userID': userID }, { "attendees.userID": userID }] },
                 { date_time: { $gt: cutOffDate } }
             ]
         }
@@ -51,7 +50,7 @@ async function handleCalendarRequest(userID, excludeGuild) {
             // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>\r\n`;
             returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
             returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
-            returnICS += `SUMMARY:🗡${encodeStringICS(guildConfig.name)} - ${encodeStringICS(currEvent.title)}\r\n`;
+            returnICS += `SUMMARY:🗡${encodeStringICS(currEvent.title)} [Deployed? ${currEvent.deployedByID?'✅':'❎'}] (${encodeStringICS(guildConfig.name)})\r\n`;
             returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
             returnICS += `END:VEVENT\r\n`;
         }
