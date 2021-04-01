@@ -70,6 +70,7 @@ const ROUTE_TIMEZONESSET = "/timezones/set";
 const ROUTE_EVENTS = "/events";
 const ROUTE_EVENTSSET = "/events/set";
 const ROUTE_HEALTH = "/health";
+const ROUTE_LOGOUT = "/logout";
 
 let app = express();
 
@@ -117,6 +118,21 @@ let server = app
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.end("ERROR PROCESSING");
+        }
+    })
+    .get(ROUTE_LOGOUT, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_LOGOUT);
+            request.session.discordMe = undefined;
+            response.redirect(url.format({
+                pathname: ROUTE_ROOT,
+            }));
+        }
+        catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
         }
     })
     .get(ROUTE_POSTOAUTH, async (request, response) => {
