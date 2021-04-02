@@ -169,48 +169,53 @@ client.on('message', async (msg) => {
             config: "config"
         }
 
+        let guildConfig = await config.confirmGuildConfig(msg);
+        let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
+
         let messageContentLowercase = msg.content.toLowerCase();
-        if (!msg.guild) {
-            if (messageContentLowercase.includes(COMMANDS.help)) {
-                help.handleHelp(msg, Config.defaultPrefix, Config.inviteURL);
-            } else if (messageContentLowercase.includes(COMMANDS.stats)) {
-                config.handleStats(msg);
-            } else if (messageContentLowercase.includes(COMMANDS.roll)) {
-                let msgParms = parseMessageParms(msg.content, COMMANDS.roll, Config.defaultPrefix);
-                roll.handleDiceRoll(msg, msgParms);
-            } else {
-                await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
-            }
-            console.log(`msg processed: DIRECT:${msg.author.tag}:${msg.content}`);
+        let handled = false;
+        if (messageContentLowercase.includes(COMMANDS.help)) {
+            help.handleHelp(msg, commandPrefix, Config.inviteURL);
+            handled = true;
+        } else if (messageContentLowercase.includes(COMMANDS.stats)) {
+            config.handleStats(msg);
+            handled = true;
+        } else if (messageContentLowercase.includes(COMMANDS.roll)) {
+            let msgParms = parseMessageParms(msg.content, COMMANDS.roll, commandPrefix);
+            roll.handleDiceRoll(msg, msgParms);
+            handled = true;
+        } else if (!msg.guild) {
+            await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
             return;
         }
-        let guildConfig = await config.confirmGuildConfig(msg);
+
+        if (handled) {
+            console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}(${msg.member ? msg.member.displayName + ":" : ""})${msg.content}`);
+            return;
+        }
+
         if (!messageContentLowercase.startsWith(guildConfig.prefix)) return;
         // remove the prefix from content
         messageContentLowercase = messageContentLowercase.substring(guildConfig.prefix.length);
-        console.log(`messageContentLowercase: ${messageContentLowercase}`);
-        // check if user needs help prior to checking channel permissions
-        if (messageContentLowercase.startsWith(COMMANDS.help)) {
-            help.handleHelp(msg, guildConfig.prefix, Config.inviteURL);
-            return;
-        }
+        // console.log(`messageContentLowercase: ${messageContentLowercase}`);
         await utils.checkChannelPermissions(msg);
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
             await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
             return;
         }
+
         let dontLog = false;
         if (messageContentLowercase.startsWith(COMMANDS.registerManual)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.registerManual, guildConfig.prefix);
+            let msgParms = parseMessageParms(msg.content, COMMANDS.registerManual, commandPrefix);
             characters.handleRegisterManual(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.register)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.register, guildConfig.prefix);
+            let msgParms = parseMessageParms(msg.content, COMMANDS.register, commandPrefix);
             characters.handleRegister(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.updateManual)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.updateManual, guildConfig.prefix);
+            let msgParms = parseMessageParms(msg.content, COMMANDS.updateManual, commandPrefix);
             characters.handleUpdateManual(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.update)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.update, guildConfig.prefix);
+            let msgParms = parseMessageParms(msg.content, COMMANDS.update, commandPrefix);
             characters.handleUpdate(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.changes)) {
             characters.handleChanges(msg, guildConfig);
@@ -252,8 +257,6 @@ client.on('message', async (msg) => {
             users.handleDefault(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.timezone)) {
             users.handleTimezone(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.stats)) {
-            config.handleStats(msg);
         } else if (messageContentLowercase.startsWith(COMMANDS.configApproval)) {
             config.handleConfigApproval(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configEventchannel)) {
@@ -270,9 +273,6 @@ client.on('message', async (msg) => {
             config.handleConfigCampaign(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.config)) {
             config.handleConfig(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.roll)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.roll, guildConfig.prefix);
-            roll.handleDiceRoll(msg, msgParms);
         } else {
             dontLog = true;
         }

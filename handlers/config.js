@@ -194,6 +194,9 @@ async function getGuildConfig(guildID) {
  * @returns {GuildModel}
  */
 async function confirmGuildConfig(msg) {
+    if (!msg.guild) {
+        return undefined;
+    }
     let guildConfig = GuildCache[msg.guild.id];
     try {
         let needsSave = false;
