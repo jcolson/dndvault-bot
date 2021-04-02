@@ -173,6 +173,10 @@ client.on('message', async (msg) => {
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
 
         let messageContentLowercase = msg.content.toLowerCase();
+
+        /**
+         * handle commands that don't require a guild interaction (can be direct messaged)
+         */
         let handled = false;
         if (messageContentLowercase.includes(COMMANDS.help)) {
             help.handleHelp(msg, commandPrefix, Config.inviteURL);
