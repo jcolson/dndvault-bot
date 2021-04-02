@@ -29,9 +29,9 @@ const RacialBonusLookup = {
  * @param {Message} msg
  * @param {GuildModel} guildConfig
  */
-async function handleRegister(msg, guildConfig) {
+async function handleRegister(msg, msgParms, guildConfig) {
     try {
-        const charID = parseCharIdFromURL(msg.content, 'register', guildConfig.prefix);
+        const charID = parseCharIdFromURL(msgParms);
         const settings = { method: "Get" };
         let response = await fetch(Config.dndBeyondCharServiceUrl + charID, settings);
         let charJSON = await response.json();
@@ -64,11 +64,11 @@ async function handleRegister(msg, guildConfig) {
 /**
  * create a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
  * @param {Message} msg
+ * @param {String} msgParms
  * @param {GuildModel} guildConfig
  */
 async function handleRegisterManual(msg, msgParms, guildConfig) {
     try {
-        // const parameters = msg.content.substring((guildConfig.prefix + 'register manual').length + 1);
         const paramArray = msgParms.split(' ');
         if (paramArray.length < 4) {
             throw new Error('Not enough parameters passed.');
@@ -109,23 +109,23 @@ async function handleRegisterManual(msg, msgParms, guildConfig) {
  * @param {String} prefix
  * @returns {String}
  */
-function parseCharIdFromURL(commandStringWithURL, command, prefix) {
+function parseCharIdFromURL(msgParms) {
     let charID;
     try {
-        const charURL = commandStringWithURL.substring((prefix + command).length + 1);
-        console.log('char url: ' + charURL);
-        let urlSplitArray = charURL.split('/');
+        // console.debug('parseCharIdFromURL: msgParms: ' + msgParms);
+        let urlSplitArray = msgParms.split('/');
         charID = urlSplitArray.pop();
-        console.log('char id: "' + charID + '"');
+        // console.debug('parseCharIdFromURL: charID: "' + charID + '"');
         if (isNaN(charID) || isNaN(parseInt(charID))) {
             charID = urlSplitArray.pop();
-            console.log('char id: "' + charID + '"');
+            // console.debug('parseCharIdFromURL: charID: "' + charID + '"');
             if (isNaN(charID) || isNaN(parseInt(charID))) {
                 throw new Error("Invalid URL passed for your registration, it needs to be a dndbeyond character URL.");
             }
         }
+        console.debug(`parseCharIdFromURL: msgParms: ${msgParms} charID: ${charID}`);
     } catch (error) {
-        throw new Error('Could not locate character id in url');
+        throw new Error(`Could not locate character id in URL passed ${msgParms}`);
     }
     return charID;
 }
@@ -135,11 +135,12 @@ function parseCharIdFromURL(commandStringWithURL, command, prefix) {
  * https://character-service.dndbeyond.com/character/v3/character/xxxxxx
  * to retrieve the json
  * @param {Message} msg
+ * @param {String} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleUpdate(msg, guildConfig) {
+async function handleUpdate(msg, msgParms, guildConfig) {
     try {
-        const charID = parseCharIdFromURL(msg.content, 'update', guildConfig.prefix);
+        const charID = parseCharIdFromURL(msgParms);
         const settings = { method: "Get" };
         let response = await fetch(Config.dndBeyondCharServiceUrl + charID, settings);
         let charJSON = await response.json();
@@ -187,9 +188,10 @@ async function handleUpdate(msg, guildConfig) {
 /**
  * update a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
  * @param {Message} msg
+ * @param {String} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleUpdateManual(msg, guildConfig) {
+async function handleUpdateManual(msg, msgParms, guildConfig) {
     try {
         const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
         const paramArray = parameters.split(' ');

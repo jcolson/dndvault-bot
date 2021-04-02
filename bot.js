@@ -135,10 +135,10 @@ client.on('message', async (msg) => {
             stats: "stats",
             roll: "roll",
             registerManual: "register manual",
-            register:"register",
+            register: "register",
             updateManual: "update manual",
-            update:"update",
-            changes:"changes",
+            update: "update",
+            changes: "changes",
             campaign: "campaign",
             listCampaign: "list campaign",
             listUser: "list user",
@@ -204,11 +204,14 @@ client.on('message', async (msg) => {
             let msgParms = parseMessageParms(msg.content, COMMANDS.registerManual, guildConfig.prefix);
             characters.handleRegisterManual(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.register)) {
-            characters.handleRegister(msg, guildConfig);
+            let msgParms = parseMessageParms(msg.content, COMMANDS.register, guildConfig.prefix);
+            characters.handleRegister(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.updateManual)) {
-            characters.handleUpdateManual(msg, guildConfig);
+            let msgParms = parseMessageParms(msg.content, COMMANDS.updateManual, guildConfig.prefix);
+            characters.handleUpdateManual(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.update)) {
-            characters.handleUpdate(msg, guildConfig);
+            let msgParms = parseMessageParms(msg.content, COMMANDS.update, guildConfig.prefix);
+            characters.handleUpdate(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.changes)) {
             characters.handleChanges(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.campaign)) {
