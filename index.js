@@ -54,7 +54,7 @@ manager.on('shardCreate', (shard) => {
     });
 });
 
-if (Config.environment != "debug" && Config.topggToken) {
+if (!Config.debugGuild && Config.topggToken) {
     // TOP.GG stats poster
     const poster = AutoPoster(Config.topggToken, manager);
     poster.on('posted', () => {
