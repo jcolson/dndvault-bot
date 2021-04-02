@@ -130,12 +130,54 @@ client.on('message', async (msg) => {
             return;
         }
 
+        const COMMANDS = {
+            help: "help",
+            stats: "stats",
+            roll: "roll",
+            registerManual: "register manual",
+            register:"register",
+            updateManual: "update manual",
+            update:"update",
+            changes:"changes",
+            campaign: "campaign",
+            listCampaign: "list campaign",
+            listUser: "list user",
+            listAll: "list all",
+            listQueued: "list queued",
+            list: "list",
+            remove: "remove",
+            approve: "approve",
+            show: "show",
+            eventCreate: "event create",
+            eventEdit: "event edit",
+            eventRemove: "event remove",
+            eventShow: "event show",
+            eventListProposed: "event list proposed",
+            eventListDeployed: "event list deployed",
+            eventList: "event list",
+            poll: "poll",
+            default: "default",
+            timezone: "timezone",
+            stats: "stats",
+            configApproval: "config approval",
+            configEventchannel: "config eventchannel",
+            configPollchannel: "config pollchannel",
+            configPrefix: "config prefix",
+            configArole: "config arole",
+            configProle: "config prole",
+            configCampaign: "config campaign",
+            config: "config"
+        }
+
         let messageContentLowercase = msg.content.toLowerCase();
         if (!msg.guild) {
-            if (messageContentLowercase.startsWith('help')) {
-                help.handleHelp(msg, null, Config.inviteURL);
-            } else if (messageContentLowercase.startsWith('stats')) {
+            if (messageContentLowercase.includes(COMMANDS.help)) {
+                help.handleHelp(msg, Config.defaultPrefix, Config.inviteURL);
+            } else if (messageContentLowercase.includes(COMMANDS.stats)) {
                 config.handleStats(msg);
+            } else if (messageContentLowercase.includes(COMMANDS.roll)) {
+                let msgParms = parseMessageParms(msg.content, COMMANDS.roll, Config.defaultPrefix);
+                roll.handleDiceRoll(msg, msgParms);
             } else {
                 await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
             }
@@ -144,9 +186,12 @@ client.on('message', async (msg) => {
         }
         let guildConfig = await config.confirmGuildConfig(msg);
         if (!messageContentLowercase.startsWith(guildConfig.prefix)) return;
-        // console.log(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}`);
-        if (messageContentLowercase.startsWith(guildConfig.prefix + 'help')) {
-            help.handleHelp(msg, guildConfig, Config.inviteURL);
+        // remove the prefix from content
+        messageContentLowercase = messageContentLowercase.substring(guildConfig.prefix.length);
+        console.log(`messageContentLowercase: ${messageContentLowercase}`);
+        // check if user needs help prior to checking channel permissions
+        if (messageContentLowercase.startsWith(COMMANDS.help)) {
+            help.handleHelp(msg, guildConfig.prefix, Config.inviteURL);
             return;
         }
         await utils.checkChannelPermissions(msg);
@@ -155,74 +200,76 @@ client.on('message', async (msg) => {
             return;
         }
         let dontLog = false;
-        if (messageContentLowercase.startsWith(guildConfig.prefix + 'register manual')) {
-            characters.handleRegisterManual(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'register')) {
+        if (messageContentLowercase.startsWith(COMMANDS.registerManual)) {
+            let msgParms = parseMessageParms(msg.content, COMMANDS.registerManual, guildConfig.prefix);
+            characters.handleRegisterManual(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.register)) {
             characters.handleRegister(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'update manual')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.updateManual)) {
             characters.handleUpdateManual(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'update')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.update)) {
             characters.handleUpdate(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'changes')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.changes)) {
             characters.handleChanges(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'campaign')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.campaign)) {
             characters.handleCampaign(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'list campaign')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.listCampaign)) {
             characters.handleListCampaign(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'list user')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.listUser)) {
             characters.handleListUser(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'list all')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.listAll)) {
             characters.handleListAll(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'list queued')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.listQueued)) {
             characters.handleListQueued(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'list')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.list)) {
             characters.handleList(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'remove')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.remove)) {
             characters.handleRemove(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'approve')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.approve)) {
             characters.handleApprove(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'show')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.show)) {
             characters.handleShow(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'event create')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventCreate)) {
             events.handleEventCreate(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'event edit')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventEdit)) {
             events.handleEventEdit(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'event remove')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventRemove)) {
             events.handleEventRemove(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'event show')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventShow)) {
             events.handleEventShow(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'event list proposed')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventListProposed)) {
             events.handleEventListProposed(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'event list deployed')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed)) {
             events.handleEventListDeployed(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'event list')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventList)) {
             events.handleEventList(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'poll')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.poll)) {
             poll.handlePoll(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'default')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.default)) {
             users.handleDefault(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'timezone')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.timezone)) {
             users.handleTimezone(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'stats')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.stats)) {
             config.handleStats(msg);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config approval')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configApproval)) {
             config.handleConfigApproval(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config eventchannel')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configEventchannel)) {
             config.handleConfigEventChannel(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config pollchannel')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configPollchannel)) {
             config.handleConfigPollChannel(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config prefix')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configPrefix)) {
             config.handleConfigPrefix(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config arole')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configArole)) {
             config.handleConfigArole(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config prole')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configProle)) {
             config.handleConfigProle(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config campaign')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configCampaign)) {
             config.handleConfigCampaign(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'config')) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.config)) {
             config.handleConfig(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(guildConfig.prefix + 'roll')) {
-            roll.handleDiceRoll(msg, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.roll)) {
+            let msgParms = parseMessageParms(msg.content, COMMANDS.roll, guildConfig.prefix);
+            roll.handleDiceRoll(msg, msgParms);
         } else {
             dontLog = true;
         }
@@ -234,6 +281,31 @@ client.on('message', async (msg) => {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
+
+/**
+ * Pass in the actual message content (not the toLowerCased content, this will take care of that)
+ * @param {String} messageContent
+ * @param {String} command
+ * @param {String} prefix
+ * @returns
+ */
+function parseMessageParms(messageContent, command, prefix) {
+    let messageContentLowercase = messageContent.toLowerCase();
+    let commandIndex = messageContent.indexOf(prefix + command);
+    if (commandIndex == -1) {
+        commandIndex = messageContentLowercase.indexOf(command);
+        if (commandIndex == -1) {
+            throw new Error("Command parameters could not be parsed");
+        } else {
+            commandIndex += command.length;
+        }
+    } else {
+        commandIndex += (prefix + command).length;
+    }
+    let msgParms = messageContent.substring(commandIndex).trim();
+    // console.debug(`parseMessageParms: "${prefix}" "${command}" "${commandIndex}" - ${msgParms}`);
+    return msgParms;
+}
 
 // client.on('raw', packet => {
 //     // We don't want this to run on unrelated packets

@@ -66,10 +66,10 @@ async function handleRegister(msg, guildConfig) {
  * @param {Message} msg
  * @param {GuildModel} guildConfig
  */
-async function handleRegisterManual(msg, guildConfig) {
+async function handleRegisterManual(msg, msgParms, guildConfig) {
     try {
-        const parameters = msg.content.substring((guildConfig.prefix + 'register manual').length + 1);
-        const paramArray = parameters.split(' ');
+        // const parameters = msg.content.substring((guildConfig.prefix + 'register manual').length + 1);
+        const paramArray = msgParms.split(' ');
         if (paramArray.length < 4) {
             throw new Error('Not enough parameters passed.');
         }
@@ -92,6 +92,7 @@ async function handleRegisterManual(msg, guildConfig) {
             char.approvalStatus = false;
         } else {
             char.approvalStatus = true;
+            char.approvedBy = msg.guild.me.id;
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Register Manual', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);

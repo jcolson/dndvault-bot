@@ -1,15 +1,15 @@
 const { MessageEmbed } = require('discord.js');
 const utils = require('../utils/utils.js');
 
-async function handleHelp(msg, guildConfig, inviteURL) {
+async function handleHelp(msg, prefix) {
     try {
         const charEmbedArray = [];
         let charEmbed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('Help for D&D Vault BOT')
-            .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot');
+            .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+            .setDescription(`Current Command Prefix is "${prefix}"`);
         if (msg.guild) {
-            charEmbed.setDescription(`Current Command Prefix is "${guildConfig.prefix}"`);
             charEmbed.setThumbnail(msg.guild.iconURL());
         }
         charEmbed.addFields(
@@ -95,7 +95,7 @@ async function handleHelp(msg, guildConfig, inviteURL) {
 \`\`\``},
         );
         charEmbed.addFields(
-            { name: '\u200B', value: `Add this BOT to your server. [Click here](${inviteURL})` },
+            { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
         );
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);

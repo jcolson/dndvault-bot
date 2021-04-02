@@ -54,11 +54,13 @@ manager.on('shardCreate', (shard) => {
     });
 });
 
-// TOP.GG stats poster
-const poster = AutoPoster(Config.topggToken, manager);
-poster.on('posted', () => {
-    console.log('TOP.GG: Posted stats');
-})
+if (Config.environment != "debug" && Config.topggToken) {
+    // TOP.GG stats poster
+    const poster = AutoPoster(Config.topggToken, manager);
+    poster.on('posted', () => {
+        console.log('TOP.GG: Posted stats');
+    });
+}
 
 manager.spawn();
 
