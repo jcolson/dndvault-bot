@@ -274,6 +274,14 @@ client.on('message', async (msg) => {
          * handle commands that don't require a guild interaction (can be direct messaged)
          */
         let handled = false;
+        if (messageContentLowercase.startsWith(commandPrefix)) {
+            // remove the prefix from content
+            messageContentLowercase = messageContentLowercase.substring(commandPrefix.length);
+        } else if (msg.guild) {
+            // don't do anything if the proper commandprefix isn't there and there is a guild
+            return;
+        }
+
         if (messageContentLowercase.includes(COMMANDS.help.name)) {
             help.handleHelp(msg, commandPrefix);
             handled = true;
@@ -294,9 +302,6 @@ client.on('message', async (msg) => {
             return;
         }
 
-        if (!messageContentLowercase.startsWith(guildConfig.prefix)) return;
-        // remove the prefix from content
-        messageContentLowercase = messageContentLowercase.substring(guildConfig.prefix.length);
         // console.log(`messageContentLowercase: ${messageContentLowercase}`);
         await utils.checkChannelPermissions(msg);
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
