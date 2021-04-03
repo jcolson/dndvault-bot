@@ -1,5 +1,6 @@
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
 const { ShardingManager } = require('discord.js');
+const AutoPoster = require('topgg-autoposter');
 const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
@@ -52,6 +53,15 @@ manager.on('shardCreate', (shard) => {
         }
     });
 });
+
+if (!Config.debugGuild && Config.topggToken) {
+    // TOP.GG stats poster
+    const poster = AutoPoster(Config.topggToken, manager);
+    poster.on('posted', () => {
+        console.log('TOP.GG: Posted stats');
+    });
+}
+
 manager.spawn();
 
 const ROUTE_ROOT = "/";
@@ -61,6 +71,8 @@ const ROUTE_TIMEZONES = "/timezones";
 const ROUTE_TIMEZONESSET = "/timezones/set";
 const ROUTE_EVENTS = "/events";
 const ROUTE_EVENTSSET = "/events/set";
+const ROUTE_HEALTH = "/health";
+const ROUTE_LOGOUT = "/logout";
 
 let app = express();
 
@@ -72,33 +84,58 @@ let server = app
     .use(grant)
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .use(express.json())
+    .get(ROUTE_HEALTH, async (request, response) => {
+        response.json({ status: 'UP' });
+    })
     .use(async function (request, response, next) {
         console.log(`in middleware checking if I need to update guildID (and channelID), guildID status: ${request.session.guildConfig ? true : false}`);
-        const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
-        const guildID = requestUrl.searchParams.get('guildID');
-        if (guildID) {
-            if (!request.session.guildConfig || request.session.guildConfig.guildID != guildID) {
-                console.log(`Retrieving guild info for ${guildID}`);
-                const guildConfig = await GuildModel.findOne({ guildID: guildID });
+        try {
+            const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            const guildID = requestUrl.searchParams.get('guildID');
+            if (guildID) {
+                if (!request.session.guildConfig || request.session.guildConfig.guildID != guildID) {
+                    console.log(`Retrieving guild info for ${guildID}`);
+                    const guildConfig = await GuildModel.findOne({ guildID: guildID });
+                    if (guildConfig) {
+                        request.session.guildConfig = guildConfig;
+                    }
+                }
+            } else if (!request.session.guildConfig && request.session.discordMe) {
+                console.log(`Retrieving any guild for user, ${request.session.discordMe.id}`);
+                const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
+                const guildConfig = await GuildModel.findOne({ guildID: userConfig.guildID });
                 if (guildConfig) {
                     request.session.guildConfig = guildConfig;
                 }
+            } else {
+                console.log(`Don't need to (or can't) retrieve a guild ...`);
             }
-        } else if (!request.session.guildConfig && request.session.discordMe) {
-            console.log(`Retrieving any guild for user, ${request.session.discordMe.id}`);
-            const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
-            const guildConfig = await GuildModel.findOne({ guildID: userConfig.guildID });
-            if (guildConfig) {
-                request.session.guildConfig = guildConfig;
+            const channelID = requestUrl.searchParams.get('channel');
+            if (channelID) {
+                request.session.channelID = channelID;
             }
-        } else {
-            console.log(`Don't need to (or can't) retrieve a guild ...`);
+            next();
+        } catch (error) {
+            console.error("guildID/channelID middleware error", error);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end("ERROR PROCESSING");
         }
-        const channelID = requestUrl.searchParams.get('channel');
-        if (channelID) {
-            request.session.channelID = channelID;
+    })
+    .get(ROUTE_LOGOUT, async (request, response) => {
+        try {
+            console.log('serving ' + ROUTE_LOGOUT);
+            request.session.discordMe = undefined;
+            response.redirect(url.format({
+                pathname: ROUTE_ROOT,
+            }));
         }
-        next();
+        catch (error) {
+            console.error(error.message);
+            response.setHeader('Content-Type', 'text/html');
+            response.status(500);
+            response.end(error.message);
+        }
     })
     .get(ROUTE_POSTOAUTH, async (request, response) => {
         try {
@@ -259,20 +296,20 @@ let server = app
             if (request.session.guildConfig) {
                 if (request.body._id) {
                     console.log(`must be an edit ... _id exists ${request.body._id}`);
-                    let channelIDForEvent = request.session.guildConfig.channelForEvents?request.session.guildConfig.channelForEvents:request.session.channelID;
+                    let channelIDForEvent = request.session.guildConfig.channelForEvents ? request.session.guildConfig.channelForEvents : request.session.channelID;
                     // @todo build eventString;
                     let eventString = '';
 
-                        //eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString
-                        status = await manager.broadcastEval(
-                            `this.dnd_users.bc_eventEdit
+                    //eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString
+                    status = await manager.broadcastEval(
+                        `this.dnd_users.bc_eventEdit
                         ('${request.body._id}',
                         '${request.session.discordMe.id}',
                         '${channelIDForEvent}',
                         '${request.session.guildConfig.guildID}',
                         '${request.session.guildConfig.arole}',
                         '${eventString}');`
-                        );
+                    );
                 } else {
                     // @todo implement create
                     console.log(`new event, no _id`);

@@ -30,6 +30,7 @@ DND Vault Table of Contents
     - [Bot Commands for testing](#bot-commands-for-testing)
     - [Test Bot Invite](#test-bot-invite)
     - [Mongodb docker](#mongodb-docker)
+    - [Run bot locally in container](#run-bot-locally-in-container)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -109,7 +110,7 @@ I'm looking for feedback, so please feel free to open bugs, feature requests, et
 
 ## Invite the BOT to your server
 
-[Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)
+[Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot%20applications.commands)
 
 ## Example character workflow with the BOT
 
@@ -286,7 +287,7 @@ Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue):
 ### Test Bot Invite
 
 ```html
-https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=223296&scope=bot
+https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=223296&scope=bot%20applications.commands
 ```
 
 ### Mongodb docker
@@ -310,4 +311,15 @@ repair mongodb in container
 ```sh
 export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
 docker run -it -v ${VOLUME}:/data/db mongo:4.4.3-bionic mongod --repair
+```
+
+### Run bot locally in container
+
+```sh
+docker build -t dndvaultlocal . && \
+docker container stop dndvault && docker container rm dndvault && \
+export VOLUME=/Users/jcolson/src/personal/dndvault && \
+docker run --name dndvault -v ${VOLUME}:/config \
+    -p 8080:8080 \
+    --restart always -d dndvaultlocal
 ```

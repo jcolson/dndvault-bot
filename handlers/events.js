@@ -483,7 +483,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         title = 'Event';
     }
     let eventEmbed = new MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(utils.COLORS.BLUE)
         .setTitle(title)
         // .setURL('https://discord.js.org/')
         .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
@@ -495,7 +495,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         if (i++ >= charPerEmbed) {
             returnEmbeds.push(eventEmbed);
             eventEmbed = new MessageEmbed()
-                .setColor('#0099ff');
+                .setColor(utils.COLORS.BLUE);
             i = 0;
         }
         let dmgmString = theEvent.dm ? theEvent.dm : 'Unassigned';

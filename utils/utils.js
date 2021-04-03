@@ -1,4 +1,9 @@
-const { MessageEmbed } = require("discord.js");
+const { MessageEmbed, APIMessage } = require("discord.js");
+
+const COLORS = {
+    BLUE: '0099ff',
+    GREEN: '#57f542',
+}
 
 /**
  *
@@ -9,8 +14,8 @@ const { MessageEmbed } = require("discord.js");
  */
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
     let embed = new MessageEmbed()
-        .setColor('#0099ff');
-    embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.member ? msg.member.id : 'unknown user'}> - ${error.message}` });
+        .setColor(COLORS.BLUE);
+    embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM);
 }
 
@@ -26,7 +31,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
         fields = [fields];
     }
     let embed = new MessageEmbed()
-        .setColor('#0099ff');
+        .setColor(COLORS.BLUE);
     for (let field of fields) {
         field.name = typeof field.name !== 'undefined' && '' + field.name != '' ? field.name : 'UNSET';
         field.value = typeof field.value !== 'undefined' && '' + field.value != '' ? field.value : 'UNSET';
@@ -52,13 +57,14 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (!user && msg) {
             user = msg.author;
-        } else if (!user) {
-            console.error('sendDirectOrFallbackToChannelEmbeds: no valid message or user was passed to be able to respond.');
+        }
+        if (!user) {
             throw new Error('no valid message or user was passed to be able to respond.');
         }
         // console.log('user: ' + user.id);
         // console.log('msg member: ' + msg.member.id);
         let messageSent = false;
+        let sentMessage;
         if (user && !skipDM) {
             try {
                 if (msg.url) {
@@ -70,23 +76,36 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     }
                 }
                 for (let embed of embedsArray) {
-                    await user.send(embed);
+                    sentMessage = await user.send(embed);
+                }
+                if (msg.interaction) {
+                    let interactionEmbed = new MessageEmbed()
+                        .setColor(COLORS.GREEN)
+                        .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
+
+                    clientWsReply(msg.interaction, interactionEmbed);
                 }
                 messageSent = true;
             } catch (error) {
                 console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s %s', error.message, error);
             }
         }
-        if (!messageSent && msg.channel) {
+        if (!messageSent && (msg.channel || msg.interaction)) {
             try {
                 for (let embed of embedsArray) {
                     embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
-                    await msg.channel.send(embed);
+                    if (msg.interaction) {
+                        await clientWsReply(msg.interaction, embed);
+                    } else {
+                        await msg.channel.send(embed);
+                    }
                 }
             } catch (error) {
-                console.error('sendDirectOrFallbackToChannelEmbeds: could not channel send. - %s', error.message);
+                error.message += ': could not channel send.';
                 throw error;
             }
+        } else if (!messageSent) {
+            throw new Error('No channel or DM method to send messaeg');
         }
     } catch (error) {
         console.error('sendDirectOrFallbackToChannelEmbeds: - %s', error.message);
@@ -181,6 +200,27 @@ function stringOfSize(value, size, padChar, padBefore) {
     return value;
 }
 
+/**
+ * Return a url to this message
+ * https://discord.com/channels/@me/795116627309232158/827549541494161419
+ * https://discord.com/channels/785567026512527390/791376005935136768/827549498246561823
+ * @param {String} guildId
+ * @param {String} channelId
+ * @param {String} messageId
+ * @returns
+ */
+function getDiscordUrl(guildId, channelId, messageId) {
+    if (!guildId) {
+        guildId = '@me';
+    }
+    return `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
+}
+
+/**
+ * Evaluate if the value passed represents a 'true'
+ * @param {} value
+ * @returns
+ */
 function isTrue(value) {
     if (typeof (value) === 'string') {
         value = value.trim().toLowerCase();
@@ -231,6 +271,37 @@ async function checkChannelPermissions(msg) {
     // }
 }
 
+/**
+ * sending messages for websockets
+ */
+async function clientWsReply(interaction, replyMessage) {
+    let data = {
+        content: replyMessage,
+    }
+    //check for embeds
+    if (typeof replyMessage === 'object') {
+        data = await createAPIMessage(interaction, replyMessage);
+    }
+    client.api.interactions(interaction.id, interaction.token).callback.post({
+        data: {
+            type: 4,
+            data: data
+        }
+    });
+}
+
+/**
+ * Create APIMessage for interaction embeds
+ * @param {*} interaction
+ * @param {*} content
+ * @returns
+ */
+async function createAPIMessage(interaction, content) {
+    const channel = await client.channels.resolve(interaction.channel_id);
+    const { data, files } = await APIMessage.create(channel, content).resolveData().resolveFiles();
+    return { ...data, files };
+}
+
 exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
@@ -242,3 +313,6 @@ exports.appendStringsForEmbed = appendStringsForEmbed;
 exports.appendStringsForEmbedChanges = appendStringsForEmbedChanges;
 exports.checkChannelPermissions = checkChannelPermissions;
 exports.isTrue = isTrue;
+exports.getDiscordUrl = getDiscordUrl;
+exports.clientWsReply = clientWsReply;
+exports.COLORS = COLORS;

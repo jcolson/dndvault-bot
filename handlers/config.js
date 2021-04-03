@@ -35,8 +35,8 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
             { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
             { name: 'Event Channel', value: channelForEvents.name, inline: true },
-            { name: 'Poll Channel', value: channelForPolls.name, inline: true },
-            { name: 'BOT Version', value: vaultVersion, inline: true }],
+            { name: 'Poll Channel', value: channelForPolls.name, inline: true }
+            ],
             msg);
         await msg.delete();
     } catch (error) {
@@ -193,46 +193,49 @@ async function getGuildConfig(guildID) {
  * @param {Message} msg
  * @returns {GuildModel}
  */
-async function confirmGuildConfig(msg) {
-    let guildConfig = GuildCache[msg.guild.id];
+async function confirmGuildConfig(guild) {
+    if (!guild) {
+        return undefined;
+    }
+    let guildConfig = GuildCache[guild.id];
     try {
         let needsSave = false;
         if (!guildConfig) {
-            console.log(`confirmGuildConfig: finding guild: ${msg.guild.name}`);
-            guildConfig = await GuildModel.findOne({ guildID: msg.guild.id });
+            console.log(`confirmGuildConfig: finding guild: ${guild.name}`);
+            guildConfig = await GuildModel.findOne({ guildID: guild.id });
             if (!guildConfig) {
-                console.log(`confirmGuildConfig: new guild: ${msg.guild.name}`);
-                guildConfig = new GuildModel({ guildID: msg.guild.id });
+                console.log(`confirmGuildConfig: new guild: ${guild.name}`);
+                guildConfig = new GuildModel({ guildID: guild.id });
                 needsSave = true;
             }
         } else {
-            console.log(`confirmGuildConfig: guild cached: ${msg.guild.name}`);
+            console.log(`confirmGuildConfig: guild cached: ${guild.name}`);
         }
         // console.log("confirmGuildConfig:", guildConfig);
         if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-            guildConfig.arole = await utils.retrieveRoleIdForName(msg.guild, Config.defaultARoleName);
+            guildConfig.arole = await utils.retrieveRoleIdForName(guild, Config.defaultARoleName);
             needsSave = true;
         }
         if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
-            guildConfig.prole = await utils.retrieveRoleIdForName(msg.guild, Config.defaultPRoleName);
+            guildConfig.prole = await utils.retrieveRoleIdForName(guild, Config.defaultPRoleName);
             needsSave = true;
         }
         if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
             guildConfig.prefix = Config.defaultPrefix;
             needsSave = true;
         }
-        if (typeof guildConfig.name === 'undefined' || !guildConfig.name || guildConfig.name != msg.guild.name) {
-            guildConfig.name = msg.guild.name;
+        if (typeof guildConfig.name === 'undefined' || !guildConfig.name || guildConfig.name != guild.name) {
+            guildConfig.name = guild.name;
             needsSave = true;
         }
-        if (typeof guildConfig.iconURL === 'undefined' || !guildConfig.iconURL || guildConfig.iconURL != msg.guild.iconURL()) {
-            guildConfig.iconURL = msg.guild.iconURL();
+        if (typeof guildConfig.iconURL === 'undefined' || !guildConfig.iconURL || guildConfig.iconURL != guild.iconURL()) {
+            guildConfig.iconURL = guild.iconURL();
             needsSave = true;
         }
         if (needsSave) {
             await guildConfig.save();
         }
-        GuildCache[msg.guild.id] = guildConfig;
+        GuildCache[guild.id] = guildConfig;
     } catch (error) {
         throw new Error('confirmGuildConfig: ' + error.message);
     }
@@ -304,11 +307,10 @@ async function handleConfigPollChannel(msg, guildConfig) {
 /**
  *
  * @param {Message} msg
- * @param {GuildModel} guildConfig
  */
-async function handleStats(msg, guildConfig) {
+async function handleStats(msg) {
     try {
-        if (msg.member.id == Config.adminUser) {
+        if (msg.author.id == Config.adminUser) {
             let totalGuilds = (await msg.client.shard.fetchClientValues('guilds.cache.size'))
                 .reduce((acc, guildCount) => acc + guildCount, 0);;
             let totalMembers = (await msg.client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'))
@@ -317,9 +319,16 @@ async function handleStats(msg, guildConfig) {
                 { name: 'Server count', value: totalGuilds, inline: true },
                 { name: 'Member count', value: totalMembers, inline: true },
                 { name: 'Shard count', value: msg.client.shard.count, inline: true },
-                { name: 'Uptime', value: getUptime(), inline: true }
+                { name: 'Uptime', value: getUptime(), inline: true },
+                { name: 'BOT Version', value: vaultVersion, inline: true }
             ], msg);
-            await msg.delete();
+            if (msg.guild) {
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`handleStats: ${error.message}`);
+                }
+            }
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
