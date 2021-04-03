@@ -210,6 +210,9 @@ function stringOfSize(value, size, padChar, padBefore) {
  * @returns
  */
 function getDiscordUrl(guildId, channelId, messageId) {
+    if (!guildId) {
+        guildId = '@me';
+    }
     return `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
 }
 

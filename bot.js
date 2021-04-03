@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const path = require('path');
-const { Client, GuildMember } = require('discord.js');
+const { Client, GuildMember, User } = require('discord.js');
 const { connect, disconnect } = require('mongoose');
 
 const characters = require('./handlers/characters.js');
@@ -199,27 +199,36 @@ client.on('messageReactionAdd', async (reaction, user) => {
  * handle slash command interactions
  */
 client.ws.on('INTERACTION_CREATE', async (interaction) => {
-    let msg;
+    let msg = {
+        interaction: interaction,
+        url: utils.getDiscordUrl(interaction.guild_id, interaction.channel_id, interaction.id),
+    };
     try {
-        let guild = await client.guilds.resolve(interaction.guild_id);
-        let member = new GuildMember(client, interaction.member, guild);
-        let channel = await guild.channels.resolve(interaction.channel_id);
-        let guildConfig = await config.confirmGuildConfig(guild);
+        // console.debug("INTERACTION_CREATE:", interaction);
+        if (interaction.guild_id) {
+            let guild = await client.guilds.resolve(interaction.guild_id);
+            msg.guild = guild;
+        }
+        if (interaction.channel_id) {
+            let channel = await client.channels.resolve(interaction.channel_id);
+            msg.channel = channel;
+        }
+        if (interaction.member) {
+            let member = new GuildMember(client, interaction.member, msg.guild);
+            msg.member = member;
+            msg.author = member.user;
+        }
+        if (interaction.user) {
+            let user = new User(client, interaction.user);
+            msg.author = user;
+        }
+        let guildConfig = await config.confirmGuildConfig(msg.guild);
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
 
         const { name, options } = interaction.data;
         const command = name.toLowerCase();
 
         console.debug('INTERACTIVE_CREATE:', command);
-
-        msg = {
-            interaction: interaction,
-            guild: guild,
-            member: member,
-            author: member.user,
-            channel: channel,
-            url: utils.getDiscordUrl(guild.id, interaction.channel_id, interaction.id),
-        }
 
         if (command === COMMANDS.help.name) {
             // throw new Error('test');
