@@ -5,7 +5,7 @@ async function handleHelp(msg, prefix) {
     try {
         const charEmbedArray = [];
         let charEmbed = new MessageEmbed()
-            .setColor('#0099ff')
+            .setColor(utils.COLORS.BLUE)
             .setTitle('Help for D&D Vault BOT')
             .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
             .setDescription(`Current Command Prefix is "${prefix}"`);
@@ -56,7 +56,7 @@ async function handleHelp(msg, prefix) {
 \`\`\``});
         charEmbedArray.push(charEmbed);
         charEmbed = new MessageEmbed()
-            .setColor('#0099ff');
+            .setColor(utils.COLORS.BLUE);
         charEmbed.addFields(
             {
                 name: '\u200B', value: `
@@ -99,7 +99,7 @@ async function handleHelp(msg, prefix) {
         );
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-        if (msg.guild) {
+        if (msg.deletable) {
             try {
                 await msg.delete();
             } catch (error) {
@@ -107,7 +107,7 @@ async function handleHelp(msg, prefix) {
             }
         }
     } catch (error) {
-        await msg.channel.send(`unrecoverable ... ${error.message}`);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
         console.error(`handleHelp: ${error.message}`);
     }
 }

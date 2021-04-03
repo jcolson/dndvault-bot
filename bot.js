@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const path = require('path');
-const { Client } = require('discord.js');
+const { Client, GuildMember } = require('discord.js');
 const { connect, disconnect } = require('mongoose');
 
 const characters = require('./handlers/characters.js');
@@ -23,6 +23,62 @@ global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 global.client = client;
 
+const COMMANDS = {
+    "help": {
+        "name": "help",
+        "description": "Get help about D&D Vault Bot",
+        "slash": true
+    },
+    "stats": {
+        "name": "stats",
+        "description": "Get statistics about bot",
+        "slash": false
+    },
+    "roll": {
+        "name": "roll",
+        "description": "Roll dice",
+        "slash": true,
+        "options": [{
+            "name": "Notation",
+            "description": "Dice notation, such as `2d8 + 1d4`",
+            "required": true,
+            "type": 3
+        }]
+    },
+    "registerManual": "register manual",
+    "register": "register",
+    "updateManual": "update manual",
+    "update": "update",
+    "changes": "changes",
+    "campaign": "campaign",
+    "listCampaign": "list campaign",
+    "listUser": "list user",
+    "listAll": "list all",
+    "listQueued": "list queued",
+    "list": "list",
+    "remove": "remove",
+    "approve": "approve",
+    "show": "show",
+    "eventCreate": "event create",
+    "eventEdit": "event edit",
+    "eventRemove": "event remove",
+    "eventShow": "event show",
+    "eventListProposed": "event list proposed",
+    "eventListDeployed": "event list deployed",
+    "eventList": "event list",
+    "poll": "poll",
+    "default": "default",
+    "timezone": "timezone",
+    "configApproval": "config approval",
+    "configEventchannel": "config eventchannel",
+    "configPollchannel": "config pollchannel",
+    "configPrefix": "config prefix",
+    "configArole": "config arole",
+    "configProle": "config prole",
+    "configCampaign": "config campaign",
+    "config": "config"
+};
+
 /**
  * connect to the mongodb
  */
@@ -38,12 +94,43 @@ global.client = client;
     return client.login(Config.token);
 })();
 
+function getClientApp() {
+    const app = client.api.applications(client.user.id)
+    if (Config.debugGuild) {
+        app.guilds(Config.debugGuild);
+    }
+    return app;
+}
+
+async function registerCommands() {
+    let commandsToKeep = [];
+    for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
+        if (commandValue.slash) {
+            console.info("registerCommands: command key and value to register", commandKey, commandValue);
+            commandsToKeep.push(commandValue.name);
+            await getClientApp().commands.post({
+                data: commandValue,
+            });
+        }
+    }
+    // console.debug("registerCommands: commandsToKeep", commandsToKeep);
+    const registeredCommands = await getClientApp().commands.get();
+    for (const command of registeredCommands) {
+        // console.debug("registerCommands: command", command.name);
+        if (!commandsToKeep.includes(command.name)) {
+            console.info("registerCommands: removing command ", command);
+            await getClientApp().commands(command.id).delete();
+        }
+    }
+}
+
 /**
  * listen for emitted events from discordjs
  */
-client.on('ready', () => {
+client.on('ready', async () => {
     console.info(`D&D Vault Bot - logged in as ${client.user.tag}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
+    await registerCommands();
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
@@ -67,7 +154,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             try {
                 // Now the message has been cached and is fully available
                 await utils.checkChannelPermissions(reaction.message);
-                let guildConfig = await config.confirmGuildConfig(reaction.message);
+                let guildConfig = await config.confirmGuildConfig(reaction.message.guild);
                 if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
                     console.debug(`messageReactionAdd:POLL:${reaction.message.author}'s"${reaction.message.id}" gained a reaction!`);
                     await poll.handleReactionAdd(reaction, user, guildConfig);
@@ -108,6 +195,46 @@ client.on('messageReactionAdd', async (reaction, user) => {
 //     }
 // });
 
+/**
+ * handle slash command interactions
+ */
+client.ws.on('INTERACTION_CREATE', async (interaction) => {
+    let msg;
+    try {
+        let guild = await client.guilds.resolve(interaction.guild_id);
+        let member = new GuildMember(client, interaction.member, guild);
+        let channel = await guild.channels.resolve(interaction.channel_id);
+        let guildConfig = await config.confirmGuildConfig(guild);
+        let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
+
+        const { name, options } = interaction.data;
+        const command = name.toLowerCase();
+
+        console.debug('INTERACTIVE_CREATE:', command);
+
+        msg = {
+            interaction: interaction,
+            guild: guild,
+            member: member,
+            author: member.user,
+            channel: channel,
+            url: utils.getDiscordUrl(guild.id, interaction.channel_id, interaction.id),
+        }
+
+        if (command === COMMANDS.help.name) {
+            // throw new Error('test');
+            help.handleHelp(msg, commandPrefix);
+        } else if (command === COMMANDS.roll.name) {
+            roll.handleDiceRoll(msg, options[0].value);
+        } else {
+            utils.clientWsReply(interaction, 'Unkown interaction.');
+        }
+    } catch (error) {
+        console.error('INTERACTION_CREATE:', error);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
+});
+
 client.on('message', async (msg) => {
     try {
         if (msg.partial) {
@@ -129,47 +256,7 @@ client.on('message', async (msg) => {
             // }
             return;
         }
-
-        const COMMANDS = {
-            help: "help",
-            stats: "stats",
-            roll: "roll",
-            registerManual: "register manual",
-            register: "register",
-            updateManual: "update manual",
-            update: "update",
-            changes: "changes",
-            campaign: "campaign",
-            listCampaign: "list campaign",
-            listUser: "list user",
-            listAll: "list all",
-            listQueued: "list queued",
-            list: "list",
-            remove: "remove",
-            approve: "approve",
-            show: "show",
-            eventCreate: "event create",
-            eventEdit: "event edit",
-            eventRemove: "event remove",
-            eventShow: "event show",
-            eventListProposed: "event list proposed",
-            eventListDeployed: "event list deployed",
-            eventList: "event list",
-            poll: "poll",
-            default: "default",
-            timezone: "timezone",
-            stats: "stats",
-            configApproval: "config approval",
-            configEventchannel: "config eventchannel",
-            configPollchannel: "config pollchannel",
-            configPrefix: "config prefix",
-            configArole: "config arole",
-            configProle: "config prole",
-            configCampaign: "config campaign",
-            config: "config"
-        }
-
-        let guildConfig = await config.confirmGuildConfig(msg);
+        let guildConfig = await config.confirmGuildConfig(msg.guild);
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
 
         let messageContentLowercase = msg.content.toLowerCase();
@@ -178,14 +265,14 @@ client.on('message', async (msg) => {
          * handle commands that don't require a guild interaction (can be direct messaged)
          */
         let handled = false;
-        if (messageContentLowercase.includes(COMMANDS.help)) {
-            help.handleHelp(msg, commandPrefix, Config.inviteURL);
+        if (messageContentLowercase.includes(COMMANDS.help.name)) {
+            help.handleHelp(msg, commandPrefix);
             handled = true;
-        } else if (messageContentLowercase.includes(COMMANDS.stats)) {
+        } else if (messageContentLowercase.includes(COMMANDS.stats.name)) {
             config.handleStats(msg);
             handled = true;
-        } else if (messageContentLowercase.includes(COMMANDS.roll)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.roll, commandPrefix);
+        } else if (messageContentLowercase.includes(COMMANDS.roll.name)) {
+            let msgParms = parseMessageParms(msg.content, COMMANDS.roll.name, commandPrefix);
             roll.handleDiceRoll(msg, msgParms);
             handled = true;
         } else if (!msg.guild) {
@@ -194,7 +281,7 @@ client.on('message', async (msg) => {
         }
 
         if (handled) {
-            console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}(${msg.member ? msg.member.displayName + ":" : ""})${msg.content}`);
+            console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}`);
             return;
         }
 
@@ -281,7 +368,7 @@ client.on('message', async (msg) => {
             dontLog = true;
         }
         if (!dontLog) {
-            console.log(`msg processed: ${msg.guild.name}:${msg.author.tag}(${msg.member.displayName}):${msg.content}`);
+            console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}`);
         }
     } catch (error) {
         console.error('on_message: ', error);

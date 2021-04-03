@@ -292,7 +292,7 @@ async function handleChanges(msg, guildConfig) {
  */
 function embedForChanges(msg, approvedChar, updatedChar) {
     const changesEmbed = new MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(utils.COLORS.BLUE)
         .setTitle(`Review Changes for Character: ${approvedChar.name}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
@@ -719,7 +719,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
     // return 3 characters for show and 8 characters for a list
     let charPerEmbed = isShow ? 3 : 8;
     let charEmbed = new MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(utils.COLORS.BLUE)
         .setTitle(title)
         // .setURL('https://discord.js.org/')
         .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
@@ -730,7 +730,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         if (i++ >= charPerEmbed) {
             returnEmbeds.push(charEmbed);
             charEmbed = new MessageEmbed()
-                .setColor('#0099ff');
+                .setColor(utils.COLORS.BLUE);
             i = 0;
         }
         // console.log('vaultuser', vaultUser);

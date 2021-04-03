@@ -13,7 +13,7 @@ async function handleDiceRoll(msg, diceParam) {
             embedFields.push({ name: `🎲${rollit.notation}🎲`, value: `${cont}` });
         }
         await utils.sendDirectOrFallbackToChannel(embedFields, msg, undefined, true);
-        if (msg.guild) {
+        if (msg.deletable) {
             try {
                 await msg.delete();
             } catch (error) {
