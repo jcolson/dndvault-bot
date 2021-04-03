@@ -31,7 +31,7 @@ async function handlePoll(msg, guildConfig) {
 
 function embedForPoll(msg, thePoll) {
     let pollEmbed = new MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(utils.COLORS.BLUE)
         .setTitle(`${thePoll.question}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('Pollster', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
