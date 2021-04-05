@@ -3,6 +3,7 @@ const { MessageEmbed, APIMessage } = require("discord.js");
 const COLORS = {
     BLUE: '0099ff',
     GREEN: '#57f542',
+    RED: '#fc0335',
 }
 
 /**
@@ -12,11 +13,11 @@ const COLORS = {
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
  */
-async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
+async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank) {
     let embed = new MessageEmbed()
-        .setColor(COLORS.BLUE);
+        .setColor(COLORS.RED);
     embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
-    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM);
+    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
 }
 
 /**
@@ -26,7 +27,7 @@ async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM) {
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
  */
-async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
+async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLinkBank) {
     if (!Array.isArray(fields)) {
         fields = [fields];
     }
@@ -37,7 +38,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
         field.value = typeof field.value !== 'undefined' && '' + field.value != '' ? field.value : 'UNSET';
     }
     embed.addFields(fields);
-    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM);
+    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
 }
 
 /**
@@ -47,7 +48,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM) {
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
  */
-async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM) {
+async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM, urlToLinkBank) {
     try {
         if (!Array.isArray(embedsArray)) {
             embedsArray = [embedsArray];
@@ -58,6 +59,9 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         if (!user && msg) {
             user = msg.author;
         }
+        if (!urlToLinkBank) {
+            urlToLinkBank = msg.url;
+        }
         if (!user) {
             throw new Error('no valid message or user was passed to be able to respond.');
         }
@@ -67,12 +71,12 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         let sentMessage;
         if (user && !skipDM) {
             try {
-                if (msg.url) {
+                if (urlToLinkBank) {
                     let goBackMessage = '[Go Back To Message]';
                     // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
                     let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
                     if (!lastFieldValue.startsWith(goBackMessage)) {
-                        embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${msg.url})`, inline: false });
+                        embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
                     }
                 }
                 for (let embed of embedsArray) {
@@ -80,7 +84,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 }
                 if (msg.interaction) {
                     let interactionEmbed = new MessageEmbed()
-                        .setColor(COLORS.GREEN)
+                        .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                         .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
 
                     clientWsReply(msg.interaction, interactionEmbed);
@@ -243,6 +247,7 @@ function isTrue(value) {
  * @param {Message} msg
  */
 async function checkChannelPermissions(msg) {
+    // throw new Error(`test error`);
     //check that I have the proper permissions
     let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
     let botPerms = msg.channel.permissionsFor(msg.guild.me);
@@ -275,19 +280,23 @@ async function checkChannelPermissions(msg) {
  * sending messages for websockets
  */
 async function clientWsReply(interaction, replyMessage) {
-    let data = {
-        content: replyMessage,
-    }
-    //check for embeds
-    if (typeof replyMessage === 'object') {
-        data = await createAPIMessage(interaction, replyMessage);
-    }
-    client.api.interactions(interaction.id, interaction.token).callback.post({
-        data: {
-            type: 4,
-            data: data
+    try {
+        let data = {
+            content: replyMessage,
         }
-    });
+        //check for embeds
+        if (typeof replyMessage === 'object') {
+            data = await createAPIMessage(interaction, replyMessage);
+        }
+        await client.api.interactions(interaction.id, interaction.token).callback.post({
+            data: {
+                type: 4,
+                data: data
+            }
+        });
+    } catch (error) {
+        console.error('Caught error while trying to send WsReply', error);
+    }
 }
 
 /**

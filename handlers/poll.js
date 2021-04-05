@@ -5,26 +5,31 @@ const { MessageEmbed, User } = require('discord.js');
 /**
  *
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handlePoll(msg, guildConfig) {
+async function handlePoll(msg, msgParms, guildConfig) {
     let pollChannel = msg.channel;
     try {
-        let params = msg.content.substring((guildConfig.prefix + 'poll').length + 1);
-        let thePoll = parseMessageForPoll(params);
+        // let params = msg.content.substring((guildConfig.prefix + 'poll').length + 1);
+        let thePoll = parseMessageForPoll(msgParms);
         if (guildConfig.channelForPolls) {
             pollChannel = await msg.guild.channels.resolve(guildConfig.channelForPolls);
         }
+        // console.debug('thePoll', thePoll);
         let sentMessage = await pollChannel.send(embedForPoll(msg, thePoll));
+        // console.debug("sentMessage", sentMessage);
         for (let i = 0; i < thePoll.choices.length; i++) {
-            await sentMessage.react(thePoll.emojis[i]);
+            sentMessage.react(thePoll.emojis[i]);
         }
-        await sentMessage.react(`\u{1F5D1}`);
-        await utils.sendDirectOrFallbackToChannel({ name: '🗡 Poll Create 🛡', value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, sentMessage, msg.author);
-        await msg.delete();
+        sentMessage.react(`\u{1F5D1}`);
+        await utils.sendDirectOrFallbackToChannel({ name: '🗡 Poll Create 🛡', value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
-        console.error('handlePoll:', error.message);
         error.message += ` For Channel: ${pollChannel.name}`;
+        console.error('handlePoll:', error.message);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -47,26 +52,16 @@ function embedForPoll(msg, thePoll) {
     return pollEmbed;
 }
 
-function parseMessageForPoll(params) {
-    var pollRegex = /[^\s"]+|"([^"]*)"/gi;
-    var pollParams = [];
-    do {
-        //Each call to exec returns the next regex match as an array
-        var match = pollRegex.exec(params);
-        if (match != null) {
-            //Index 1 in the array is the captured group if it exists
-            //Index 0 is the matched text, which we use if no captured group exists
-            pollParams.push(match[1] ? match[1] : match[0]);
-        }
-    } while (match != null);
+function parseMessageForPoll(pollParams) {
+    // console.debug("poll params:", pollParams);
     if (pollParams.length > 11) {
         throw new Error('Too many choices, please reduce to 10 or fewer');
     }
     let thePoll = {};
     if (pollParams.length > 0) {
-        thePoll.question = pollParams[0];
+        thePoll.question = pollParams[0].value;
         if (pollParams.length > 1) {
-            thePoll.choices = pollParams.slice(1);
+            thePoll.choices = pollParams.slice(1).map(entity => entity.value);
             thePoll.emojis = [`\u0030\uFE0F\u20E3`, `\u0031\uFE0F\u20E3`, `\u0032\uFE0F\u20E3`, `\u0033\uFE0F\u20E3`,
                 `\u0034\uFE0F\u20E3`, `\u0035\uFE0F\u20E3`, `\u0036\uFE0F\u20E3`, `\u0037\uFE0F\u20E3`, `\u0038\uFE0F\u20E3`,
                 `\u0039\uFE0F\u20E3`];
@@ -75,7 +70,6 @@ function parseMessageForPoll(params) {
             thePoll.emojis = [`\uD83D\uDC4D`, `\uD83D\uDC4E`, `\uD83E\uDD37`];
         }
     }
-
     return thePoll;
 }
 

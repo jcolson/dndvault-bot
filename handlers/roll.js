@@ -1,9 +1,14 @@
 const { DiceRoll } = require('rpg-dice-roller');
 const utils = require('../utils/utils.js');
 
+/**
+ *
+ * @param {Message} msg
+ * @param {Array} diceParam
+ */
 async function handleDiceRoll(msg, diceParam) {
     try {
-        const rollit = new DiceRoll(diceParam);
+        const rollit = new DiceRoll(diceParam.map(element => element.value).join(' '));
         // console.debug(`JSON:`, rollit.toJSON());
         // console.debug(`Index of ${rollit.notation} in ${rollit.output} is ${rollit.output.lastIndexOf(':')}`);
         let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
