@@ -45,10 +45,99 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "registerManual": "register manual",
-    "register": "register",
-    "updateManual": "update manual",
-    "update": "update",
+    "registerManual": {
+        "name": "register_manual",
+        "description": "Register a character manually",
+        "slash": true,
+        "options": [{
+            "name": "char_name",
+            "description": "Your Character's Name",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "char_class",
+            "description": "Your Character's Class",
+            "required": true,
+            "type": 3,
+            "choices": characters.ClassLookup
+        }, {
+            "name": "char_level",
+            "description": "Your Character's Level",
+            "required": true,
+            "type": 4 // integer
+        }, {
+            "name": "char_race",
+            "description": "Your Character's Race",
+            "required": true,
+            "type": 3,
+            "choices": characters.RaceLookup
+        }, {
+            "name": "campaign_name",
+            "description": "The Campaign to associate your character with",
+            "required": false,
+            "type": 3
+        }]
+    },
+    "register": {
+        "name": "register",
+        "description": "Register a character from D&D Beyond",
+        "slash": true,
+        "options": [{
+            "name": "url",
+            "description": "D&D Beyond Character URL (such as: https://ddb.ac/characters/40573657/IqpZia)",
+            "required": true,
+            "type": 3
+        }]
+    },
+    "updateManual": {
+        "name": "update_manual",
+        "description": "Update a character manually",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "Your Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "char_name",
+            "description": "Your Character's Name",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "char_class",
+            "description": "Your Character's Class",
+            "required": true,
+            "type": 3,
+            "choices": characters.ClassLookup
+        }, {
+            "name": "char_level",
+            "description": "Your Character's Level",
+            "required": true,
+            "type": 4 //integer
+        }, {
+            "name": "char_race",
+            "description": "Your Character's Race",
+            "required": true,
+            "type": 3,
+            "choices": characters.RaceLookup
+        }, {
+            "name": "campaign_name",
+            "description": "The Campaign to associate your character with",
+            "required": false,
+            "type": 3
+        }]
+    },
+    "update": {
+        "name": "update",
+        "description": "Update a character from D&D Beyond",
+        "slash": true,
+        "options": [{
+            "name": "url",
+            "description": "D&D Beyond Character URL (such as: https://ddb.ac/characters/40573657/IqpZia)",
+            "required": true,
+            "type": 3
+        }]
+    },
     "changes": "changes",
     "campaign": "campaign",
     "listCampaign": "list campaign",
@@ -66,7 +155,67 @@ const COMMANDS = {
     "eventListProposed": "event list proposed",
     "eventListDeployed": "event list deployed",
     "eventList": "event list",
-    "poll": "poll",
+    "poll": {
+        "name": "poll",
+        "description": "Create a Poll to get input from the server users",
+        "slash": true,
+        "options": [{
+            "name": "poll_question",
+            "description": "Your question for the poll",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "option_0",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_1",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_2",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_3",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_4",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_5",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_6",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_7",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_8",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_9",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }]
+    },
     "default": "default",
     "timezone": "timezone",
     "configApproval": "config approval",
@@ -170,31 +319,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
 });
 
-// client.on('messageReactionRemove', async (reaction, user) => {
-//     console.log('messageReactionRemove');
-//     // When we receive a reaction we check if the reaction is partial or not
-//     try {
-//         if (reaction.partial) {
-//             // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-//             await reaction.fetch();
-//         }
-//         if (reaction.message.partial) {
-//             await reaction.message.fetch();
-//         }
-//     } catch (error) {
-//         console.error('Something went wrong when fetching the message: ', error);
-//         // Return as `reaction.message.author` may be undefined/null
-//         return;
-//     }
-//     if (!user.bot) {
-//         // Now the message has been cached and is fully available
-//         console.log(`${reaction.message.author}'s message "${reaction.message.id}" gained a reaction!`);
-//         await events.handleReactionRemove(reaction, user);
-//     } else {
-//         console.log('bot reacted');
-//     }
-// });
-
 /**
  * handle slash command interactions
  */
@@ -228,16 +352,7 @@ client.ws.on('INTERACTION_CREATE', async (interaction) => {
         const { name, options } = interaction.data;
         const command = name.toLowerCase();
 
-        console.debug('INTERACTIVE_CREATE:', command);
-
-        if (command === COMMANDS.help.name) {
-            // throw new Error('test');
-            help.handleHelp(msg, commandPrefix);
-        } else if (command === COMMANDS.roll.name) {
-            roll.handleDiceRoll(msg, options[0].value);
-        } else {
-            utils.clientWsReply(interaction, 'Unkown interaction.');
-        }
+        await handleCommandExec(guildConfig, command, msg, options);
     } catch (error) {
         console.error('INTERACTION_CREATE:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -257,12 +372,6 @@ client.on('message', async (msg) => {
             }
         }
         if (msg.author.bot) {
-            // it's a message from a bot, ignore
-            // if (!msg.guild) {
-            //     console.info(`msg: DIRECT:${msg.author.tag}:${msg.content}:bot message, ignoring`);
-            // } else {
-            //     console.debug(`msg: ${msg.guild.name}:${msg.author.tag}(${msg.member?msg.member.displayName:'unknown'}):${msg.content}:bot message, ignoring`);
-            // }
             return;
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
@@ -273,7 +382,6 @@ client.on('message', async (msg) => {
         /**
          * handle commands that don't require a guild interaction (can be direct messaged)
          */
-        let handled = false;
         if (messageContentLowercase.startsWith(commandPrefix)) {
             // remove the prefix from content
             messageContentLowercase = messageContentLowercase.substring(commandPrefix.length);
@@ -281,48 +389,15 @@ client.on('message', async (msg) => {
             // don't do anything if the proper commandprefix isn't there and there is a guild
             return;
         }
-
-        if (messageContentLowercase.includes(COMMANDS.help.name)) {
-            help.handleHelp(msg, commandPrefix);
-            handled = true;
-        } else if (messageContentLowercase.includes(COMMANDS.stats.name)) {
-            config.handleStats(msg);
-            handled = true;
-        } else if (messageContentLowercase.includes(COMMANDS.roll.name)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.roll.name, commandPrefix);
-            roll.handleDiceRoll(msg, msgParms);
-            handled = true;
-        } else if (!msg.guild) {
-            await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
-            return;
-        }
+        let handled = await handleCommandExec(guildConfig, messageContentLowercase, msg);
 
         if (handled) {
-            console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}`);
-            return;
-        }
-
-        // console.log(`messageContentLowercase: ${messageContentLowercase}`);
-        await utils.checkChannelPermissions(msg);
-        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
-            await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
             return;
         }
 
         let dontLog = false;
-        if (messageContentLowercase.startsWith(COMMANDS.registerManual)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.registerManual, commandPrefix);
-            characters.handleRegisterManual(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.register)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.register, commandPrefix);
-            characters.handleRegister(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.updateManual)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.updateManual, commandPrefix);
-            characters.handleUpdateManual(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.update)) {
-            let msgParms = parseMessageParms(msg.content, COMMANDS.update, commandPrefix);
-            characters.handleUpdate(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.changes)) {
+
+        if (messageContentLowercase.startsWith(COMMANDS.changes)) {
             characters.handleChanges(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.campaign)) {
             characters.handleCampaign(msg, guildConfig);
@@ -356,8 +431,6 @@ client.on('message', async (msg) => {
             events.handleEventListDeployed(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventList)) {
             events.handleEventList(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.poll)) {
-            poll.handlePoll(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.default)) {
             users.handleDefault(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.timezone)) {
@@ -390,6 +463,55 @@ client.on('message', async (msg) => {
     }
 });
 
+async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgParms) {
+    messageContentLowercase = messageContentLowercase.replace(' ', '_');
+    let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
+
+    let handled = true;
+
+    if (messageContentLowercase.startsWith(COMMANDS.help.name)) {
+        help.handleHelp(msg, commandPrefix);
+    } else if (messageContentLowercase.startsWith(COMMANDS.stats.name)) {
+        config.handleStats(msg);
+    } else if (messageContentLowercase.startsWith(COMMANDS.roll.name)) {
+        msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.roll.name, commandPrefix);
+        roll.handleDiceRoll(msg, msgParms);
+    } else if (!msg.guild) {
+        await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
+    } else {
+        handled = false;
+    }
+    if (!handled) {
+        handled = true;
+        await utils.checkChannelPermissions(msg);
+        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
+            await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
+        } else if (messageContentLowercase.startsWith(COMMANDS.registerManual.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.registerManual.name, commandPrefix);
+            characters.handleRegisterManual(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.register.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.register.name, commandPrefix);
+            characters.handleRegister(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.updateManual.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.updateManual.name, commandPrefix);
+            characters.handleUpdateManual(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.update.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.update.name, commandPrefix);
+            characters.handleUpdate(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.poll.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.poll.name, commandPrefix);
+            //WIP:handle msgparms in handlePoll
+            poll.handlePoll(msg, msgParms, guildConfig);
+        } else {
+            handled = false;
+        }
+    }
+    if (handled) {
+        console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+    }
+    return handled;
+}
+
 /**
  * Pass in the actual message content (not the toLowerCased content, this will take care of that)
  * @param {String} messageContent
@@ -398,8 +520,9 @@ client.on('message', async (msg) => {
  * @returns
  */
 function parseMessageParms(messageContent, command, prefix) {
+    command = command.replace('_', ' ');
     let messageContentLowercase = messageContent.toLowerCase();
-    let commandIndex = messageContent.indexOf(prefix + command);
+    let commandIndex = messageContentLowercase.indexOf(prefix + command);
     if (commandIndex == -1) {
         commandIndex = messageContentLowercase.indexOf(command);
         if (commandIndex == -1) {
@@ -411,36 +534,41 @@ function parseMessageParms(messageContent, command, prefix) {
         commandIndex += (prefix + command).length;
     }
     let msgParms = messageContent.substring(commandIndex).trim();
-    // console.debug(`parseMessageParms: "${prefix}" "${command}" "${commandIndex}" - ${msgParms}`);
-    return msgParms;
+    let options = [];
+    const regex = /\!(?:(?! \!).)*/g;
+    let found = msgParms.match(regex);
+    if (found) {
+        for (let each of found) {
+            let eachSplit = each.split(' ');
+            let option = {
+                name: eachSplit[0].substring(eachSplit[0].indexOf('!') + 1),
+                value: eachSplit.slice(1).join(' '),
+            };
+            options.push(option);
+        }
+    } else {
+        const pollRegex = /[^\s"]+|"([^"]*)"/g;
+        found = msgParms.match(pollRegex);
+        if (found) {
+            for (let each of found) {
+                each = each.replace(/^"(.*)"$/, '$1');
+                let option = { value: each };
+                options.push(option);
+            }
+        } else {
+            found = msgParms.split(' ');
+            if (found) {
+                for (let each of found) {
+                    let option = { value: each };
+                    options.push(option);
+                }
+            }
+        }
+    }
+    console.debug(`parseMessageParms: "${prefix}" "${command}" "${commandIndex}" - ${msgParms}`, options);
+    return options;
+    // return msgParms;
 }
-
-// client.on('raw', packet => {
-//     // We don't want this to run on unrelated packets
-//     if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) return;
-//     console.log('received raw event for reaction');
-//     // Grab the channel to check the message from
-//     const channel = client.channels.get(packet.d.channel_id);
-//     // There's no need to emit if the message is cached, because the event will fire anyway for that
-//     if (channel.messages.has(packet.d.message_id)) return;
-//     // Since we have confirmed the message is not cached, let's fetch it
-//     console.log('fetching message for reaction');
-//     channel.fetchMessage(packet.d.message_id).then(message => {
-//         // Emojis can have identifiers of name:id format, so we have to account for that case as well
-//         const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
-//         // This gives us the reaction we need to emit the event properly, in top of the message object
-//         const reaction = message.reactions.get(emoji);
-//         // Adds the currently reacting user to the reaction's users collection.
-//         if (reaction) reaction.users.set(packet.d.user_id, client.users.get(packet.d.user_id));
-//         // Check which type of event it is before emitting
-//         if (packet.t === 'MESSAGE_REACTION_ADD') {
-//             client.emit('messageReactionAdd', reaction, client.users.get(packet.d.user_id));
-//         }
-//         if (packet.t === 'MESSAGE_REACTION_REMOVE') {
-//             client.emit('messageReactionRemove', reaction, client.users.get(packet.d.user_id));
-//         }
-//     });
-// });
 
 process.on('SIGTERM', async () => {
     console.info('SIGTERM signal received.');
