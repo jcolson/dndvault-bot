@@ -15,6 +15,11 @@ const roll = require('./handlers/roll.js');
 const DEFAULT_CONFIGDIR = __dirname;
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 
+/**
+ * scheduled cron for calendar reminders
+ */
+let calendarReminderCron;
+
 Client.prototype.dnd_users = users;
 
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [shrd:${client.shard.ids}] %s` });
@@ -192,8 +197,16 @@ const COMMANDS = {
         "description": "List all characters",
         "slash": true,
     },
-    "listQueued": "list queued",
-    "list": "list",
+    "listQueued": {
+        "name": "list_queued",
+        "description": "List all characters queued for approval",
+        "slash": true,
+    },
+    "list": {
+        "name": "list",
+        "description": "List YOUR registered characters within vault",
+        "slash": true,
+    },
     "remove": "remove",
     "approve": "approve",
     "show": "show",
@@ -301,16 +314,26 @@ function getClientApp() {
 }
 
 async function registerCommands() {
+    console.info('registerCommands: BEGIN');
     let commandsToKeep = [];
+    // let commandsToRegister = [];
     for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
         if (commandValue.slash) {
-            console.info("registerCommands: command key and value to register", commandKey, commandValue);
+            // console.info("registerCommands: command key and value to register", commandKey, commandValue);
             commandsToKeep.push(commandValue.name);
             await getClientApp().commands.post({
                 data: commandValue,
             });
+            // commandsToRegister.push(
+            //     commandValue
+            // );
         }
     }
+    //@todo get the bulk command update working
+    // commandsToRegister = [{"name":"help","description":"Get help about D&D Vault Bot","slash":true},{"name":"roll","description":"Rolls dice, using notation reference","slash":true,"options":[{"name":"Notation","description":"Dice notation, such as `2d8 + 1d4`","required":true,"type":3}]}]
+    // console.debug(JSON.stringify({data: commandsToRegister}));
+    // client.api.applications(client.user.id).commands.post({data: commandsToRegister});
+    // await getClientApp().commands.post({data: commandsToRegister});
     // console.debug("registerCommands: commandsToKeep", commandsToKeep);
     const registeredCommands = await getClientApp().commands.get();
     for (const command of registeredCommands) {
@@ -320,6 +343,7 @@ async function registerCommands() {
             await getClientApp().commands(command.id).delete();
         }
     }
+    console.info('registerCommands: END');
 }
 
 /**
@@ -328,7 +352,10 @@ async function registerCommands() {
 client.on('ready', async () => {
     console.info(`D&D Vault Bot - logged in as ${client.user.tag}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type /help', type: 'PLAYING' }, status: 'online' });
-    await registerCommands();
+    registerCommands();
+    calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
+        events.sendReminders(client);
+    });
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
@@ -446,11 +473,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.listQueued)) {
-            characters.handleListQueued(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.list)) {
-            characters.handleList(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.remove)) {
+        if (messageContentLowercase.startsWith(COMMANDS.remove)) {
             characters.handleRemove(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.approve)) {
             characters.handleApprove(msg, guildConfig);
@@ -569,6 +592,12 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.listAll.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listAll.name, commandPrefix);
             characters.handleListAll(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.listQueued.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listQueued.name, commandPrefix);
+            characters.handleListQueued(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.list.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.list.name, commandPrefix);
+            characters.handleList(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
@@ -672,13 +701,6 @@ process.on('SIGUSR2', async () => {
 process.on('uncaughtException', async (error) => {
     console.info('uncaughtException signal received.', error);
     await cleanShutdown(true);
-});
-
-/**
- * scheduled cron for calendar reminders
- */
-const calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
-    events.sendReminders(client);
 });
 
 /**

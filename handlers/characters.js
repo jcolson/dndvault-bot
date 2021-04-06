@@ -1174,17 +1174,20 @@ async function handleListAll(msg, msgParms, guildConfig) {
 }
 
 /**
- *
+ * list all characters queued for approval
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleListQueued(msg, guildConfig) {
+async function handleListQueued(msg, msgParms, guildConfig) {
     try {
         const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
         }
@@ -1196,9 +1199,10 @@ async function handleListQueued(msg, guildConfig) {
 /**
  *
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleList(msg, guildConfig) {
+async function handleList(msg, msgParms, guildConfig) {
     try {
         let vaultUser = await UserModel.findOne({ guildID: msg.guild.id, userID: msg.member.id });
         // console.log('handlelist vaultuser', vaultUser);
@@ -1209,7 +1213,9 @@ async function handleList(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`, false, vaultUser);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`There are no registered characters for you, \`register\` one`);
         }
