@@ -176,7 +176,7 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "listUser":  {
+    "listUser": {
         "name": "list_user",
         "description": "List all characters by discord user",
         "slash": true,
@@ -187,7 +187,11 @@ const COMMANDS = {
             "type": 6 // discord user
         }]
     },
-    "listAll": "list all",
+    "listAll": {
+        "name": "list_all",
+        "description": "List all characters",
+        "slash": true,
+    },
     "listQueued": "list queued",
     "list": "list",
     "remove": "remove",
@@ -442,9 +446,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.listAll)) {
-            characters.handleListAll(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listQueued)) {
+        if (messageContentLowercase.startsWith(COMMANDS.listQueued)) {
             characters.handleListQueued(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.list)) {
             characters.handleList(msg, guildConfig);
@@ -520,7 +522,8 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
     let handled = true;
 
     if (messageContentLowercase.startsWith(COMMANDS.help.name)) {
-        help.handleHelp(msg, commandPrefix);
+        msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.help.name, commandPrefix);
+        help.handleHelp(msg, msgParms, commandPrefix);
     } else if (messageContentLowercase.startsWith(COMMANDS.stats.name)) {
         config.handleStats(msg);
     } else if (messageContentLowercase.startsWith(COMMANDS.roll.name)) {
@@ -563,6 +566,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.listUser.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listUser.name, commandPrefix);
             characters.handleListUser(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.listAll.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listAll.name, commandPrefix);
+            characters.handleListAll(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
@@ -581,6 +587,10 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
  * @returns
  */
 function parseMessageParms(messageContent, command, prefix) {
+    let options = [];
+    if (!messageContent) {
+        return options;
+    }
     /**
      * COMMANDS.command.name can not have spaces in it ... so I used underscores in the command name
      * _ need to be replaced with spaces so that we can match the command name
@@ -600,7 +610,6 @@ function parseMessageParms(messageContent, command, prefix) {
         commandIndex += (prefix + command).length;
     }
     let msgParms = messageContent.substring(commandIndex).trim();
-    let options = [];
     //parse event format - ignore ! unless beginning of line or preceded by space
     // const regex = /\!(?:(?! \!).)*/g;
     const regex = /^\)| \!(?:(?! \!).)*/g;

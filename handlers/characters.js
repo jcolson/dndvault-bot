@@ -1147,7 +1147,13 @@ function stringForApprovalsAndUpdates(char) {
     }
 }
 
-async function handleListAll(msg, guildConfig) {
+/**
+ * list all characters in guild
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleListAll(msg, msgParms, guildConfig) {
     try {
         let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -1156,7 +1162,9 @@ async function handleListAll(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault', false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any registered characters \`register\` one!`);
         }

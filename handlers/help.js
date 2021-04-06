@@ -1,7 +1,13 @@
 const { MessageEmbed } = require('discord.js');
 const utils = require('../utils/utils.js');
 
-async function handleHelp(msg, prefix) {
+/**
+ * return help info about bot
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {String} prefix
+ */
+async function handleHelp(msg, msgParms, prefix) {
     try {
         const charEmbedArray = [];
         let charEmbed = new MessageEmbed()
