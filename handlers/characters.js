@@ -559,20 +559,22 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
 /**
  * Handler for displaying character changes
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleChanges(msg, guildConfig) {
+async function handleChanges(msg, msgParms, guildConfig) {
     try {
-        const charId = msg.content.substring((guildConfig.prefix + 'changes').length + 1);
+        const charId = msgParms[0].value;
         let updatedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: false });
         let approvedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: true });
         if (typeof updatedChar === 'undefined' || !updatedChar || typeof approvedChar === 'undefined' || !approvedChar) {
-            await msg.channel.send(`<@${msg.member.id}>, an updated character for id "${charId}" could not be located.`);
-            await msg.delete();
+            throw new Error(`an updated character for id "${charId}" could not be located.`);
         } else {
             const changesEmbed = embedForChanges(msg, approvedChar, updatedChar);
             // console.log(changesEmbed);
             await utils.sendDirectOrFallbackToChannelEmbeds(changesEmbed, msg);
+        }
+        if (msg.deletable) {
             await msg.delete();
         }
     } catch (error) {

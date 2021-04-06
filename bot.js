@@ -138,7 +138,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "changes": "changes",
+    "changes": {
+        "name": "changes",
+        "description": "Show changes in character sheet update",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "Your Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }]
+    },
     "campaign": "campaign",
     "listCampaign": "list campaign",
     "listUser": "list user",
@@ -397,9 +407,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.changes)) {
-            characters.handleChanges(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.campaign)) {
+        if (messageContentLowercase.startsWith(COMMANDS.campaign)) {
             characters.handleCampaign(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.listCampaign)) {
             characters.handleListCampaign(msg, guildConfig);
@@ -463,6 +471,14 @@ client.on('message', async (msg) => {
     }
 });
 
+/**
+ * Handle all commands, whether from ! or from /slash commands
+ * @param {GuildModel} guildConfig
+ * @param {String} messageContentLowercase
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @returns {Boolean}
+ */
 async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgParms) {
     /**
      * COMMANDS.command.name can not have spaces in it ... so I used underscores in the command name
@@ -506,6 +522,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.poll.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.poll.name, commandPrefix);
             poll.handlePoll(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.changes.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.changes.name, commandPrefix);
+            characters.handleChanges(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
