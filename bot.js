@@ -223,7 +223,17 @@ const COMMANDS = {
             "type": 6 // discord user
         }]
     },
-    "approve": "approve",
+    "approve": {
+        "name": "approve",
+        "description": "Approve a new/updated character within vault",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "The Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }]
+    },
     "show": "show",
     "eventCreate": "event create",
     "eventEdit": "event edit",
@@ -488,9 +498,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.approve)) {
-            characters.handleApprove(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.show)) {
+        if (messageContentLowercase.startsWith(COMMANDS.show)) {
             characters.handleShow(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventCreate)) {
             events.handleEventCreate(msg, guildConfig);
@@ -614,6 +622,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.remove.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.remove.name, commandPrefix);
             characters.handleRemove(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.approve.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.approve.name, commandPrefix);
+            characters.handleApprove(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }

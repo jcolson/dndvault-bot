@@ -1225,7 +1225,7 @@ async function handleList(msg, msgParms, guildConfig) {
 }
 
 /**
- *
+ * remove a character (or pending update) from the vault, if username is passed, remove for that user
  * @param {Message} msg
  * @param {Array} msgParms
  * @param {GuildModel} guildConfig
@@ -1264,19 +1264,22 @@ async function handleRemove(msg, msgParms, guildConfig) {
 }
 
 /**
- *
+ * approve a new/updated character within vault
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleApprove(msg, guildConfig) {
+async function handleApprove(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            const charIdToApprove = msg.content.substring((guildConfig.prefix + 'approve').length + 1);
+            const charIdToApprove = msgParms[0].value;
+            // const charIdToApprove = msg.content.substring((guildConfig.prefix + 'approve').length + 1);
             // console.log('charid: ' + charIdToApprove);
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
-                await msg.channel.send(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`);
-                await msg.delete();
+                throw new Error(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`)
+                // await msg.channel.send(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`);
+                // await msg.delete();
             } else {
                 // console.log('char: ' + charToApprove);
                 charToApprove.approvalStatus = true;
@@ -1288,7 +1291,9 @@ async function handleApprove(msg, guildConfig) {
                 }
                 await charToApprove.save();
                 await utils.sendDirectOrFallbackToChannel({ name: 'Approve', value: `<@${msg.member.id}>, ${stringForCharacter(charToApprove)} was approved.` }, msg);
-                await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete();
+                }
             }
         } else {
             throw new Error(`please ask an \`approver role\` to approve.`);
