@@ -984,10 +984,19 @@ function getIdsFromCharacterArray(charArray) {
     return names;
 }
 
-async function handleListUser(msg, guildConfig) {
+/**
+ * list characters for this user
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleListUser(msg, msgParms, guildConfig) {
     try {
-        let userToList = msg.content.substring((guildConfig.prefix + 'list user').length + 1);
-        userToList = userToList.substring(3, userToList.length - 1);
+        let userToList = msgParms[0].value;
+        if (userToList.startsWith('<')) {
+            userToList = userToList.substring(3, userToList.length - 1);
+        }
+        console.debug("handleListUser: usertolist:", userToList);
         let memberToList = await msg.guild.members.fetch(userToList);
         let charArrayUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -996,7 +1005,9 @@ async function handleListUser(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${memberToList.displayName} in the Vault`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any registered characters for ${userToList}`);
         }

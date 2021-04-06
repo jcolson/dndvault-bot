@@ -176,7 +176,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "listUser": "list user",
+    "listUser":  {
+        "name": "list_user",
+        "description": "List all characters by discord user",
+        "slash": true,
+        "options": [{
+            "name": "user_id",
+            "description": "The user for which you'd like to see characters",
+            "required": true,
+            "type": 6 // discord user
+        }]
+    },
     "listAll": "list all",
     "listQueued": "list queued",
     "list": "list",
@@ -432,9 +442,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.listUser)) {
-            characters.handleListUser(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listAll)) {
+        if (messageContentLowercase.startsWith(COMMANDS.listAll)) {
             characters.handleListAll(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.listQueued)) {
             characters.handleListQueued(msg, guildConfig);
@@ -552,6 +560,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.listCampaign.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listCampaign.name, commandPrefix);
             characters.handleListCampaign(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.listUser.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listUser.name, commandPrefix);
+            characters.handleListUser(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
@@ -590,8 +601,9 @@ function parseMessageParms(messageContent, command, prefix) {
     }
     let msgParms = messageContent.substring(commandIndex).trim();
     let options = [];
-    //parse event format
-    const regex = /\!(?:(?! \!).)*/g;
+    //parse event format - ignore ! unless beginning of line or preceded by space
+    // const regex = /\!(?:(?! \!).)*/g;
+    const regex = /^\)| \!(?:(?! \!).)*/g;
     let found = msgParms.match(regex);
     if (found) {
         for (let each of found) {
