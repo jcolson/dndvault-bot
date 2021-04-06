@@ -207,7 +207,22 @@ const COMMANDS = {
         "description": "List YOUR registered characters within vault",
         "slash": true,
     },
-    "remove": "remove",
+    "remove": {
+        "name": "remove",
+        "description": "Remove a character (or pending update) from the vault, if username is passed, remove for that user",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "Your Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "user_id",
+            "description": "The user for which you'd like to see characters",
+            "required": false,
+            "type": 6 // discord user
+        }]
+    },
     "approve": "approve",
     "show": "show",
     "eventCreate": "event create",
@@ -473,9 +488,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.remove)) {
-            characters.handleRemove(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.approve)) {
+        if (messageContentLowercase.startsWith(COMMANDS.approve)) {
             characters.handleApprove(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.show)) {
             characters.handleShow(msg, guildConfig);
@@ -598,6 +611,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.list.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.list.name, commandPrefix);
             characters.handleList(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.remove.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.remove.name, commandPrefix);
+            characters.handleRemove(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }

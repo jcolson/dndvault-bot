@@ -1227,22 +1227,18 @@ async function handleList(msg, msgParms, guildConfig) {
 /**
  *
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleRemove(msg, guildConfig) {
+async function handleRemove(msg, msgParms, guildConfig) {
     try {
         let typeOfRemoval = 'Character Update';
-        const arguments = msg.content.substring((guildConfig.prefix + 'remove').length + 1);
-        let charIdToDelete, forUser;
-        let indexToSplit = arguments.indexOf(' ');
-        if (indexToSplit != -1) {
-            charIdToDelete = arguments.substring(0, indexToSplit);
-            forUser = arguments.substring(indexToSplit + 4, arguments.length - 1);
-        } else {
-            charIdToDelete = arguments;
-            forUser = msg.member.id;
+        let charIdToDelete = msgParms[0].value;
+        let forUser = msgParms.length > 1 ? msgParms[1].value : msg.member.id;
+        if (forUser.startsWith('<')) {
+            forUser = forUser.substring(3, forUser.length - 1);
         }
-        console.log('about to remove charid %s for user %s', charIdToDelete, forUser);
+        console.log('handleRemove: about to remove charid %s for user %s', charIdToDelete, forUser);
         // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
         // doesn't exist, then remove the actual registered character
         let deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true, approvalStatus: false });
@@ -1254,13 +1250,14 @@ async function handleRemove(msg, guildConfig) {
                 if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
                     deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 } else {
-                    msg.reply(`Please ask an <@&${guildConfig.arole}> to remove this character, as it has already been approved`);
-                    return;
+                    throw new Error(`Please ask an <@&${guildConfig.arole}> to remove this character, as it has already been approved`);
                 }
             }
         }
         await utils.sendDirectOrFallbackToChannel({ name: 'Remove', value: `<@${msg.member.id}>, ${charIdToDelete} (${typeOfRemoval}) was removed (${deleteResponse.deletedCount} records) from vault.` }, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
