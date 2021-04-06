@@ -278,7 +278,7 @@ async function registerCommands() {
  */
 client.on('ready', async () => {
     console.info(`D&D Vault Bot - logged in as ${client.user.tag}`);
-    client.user.setPresence({ activity: { name: 'with Tiamat, type !help', type: 'PLAYING' }, status: 'online' });
+    client.user.setPresence({ activity: { name: 'with Tiamat, type /help', type: 'PLAYING' }, status: 'online' });
     await registerCommands();
 });
 
@@ -464,6 +464,11 @@ client.on('message', async (msg) => {
 });
 
 async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgParms) {
+    /**
+     * COMMANDS.command.name can not have spaces in it ... so I used underscores in the command name
+     * spaces need to be replaced with _ so that we can match the command name
+     * (commands used to have spaces in them with old-school prefix method)
+     */
     messageContentLowercase = messageContentLowercase.replace(' ', '_');
     let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
 
@@ -500,7 +505,6 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
             characters.handleUpdate(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.poll.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.poll.name, commandPrefix);
-            //WIP:handle msgparms in handlePoll
             poll.handlePoll(msg, msgParms, guildConfig);
         } else {
             handled = false;
@@ -520,6 +524,11 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
  * @returns
  */
 function parseMessageParms(messageContent, command, prefix) {
+    /**
+     * COMMANDS.command.name can not have spaces in it ... so I used underscores in the command name
+     * _ need to be replaced with spaces so that we can match the command name
+     * (commands used to have spaces in them with old-school prefix method)
+     */
     command = command.replace('_', ' ');
     let messageContentLowercase = messageContent.toLowerCase();
     let commandIndex = messageContentLowercase.indexOf(prefix + command);
@@ -535,6 +544,7 @@ function parseMessageParms(messageContent, command, prefix) {
     }
     let msgParms = messageContent.substring(commandIndex).trim();
     let options = [];
+    //parse event format
     const regex = /\!(?:(?! \!).)*/g;
     let found = msgParms.match(regex);
     if (found) {
@@ -547,6 +557,7 @@ function parseMessageParms(messageContent, command, prefix) {
             options.push(option);
         }
     } else {
+        //parse poll format
         const pollRegex = /[^\s"]+|"([^"]*)"/g;
         found = msgParms.match(pollRegex);
         if (found) {
@@ -556,6 +567,7 @@ function parseMessageParms(messageContent, command, prefix) {
                 options.push(option);
             }
         } else {
+            //parse spaces
             found = msgParms.split(' ');
             if (found) {
                 for (let each of found) {
