@@ -1296,17 +1296,18 @@ async function handleShow(msg, guildConfig) {
 /**
  * allow editing of campaign to override dndbeyond
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleCampaign(msg, guildConfig) {
+async function handleCampaign(msg, msgParms, guildConfig) {
     try {
-        const parameterString = msg.content.substring((guildConfig.prefix + 'campaign').length + 1);
-        const charID = parameterString.substring(0, parameterString.indexOf(' '));
-        const campaignID = parameterString.substring(parameterString.indexOf(' ') + 1);
-        // console.log(`charid: ${charID} campaignID: ${campaignID}`);
-        if (!charID || !campaignID) {
+        if (msgParms.length < 2) {
             throw new Error('Please pass the character id and the campaign id.');
         }
+        const charID = msgParms[0].value;
+        const campaignID = msgParms[1].value;
+        // console.log(`charid: ${charID} campaignID: ${campaignID}`);
+
         const charToEdit = await CharModel.findOne({ guildUser: msg.member.id, id: charID, isUpdate: false, guildID: msg.guild.id });
         if (!charToEdit) {
             throw new Error(`No (approved) character (${charID}) found for your id.`);

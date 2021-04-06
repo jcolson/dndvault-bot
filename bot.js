@@ -36,7 +36,7 @@ const COMMANDS = {
     },
     "roll": {
         "name": "roll",
-        "description": "Roll dice",
+        "description": "Rolls dice, using notation reference",
         "slash": true,
         "options": [{
             "name": "Notation",
@@ -47,7 +47,7 @@ const COMMANDS = {
     },
     "registerManual": {
         "name": "register_manual",
-        "description": "Register a character manually",
+        "description": "Create a stub character, do not use spaces in any of the parameters except the campaign",
         "slash": true,
         "options": [{
             "name": "char_name",
@@ -80,7 +80,7 @@ const COMMANDS = {
     },
     "register": {
         "name": "register",
-        "description": "Register a character from D&D Beyond",
+        "description": "Register a character in the vault from dndbeyond",
         "slash": true,
         "options": [{
             "name": "url",
@@ -91,7 +91,7 @@ const COMMANDS = {
     },
     "updateManual": {
         "name": "update_manual",
-        "description": "Update a character manually",
+        "description": "Update a stub character, do not use spaces in any of the parameters except the campaign",
         "slash": true,
         "options": [{
             "name": "character_id",
@@ -129,7 +129,7 @@ const COMMANDS = {
     },
     "update": {
         "name": "update",
-        "description": "Update a character from D&D Beyond",
+        "description": "Request an update a character from dndbeyond to the vault",
         "slash": true,
         "options": [{
             "name": "url",
@@ -140,7 +140,7 @@ const COMMANDS = {
     },
     "changes": {
         "name": "changes",
-        "description": "Show changes in character sheet update",
+        "description": "Display changes for an unapproved character update",
         "slash": true,
         "options": [{
             "name": "character_id",
@@ -149,7 +149,22 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "campaign": "campaign",
+    "campaign": {
+        "name": "campaign",
+        "description": "Update character to override dndbeyond's campaign name, this does NOT update dndbeyond's campaign",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "Your Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "campaign_id",
+            "description": "The Campaign ID which you'd like to associate this character",
+            "required": true,
+            "type": 3
+        }]
+    },
     "listCampaign": "list campaign",
     "listUser": "list user",
     "listAll": "list all",
@@ -407,9 +422,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.campaign)) {
-            characters.handleCampaign(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listCampaign)) {
+        if (messageContentLowercase.startsWith(COMMANDS.listCampaign)) {
             characters.handleListCampaign(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.listUser)) {
             characters.handleListUser(msg, guildConfig);
@@ -525,6 +538,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.changes.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.changes.name, commandPrefix);
             characters.handleChanges(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.campaign.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.campaign.name, commandPrefix);
+            characters.handleCampaign(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
