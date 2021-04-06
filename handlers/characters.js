@@ -1304,20 +1304,24 @@ async function handleApprove(msg, msgParms, guildConfig) {
 }
 
 /**
- * Show a character
+ * show a user's character from the vault
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleShow(msg, guildConfig) {
+async function handleShow(msg, msgParms, guildConfig) {
     try {
-        const charID = msg.content.substring((guildConfig.prefix + 'show').length + 1);
+        const charID = msgParms[0].value;
+        // const charID = msg.content.substring((guildConfig.prefix + 'show').length + 1);
         const showUser = (await CharModel.find({ id: charID, guildID: msg.guild.id }).sort({ isUpdate: 'desc' }))[0];
         if (!showUser) {
             throw new Error(`That character (${charID}) doesn't exist`);
         }
         const embedsChar = embedForCharacter(msg, [showUser], 'Show Character', true);
         await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }

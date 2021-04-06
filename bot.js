@@ -234,7 +234,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "show": "show",
+    "show":  {
+        "name": "show",
+        "description": "Show a user's character from the vault",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "The Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }]
+    },
     "eventCreate": "event create",
     "eventEdit": "event edit",
     "eventRemove": "event remove",
@@ -498,9 +508,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.show)) {
-            characters.handleShow(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventCreate)) {
+        if (messageContentLowercase.startsWith(COMMANDS.eventCreate)) {
             events.handleEventCreate(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventEdit)) {
             events.handleEventEdit(msg, guildConfig);
@@ -625,6 +633,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.approve.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.approve.name, commandPrefix);
             characters.handleApprove(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.show.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.show.name, commandPrefix);
+            characters.handleShow(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
