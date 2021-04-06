@@ -942,11 +942,12 @@ function stringForNameChange(approvedChar, updatedChar) {
 /**
  * list all characters for the campaign requested
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleListCampaign(msg, guildConfig) {
+async function handleListCampaign(msg, msgParms, guildConfig) {
     try {
-        let campaignToList = msg.content.substring((guildConfig.prefix + 'list campaign').length + 1);
+        let campaignToList = msgParms[0].value;
         let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, approvalStatus: false });
 
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -964,7 +965,9 @@ async function handleListCampaign(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`There are no registered characters for that campaign, \`register\` one!`);
         }

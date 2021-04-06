@@ -165,7 +165,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "listCampaign": "list campaign",
+    "listCampaign": {
+        "name": "list_campaign",
+        "description": "List all characters registered for a campaign",
+        "slash": true,
+        "options": [{
+            "name": "campaign_id",
+            "description": "The Campaign ID which you'd like to see characters for",
+            "required": true,
+            "type": 3
+        }]
+    },
     "listUser": "list user",
     "listAll": "list all",
     "listQueued": "list queued",
@@ -422,9 +432,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.listCampaign)) {
-            characters.handleListCampaign(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listUser)) {
+        if (messageContentLowercase.startsWith(COMMANDS.listUser)) {
             characters.handleListUser(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.listAll)) {
             characters.handleListAll(msg, guildConfig);
@@ -541,6 +549,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.campaign.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.campaign.name, commandPrefix);
             characters.handleCampaign(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.listCampaign.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listCampaign.name, commandPrefix);
+            characters.handleListCampaign(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
