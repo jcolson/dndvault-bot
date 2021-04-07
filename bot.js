@@ -342,7 +342,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "eventRemove": "event remove",
+    "eventRemove":  {
+        "name": "event_remove",
+        "description": "Removes a pre-existing event using the event's ID",
+        "slash": true,
+        "options": [{
+            "name": "event_id",
+            "description": "The event that you wish to remove's ID",
+            "required": true,
+            "type": 3
+        }]
+    },
     "eventShow": "event show",
     "eventListProposed": "event list proposed",
     "eventListDeployed": "event list deployed",
@@ -604,9 +614,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.eventRemove)) {
-            events.handleEventRemove(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventShow)) {
+        if (messageContentLowercase.startsWith(COMMANDS.eventShow)) {
             events.handleEventShow(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventListProposed)) {
             events.handleEventListProposed(msg, guildConfig);
@@ -734,6 +742,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.eventEdit.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventEdit.name, commandPrefix);
             events.handleEventEdit(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventRemove.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventRemove.name, commandPrefix);
+            events.handleEventRemove(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
@@ -776,13 +787,12 @@ function parseMessageParms(messageContent, command, prefix) {
     }
     let msgParms = messageContent.substring(commandIndex).trim();
     //parse event format - ignore ! unless beginning of line or preceded by space
-    // const regex = /\!(?:(?! \!).)*/g;
     const regex = /(^\!| \!)(?:(?! \!).)*/g;
     let found = msgParms.match(regex);
     if (found) {
         console.debug('parseMessageParms:', msgParms);
-        //check to see if this is an 'edit' and the first param is the event id
-        if (!msgParms.startsWith('!')) {
+        //check to see if this is a non-slash 'event edit' and the first param is the event id (maintaining backwards compat)
+        if (!msgParms.startsWith('!') && command.replace(' ', '_').indexOf(COMMANDS.eventEdit.name) != -1) {
             let option = {
                 name: 'event_id',
                 value: msgParms.trim().split(' ')[0]
@@ -821,7 +831,6 @@ function parseMessageParms(messageContent, command, prefix) {
     }
     console.debug(`parseMessageParms: "${prefix}" "${command}" "${commandIndex}" - ${msgParms}`, options);
     return options;
-    // return msgParms;
 }
 
 process.on('SIGTERM', async () => {

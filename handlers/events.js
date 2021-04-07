@@ -90,12 +90,8 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         if (msgParms.length < 2) {
             throw new Error('Not enough parameters, you need to pass at least one editable parameter.');
         }
-        // let eventString = msg.content.substring((guildConfig.prefix + 'event edit').length + 1);
-        // const indexForEventID = eventString.indexOf(' ');
-        // const eventID = eventString.substring(0, indexForEventID);
         const eventID = msgParms.find(p => p.name == 'event_id').value;
         // console.log(eventID);
-        // eventString = eventString.substring(indexForEventID);
         let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
             if (msg.deletable) {
@@ -150,7 +146,6 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                     eventMessage = await (
                         theGuild.channels.resolve(validatedEvent.channelID)
                     ).messages.fetch(validatedEvent.messageID);
-                    //@todo find all embedForEvent(msg and change to theGuild.iconURL()
                     await eventMessage.edit(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
                 } catch (error) {
                     console.log(`couldn't edit old event message on edit: ${error.message}`);
@@ -179,13 +174,21 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
     return false;
 }
 
-async function handleEventRemove(msg, guildConfig) {
+/**
+ * Removes a pre-existing event using the event's ID
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleEventRemove(msg, msgParms, guildConfig) {
     try {
-        let eventID = msg.content.substring((guildConfig.prefix + 'event remove').length + 1);
+        let eventID = msgParms[0].value;
         // console.log(eventID);
         let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
         await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
