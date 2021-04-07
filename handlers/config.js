@@ -286,19 +286,23 @@ async function handleConfigEventChannel(msg, msgParms, guildConfig) {
 }
 
 /**
- *
+ * Configure what channel to send all polls to
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigPollChannel(msg, guildConfig) {
+async function handleConfigPollChannel(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let stringParam = msg.content.substring((guildConfig.prefix + 'config pollchannel').length + 1);
+            let channelTest;
+            let stringParam = msgParms.length > 0 ? msgParms[0].value : '';
             if (stringParam.trim() == '') {
                 guildConfig.channelForPolls = undefined;
             } else {
-                stringParam = stringParam.substring(2, stringParam.length - 1);
-                let channelTest = await msg.guild.channels.resolve(stringParam);
+                if (stringParam.startsWith('<')) {
+                    stringParam = stringParam.substring(2, stringParam.length - 1);
+                }
+                channelTest = await msg.guild.channels.resolve(stringParam);
                 if (!channelTest) {
                     throw new Error(`Could not locate channel: ${stringParam}`);
                 }
@@ -306,8 +310,10 @@ async function handleConfigPollChannel(msg, guildConfig) {
             }
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
-            await utils.sendDirectOrFallbackToChannel({ name: 'Config Poll Channel', value: `Poll Channel now set to: \`${guildConfig.channelForPolls}\`.` }, msg);
-            await msg.delete();
+            await utils.sendDirectOrFallbackToChannel({ name: 'Config Poll Channel', value: `Poll Channel now set to: \`${guildConfig.channelForPolls ? channelTest.name : guildConfig.channelForPolls}\`.` }, msg);
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
         }
