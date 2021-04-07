@@ -5,18 +5,19 @@ const utils = require('../utils/utils.js');
 /**
  * set user's timezone
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleDefault(msg, guildConfig) {
+async function handleDefault(msg, msgParms, guildConfig) {
     try {
-        let defaultChar = msg.content.substring((guildConfig.prefix + 'default').length + 1);
+        let defaultChar = msgParms.length > 0 ? msgParms[0].value : undefined;
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (defaultChar == '' && currUser) {
+        if (!defaultChar && currUser && currUser.defaultCharacter) {
             await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character is currently set to: ${currUser.defaultCharacter}` }], msg);
-        } else if (defaultChar == '') {
-            throw new Error('No default character set yet.');
+        } else if (!defaultChar) {
+            await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `No default character set yet.` }], msg);
         } else {
-            let character = CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: defaultChar, approvalStatus: true });
+            let character = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: defaultChar, approvalStatus: true });
             if (!character) {
                 throw new Error(`No approved character (${defaultChar}) found.`);
             }
@@ -26,9 +27,11 @@ async function handleDefault(msg, guildConfig) {
                 currUser.defaultCharacter = defaultChar;
             }
             await currUser.save();
-            await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character was successfully set to: ${currUser.defaultCharacter}` }], msg);
+            await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character was successfully set to: \`${character.name}\`` }], msg);
         }
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -143,7 +146,7 @@ async function hasRoleOrIsAdmin(member, roleId) {
         }
     } catch (error) {
         // console.error(`Could not determine user (${member?member.id:member}) role`, error);
-        throw new Error(`Could not determine user (${member?member.id:member}) role`);
+        throw new Error(`Could not determine user (${member ? member.id : member}) role`);
     }
     return hasRole;
 }

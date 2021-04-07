@@ -440,7 +440,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "default": "default",
+    "default": {
+        "name": "default",
+        "description": "Set your default character id to be used for events/missions with no campaign",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "The chacter id (from `list`) to set as your default.",
+            "required": false,
+            "type": 3
+        }]
+    },
     "timezone": "timezone",
     "configApproval": "config approval",
     "configEventchannel": "config eventchannel",
@@ -636,9 +646,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.default)) {
-            users.handleDefault(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.timezone)) {
+        if (messageContentLowercase.startsWith(COMMANDS.timezone)) {
             users.handleTimezone(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configApproval)) {
             config.handleConfigApproval(msg, guildConfig);
@@ -772,6 +780,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.eventList.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventList.name, commandPrefix);
             events.handleEventList(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.default.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.default.name, commandPrefix);
+            users.handleDefault(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
