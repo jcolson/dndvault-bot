@@ -234,7 +234,7 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "show":  {
+    "show": {
         "name": "show",
         "description": "Show a user's character from the vault",
         "slash": true,
@@ -245,7 +245,52 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "eventCreate": "event create",
+    "eventCreate": {
+        "name": "event_create",
+        "description": "Creates an event PROPOSAL that users can sign up for",
+        "slash": true,
+        "options": [{
+            "name": "title",
+            "description": "The title of this event",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "at",
+            "description": "The time at which this event will start",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "for",
+            "description": "The number of hours that this event will run for",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "on",
+            "description": "The date on which this event will start",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "with",
+            "description": "The number of attendee slot available to join this event",
+            "required": true,
+            "type": 4 //integer
+        }, {
+            "name": "desc",
+            "description": "Event description, including playstyle, pings, etc",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "dmgm",
+            "description": "The DM/GM for this event",
+            "required": false,
+            "type": 6 // discord user
+        }, {
+            "name": "campaign",
+            "description": "Campaign associated to event",
+            "required": false,
+            "type": 3
+        }]
+    },
     "eventEdit": "event edit",
     "eventRemove": "event remove",
     "eventShow": "event show",
@@ -351,33 +396,34 @@ function getClientApp() {
 async function registerCommands() {
     console.info('registerCommands: BEGIN');
     let commandsToKeep = [];
-    // let commandsToRegister = [];
+    let commandsToRegister = [];
     for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
         if (commandValue.slash) {
             // console.info("registerCommands: command key and value to register", commandKey, commandValue);
             commandsToKeep.push(commandValue.name);
-            await getClientApp().commands.post({
-                data: commandValue,
-            });
-            // commandsToRegister.push(
-            //     commandValue
-            // );
+            // await getClientApp().commands.post({
+            //     data: commandValue,
+            // });
+            commandsToRegister.push(
+                commandValue
+            );
         }
     }
-    //@todo get the bulk command update working
-    // commandsToRegister = [{"name":"help","description":"Get help about D&D Vault Bot","slash":true},{"name":"roll","description":"Rolls dice, using notation reference","slash":true,"options":[{"name":"Notation","description":"Dice notation, such as `2d8 + 1d4`","required":true,"type":3}]}]
     // console.debug(JSON.stringify({data: commandsToRegister}));
-    // client.api.applications(client.user.id).commands.post({data: commandsToRegister});
-    // await getClientApp().commands.post({data: commandsToRegister});
-    // console.debug("registerCommands: commandsToKeep", commandsToKeep);
-    const registeredCommands = await getClientApp().commands.get();
-    for (const command of registeredCommands) {
-        // console.debug("registerCommands: command", command.name);
-        if (!commandsToKeep.includes(command.name)) {
-            console.info("registerCommands: removing command ", command);
-            await getClientApp().commands(command.id).delete();
-        }
-    }
+    await getClientApp().commands.put({data: commandsToRegister});
+    /**
+     * this is not necessary, as the `commands.put` replaces all commands, so left overs should be auto-removed?
+     * if the single `post` method is used, then this is required
+     */
+    // const registeredCommands = await getClientApp().commands.get();
+    // console.debug("registerCommands: commandsToKeep & registeredCommands", commandsToKeep, registeredCommands);
+    // for (const command of registeredCommands) {
+    //     // console.debug("registerCommands: command", command.name);
+    //     if (!commandsToKeep.includes(command.name)) {
+    //         console.info("registerCommands: removing command ", command);
+    //         await getClientApp().commands(command.id).delete();
+    //     }
+    // }
     console.info('registerCommands: END');
 }
 
@@ -508,9 +554,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.eventCreate)) {
-            events.handleEventCreate(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventEdit)) {
+        if (messageContentLowercase.startsWith(COMMANDS.eventEdit)) {
             events.handleEventEdit(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventRemove)) {
             events.handleEventRemove(msg, guildConfig);
@@ -636,6 +680,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.show.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.show.name, commandPrefix);
             characters.handleShow(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventCreate.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventCreate.name, commandPrefix);
+            events.handleEventCreate(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
@@ -679,11 +726,12 @@ function parseMessageParms(messageContent, command, prefix) {
     let msgParms = messageContent.substring(commandIndex).trim();
     //parse event format - ignore ! unless beginning of line or preceded by space
     // const regex = /\!(?:(?! \!).)*/g;
-    const regex = /^\)| \!(?:(?! \!).)*/g;
+    const regex = /(^\!| \!)(?:(?! \!).)*/g;
     let found = msgParms.match(regex);
     if (found) {
         for (let each of found) {
-            let eachSplit = each.split(' ');
+            // console.debug('each', each);
+            let eachSplit = each.trim().split(' ');
             let option = {
                 name: eachSplit[0].substring(eachSplit[0].indexOf('!') + 1),
                 value: eachSplit.slice(1).join(' '),
