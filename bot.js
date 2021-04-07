@@ -291,7 +291,57 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "eventEdit": "event edit",
+    "eventEdit": {
+        "name": "event_edit",
+        "description": "Edits a pre-existing event using the event's ID",
+        "slash": true,
+        "options": [{
+            "name": "event_id",
+            "description": "The event that you wish to edit's ID",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "title",
+            "description": "The title of this event",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "at",
+            "description": "The time at which this event will start",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "for",
+            "description": "The number of hours that this event will run for",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "on",
+            "description": "The date on which this event will start",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "with",
+            "description": "The number of attendee slot available to join this event",
+            "required": false,
+            "type": 4 //integer
+        }, {
+            "name": "desc",
+            "description": "Event description, including playstyle, pings, etc",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "dmgm",
+            "description": "The DM/GM for this event",
+            "required": false,
+            "type": 6 // discord user
+        }, {
+            "name": "campaign",
+            "description": "Campaign associated to event",
+            "required": false,
+            "type": 3
+        }]
+    },
     "eventRemove": "event remove",
     "eventShow": "event show",
     "eventListProposed": "event list proposed",
@@ -410,7 +460,7 @@ async function registerCommands() {
         }
     }
     // console.debug(JSON.stringify({data: commandsToRegister}));
-    await getClientApp().commands.put({data: commandsToRegister});
+    await getClientApp().commands.put({ data: commandsToRegister });
     /**
      * this is not necessary, as the `commands.put` replaces all commands, so left overs should be auto-removed?
      * if the single `post` method is used, then this is required
@@ -554,9 +604,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.eventEdit)) {
-            events.handleEventEdit(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventRemove)) {
+        if (messageContentLowercase.startsWith(COMMANDS.eventRemove)) {
             events.handleEventRemove(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventShow)) {
             events.handleEventShow(msg, guildConfig);
@@ -683,6 +731,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.eventCreate.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventCreate.name, commandPrefix);
             events.handleEventCreate(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventEdit.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventEdit.name, commandPrefix);
+            events.handleEventEdit(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
@@ -729,6 +780,15 @@ function parseMessageParms(messageContent, command, prefix) {
     const regex = /(^\!| \!)(?:(?! \!).)*/g;
     let found = msgParms.match(regex);
     if (found) {
+        console.debug('parseMessageParms:', msgParms);
+        //check to see if this is an 'edit' and the first param is the event id
+        if (!msgParms.startsWith('!')) {
+            let option = {
+                name: 'event_id',
+                value: msgParms.trim().split(' ')[0]
+            }
+            options.push(option);
+        }
         for (let each of found) {
             // console.debug('each', each);
             let eachSplit = each.trim().split(' ');

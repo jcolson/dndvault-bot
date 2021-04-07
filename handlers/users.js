@@ -142,8 +142,8 @@ async function hasRoleOrIsAdmin(member, roleId) {
             console.log(`hasRoleOrIsAdmin ${member.id}: ${hasRole}`);
         }
     } catch (error) {
-        console.error('Could not determine user role', error);
-        throw new Error('Could not determine user role');
+        // console.error(`Could not determine user (${member?member.id:member}) role`, error);
+        throw new Error(`Could not determine user (${member?member.id:member}) role`);
     }
     return hasRole;
 }
