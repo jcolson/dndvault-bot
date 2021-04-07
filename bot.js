@@ -473,7 +473,17 @@ const COMMANDS = {
             "type": 5 // boolean
         }]
     },
-    "configEventchannel": "config eventchannel",
+    "configEventchannel": {
+        "name": "config_eventchannel",
+        "description": "Configure what channel to send all events to",
+        "slash": true,
+        "options": [{
+            "name": "event_channel",
+            "description": "Channel to send all events to, `unset` by not setting this value.",
+            "required": false,
+            "type": 7 // channel
+        }]
+    },
     "configPollchannel": "config pollchannel",
     "configPrefix": "config prefix",
     "configArole": "config arole",
@@ -666,9 +676,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.configEventchannel)) {
-            config.handleConfigEventChannel(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configPollchannel)) {
+        if (messageContentLowercase.startsWith(COMMANDS.configPollchannel)) {
             config.handleConfigPollChannel(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configPrefix)) {
             config.handleConfigPrefix(msg, guildConfig);
@@ -805,6 +813,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.configApproval.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configApproval.name, commandPrefix);
             config.handleConfigApproval(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.configEventchannel.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configEventchannel.name, commandPrefix);
+            config.handleConfigEventChannel(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
