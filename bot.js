@@ -539,7 +539,11 @@ const COMMANDS = {
             "type": 5 // boolean
         }]
     },
-    "config": "config"
+    "config": {
+        "name": "config",
+        "description": "Show the configuration for your server",
+        "slash": true
+    }
 };
 
 /**
@@ -701,6 +705,7 @@ client.on('message', async (msg) => {
             }
         }
         if (msg.author.bot) {
+            // don't do anything if this message was authored by a bot
             return;
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
@@ -718,22 +723,7 @@ client.on('message', async (msg) => {
             // don't do anything if the proper commandprefix isn't there and there is a guild
             return;
         }
-        let handled = await handleCommandExec(guildConfig, messageContentLowercase, msg);
-
-        if (handled) {
-            return;
-        }
-
-        let dontLog = false;
-
-        if (messageContentLowercase.startsWith(COMMANDS.config)) {
-            config.handleConfig(msg, guildConfig);
-        } else {
-            dontLog = true;
-        }
-        if (!dontLog) {
-            console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}`);
-        }
+        await handleCommandExec(guildConfig, messageContentLowercase, msg);
     } catch (error) {
         console.error('on_message: ', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -871,6 +861,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.configCampaign.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configCampaign.name, commandPrefix);
             config.handleConfigCampaign(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.config.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.config.name, commandPrefix);
+            config.handleConfig(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }

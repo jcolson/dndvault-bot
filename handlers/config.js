@@ -5,11 +5,12 @@ const { Channel } = require('discord.js');
 const GuildCache = {};
 
 /**
- *
+ * Show the configuration for your server
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfig(msg, guildConfig) {
+async function handleConfig(msg, msgParms, guildConfig) {
     try {
         let channelForEvents = {};
         let channelForPolls = {};
@@ -38,7 +39,9 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Poll Channel', value: channelForPolls.name, inline: true }
             ],
             msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         console.error("handleConfig:", error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
