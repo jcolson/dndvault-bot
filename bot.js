@@ -451,7 +451,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "timezone": "timezone",
+    "timezone": {
+        "name": "timezone",
+        "description": "Set your timezone (required for interacting with events)",
+        "slash": true,
+        "options": [{
+            "name": "timezone",
+            "description": "The timezone which to set as your default",
+            "required": false,
+            "type": 3
+        }]
+    },
     "configApproval": "config approval",
     "configEventchannel": "config eventchannel",
     "configPollchannel": "config pollchannel",
@@ -646,9 +656,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.timezone)) {
-            users.handleTimezone(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configApproval)) {
+        if (messageContentLowercase.startsWith(COMMANDS.configApproval)) {
             config.handleConfigApproval(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configEventchannel)) {
             config.handleConfigEventChannel(msg, guildConfig);
@@ -783,6 +791,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.default.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.default.name, commandPrefix);
             users.handleDefault(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.timezone.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.timezone.name, commandPrefix);
+            users.handleTimezone(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
