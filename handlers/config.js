@@ -46,19 +46,25 @@ async function handleConfig(msg, guildConfig) {
 }
 
 /**
- *
+ * require that a user have matching character for event's campaigns
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigCampaign(msg, guildConfig) {
+async function handleConfigCampaign(msg, msgParms, guildConfig) {
     try {
+        if (msgParms.length == 0 || msgParms[0].value === '') {
+            throw new Error(`Not enough parameters, must pass at least one.`);
+        }
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let boolParam = msg.content.substring((guildConfig.prefix + 'config campaign').length + 1);
+            let boolParam = msgParms[0].value;
             guildConfig.requireCharacterForEvent = utils.isTrue(boolParam);
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Campaign', value: `Require Character for Events now set to: \`${guildConfig.requireCharacterForEvent}\`.` }, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`Please ask an \`approver role\` to configure.`);
         }

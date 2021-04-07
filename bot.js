@@ -528,7 +528,17 @@ const COMMANDS = {
             "type": 8 // role
         }]
     },
-    "configCampaign": "config campaign",
+    "configCampaign": {
+        "name": "config_campaign",
+        "description": "Configure if required that a user have matching character for event's campaigns when signing up",
+        "slash": true,
+        "options": [{
+            "name": "true_or_false",
+            "description": "True or False",
+            "required": true,
+            "type": 5 // boolean
+        }]
+    },
     "config": "config"
 };
 
@@ -716,9 +726,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.configCampaign)) {
-            config.handleConfigCampaign(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.config)) {
+        if (messageContentLowercase.startsWith(COMMANDS.config)) {
             config.handleConfig(msg, guildConfig);
         } else {
             dontLog = true;
@@ -860,6 +868,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.configProle.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configProle.name, commandPrefix);
             config.handleConfigProle(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.configCampaign.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configCampaign.name, commandPrefix);
+            config.handleConfigCampaign(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
