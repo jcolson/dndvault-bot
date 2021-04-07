@@ -506,7 +506,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "configArole": "config arole",
+    "configArole": {
+        "name": "config_arole",
+        "description": "Modify approver role (allows user to approve characters)",
+        "slash": true,
+        "options": [{
+            "name": "arole",
+            "description": "Role to set as approver role.  set to @everyone by leaving by not setting this value",
+            "required": false,
+            "type": 8 // role
+        }]
+    },
     "configProle": "config prole",
     "configCampaign": "config campaign",
     "config": "config"
@@ -696,9 +706,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.configArole)) {
-            config.handleConfigArole(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configProle)) {
+        if (messageContentLowercase.startsWith(COMMANDS.configProle)) {
             config.handleConfigProle(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configCampaign)) {
             config.handleConfigCampaign(msg, guildConfig);
@@ -838,6 +846,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.configPrefix.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configPrefix.name, commandPrefix);
             config.handleConfigPrefix(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.configArole.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configArole.name, commandPrefix);
+            config.handleConfigArole(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }

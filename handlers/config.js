@@ -68,21 +68,31 @@ async function handleConfigCampaign(msg, guildConfig) {
 }
 
 /**
- *
+ * modify approver role (allows user to approve characters)
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigArole(msg, guildConfig) {
+async function handleConfigArole(msg, msgParms, guildConfig) {
     try {
+
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configAroleIdCheck = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
+            let configAroleIdCheck;
+            if (msgParms.length == 0 || msgParms[0].value === '') {
+                configAroleIdCheck = msg.guild.roles.everyone.id;
+            } else {
+                configAroleIdCheck = msgParms[0].value;
+            }
+
             let configArole = await getRoleForIdTagOrName(msg.guild, configAroleIdCheck);
             if (configArole) {
                 guildConfig.arole = configArole.id;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Approver Role', value: `${configArole.name} is now the \`approver role\`.` }, msg);
-                await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete();
+                }
             } else {
                 throw new Error(`could not locate the role for: ${configAroleIdCheck}`);
             }
@@ -122,10 +132,11 @@ async function handleConfigProle(msg, guildConfig) {
 }
 
 async function getRoleForIdTagOrName(guild, roleIdCheck) {
-    if (roleIdCheck.startsWith('<@&')) {
+    const checkAlphaRegex = /[a-zA-Z]/g;
+    if (roleIdCheck.startsWith('<')) {
         // need to strip the tailing '>' off as well ...
         roleIdCheck = roleIdCheck.substring(3, roleIdCheck.length - 1);
-    } else {
+    } else if (checkAlphaRegex.test(roleIdCheck)) {
         roleIdCheck = await utils.retrieveRoleIdForName(guild, roleIdCheck);
     }
     // console.log(roleIdCheck);
