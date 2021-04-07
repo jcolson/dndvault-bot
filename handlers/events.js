@@ -278,17 +278,20 @@ async function handleEventShow(msg, msgParms, guildConfig) {
 /**
  * list events that are in the future or n days old
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventList(msg, guildConfig) {
+async function handleEventList(msg, msgParms, guildConfig) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 3);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `All Events`, false);
+            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any events yet.  Create one with \`event create\`!`);
         }
@@ -336,7 +339,9 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any DEPLOYED events yet.  Create one with \`event create\`!`);
         }

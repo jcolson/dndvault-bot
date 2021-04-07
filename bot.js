@@ -374,7 +374,11 @@ const COMMANDS = {
         "description": "List all future DEPLOYED events",
         "slash": true,
     },
-    "eventList": "event list",
+    "eventList": {
+        "name": "event_list",
+        "description": "list all future events (and events from the past few days) (PROPOSed and DEPLOYed)",
+        "slash": true,
+    },
     "poll": {
         "name": "poll",
         "description": "Create a Poll to get input from the server users",
@@ -632,9 +636,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.eventList)) {
-            events.handleEventList(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.default)) {
+        if (messageContentLowercase.startsWith(COMMANDS.default)) {
             users.handleDefault(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.timezone)) {
             users.handleTimezone(msg, guildConfig);
@@ -765,9 +767,11 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventListProposed.name, commandPrefix);
             events.handleEventListProposed(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed.name)) {
-            console.debug("in eventListDeployed");
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventListDeployed.name, commandPrefix);
             events.handleEventListDeployed(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventList.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventList.name, commandPrefix);
+            events.handleEventList(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
