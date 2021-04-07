@@ -22,16 +22,305 @@ const RacialBonusLookup = {
     6: { 'Half-Elf': 2, 'Drow': 1, 'Lightfoot Halfling': 1, 'Dragonborn': 1, 'Tiefling': 2, 'Human': 1 }
 };
 
+const RaceLookup = [{
+    name: 'Mountain Dwarf',
+    value: 'Mountain Dwarf'
+},
+{
+    name: 'Dragonborn',
+    value: 'Dragonborn'
+},
+{
+    name: 'Half-Orc',
+    value: 'Half-Orc'
+},
+{
+    name: 'Human',
+    value: 'Human'
+},
+{
+    name: 'Elf',
+    value: 'Elf'
+},
+{
+    name: 'Halfling',
+    value: 'Halfling'
+},
+{
+    name: 'Forest Gnome',
+    value: 'Forest Gnome'
+},
+{
+    name: 'Dwarf',
+    value: 'Dwarf'
+},
+{
+    name: 'Stout halfling',
+    value: 'Stout halfling'
+},
+{
+    name: 'Rock Gnome',
+    value: 'Rock Gnome'
+},
+{
+    name: 'High Elf',
+    value: 'High Elf'
+},
+{
+    name: 'Gnome',
+    value: 'Gnome'
+},
+{
+    name: 'Tiefling',
+    value: 'Tiefling'
+},
+{
+    name: 'Hill Dwarf',
+    value: 'Hill Dwarf'
+},
+{
+    name: 'Wood Elf',
+    value: 'Wood Elf'
+},
+{
+    name: 'Half-Elf',
+    value: 'Half-Elf'
+},
+// {
+//     name: 'Drow',
+//     value: 'Drow'
+// },
+{
+    name: 'Lightfoot Halfling',
+    value: 'Lightfoot Halfling'
+},
+// {
+//     name: 'Orc of Exandria',
+//     value: 'Orc of Exandria'
+// },
+// {
+//     name: 'Leonin',
+//     value: 'Leonin'
+// },
+// {
+//     name: 'Satyr',
+//     value: 'Satyr'
+// },
+// {
+//     name: 'Aarakocra',
+//     value: 'Aarakocra'
+// },
+// {
+//     name: 'Genasi',
+//     value: 'Genasi'
+// },
+{
+    name: 'Goliath',
+    value: 'Goliath'
+},
+// {
+//     name: 'Aasimar',
+//     value: 'Aasimar'
+// },
+{
+    name: 'Bugbear',
+    value: 'Bugbear'
+},
+{
+    name: 'Firbolg',
+    value: 'Firbolg'
+},
+// {
+//     name: 'Goblin',
+//     value: 'Goblin'
+// },
+// {
+//     name: 'Hobgoblin',
+//     value: 'Hobgoblin'
+// },
+// {
+//     name: 'Kenku',
+//     value: 'Kenku'
+// },
+// {
+//     name: 'Kobold',
+//     value: 'Kobold'
+// },
+// {
+//     name: 'Lizardfolk',
+//     value: 'Lizardfolk'
+// },
+// {
+//     name: 'Orc',
+//     value: 'Orc'
+// },
+{
+    name: 'Tabaxi',
+    value: 'Tabaxi'
+},
+// {
+//     name: 'Triton',
+//     value: 'Triton'
+// },
+{
+    name: 'Yuan-ti Pureblood',
+    value: 'Yuan-ti Pureblood'
+},
+// {
+//     name: 'Feral Tiefling',
+//     value: 'Feral Tiefling'
+// },
+// {
+//     name: 'Tortle',
+//     value: 'Tortle'
+// },
+{
+    name: 'Changling',
+    value: 'Changling'
+},
+// {
+//     name: 'Kalashtar',
+//     value: 'Kalashtar'
+// },
+// {
+//     name: 'Orc of Eberron',
+//     value: 'Orc of Eberron'
+// },
+// {
+//     name: 'Shifter',
+//     value: 'Shifter'
+// },
+{
+    name: 'Warforged',
+    value: 'Warforged'
+},
+// {
+//     name: 'Gith',
+//     value: 'Gith'
+// },
+// {
+//     name: 'Centaur',
+//     value: 'Centaur'
+// },
+// {
+//     name: 'Loxodon',
+//     value: 'Loxodon'
+// },
+// {
+//     name: 'Minotaur',
+//     value: 'Minotaur'
+// },
+// {
+//     name: 'Simic Hybrid',
+//     value: 'Simic Hybrid'
+// },
+// {
+//     name: 'Vedalken',
+//     value: 'Vedalken'
+// },
+// {
+//     name: 'Verdan',
+//     value: 'Verdan'
+// },
+// {
+//     name: 'Locathah',
+//     value: 'Locathah'
+// },
+// {
+//     name: 'Grung',
+//     value: 'Grung'
+// },
+// {
+//     name: 'Dhampir (UA)',
+//     value: 'Dhampir (UA)'
+// },
+// {
+//     name: 'Fairy (UA)',
+//     value: 'Fairy (UA)'
+// },
+// {
+//     name: 'Hexblood (UA)',
+//     value: 'Hexblood (UA)'
+// },
+// {
+//     name: 'Hobgoblin of the Feywild (UA)',
+//     value: 'Hobgoblin of the Feywild (UA)'
+// },
+// {
+//     name: 'Owlfolk (UA)',
+//     value: 'Owlfolk (UA)'
+// },
+// {
+//     name: 'Rabbitfolk (UA)',
+//     value: 'Rabbitfolk (UA)'
+// },
+// {
+//     name: 'Reborn (UA)',
+//     value: 'Reborn (UA)'
+// },
+{
+    name: 'Other Race',
+    value: 'Other Race'
+}];
+
+const ClassLookup = [{
+    name: 'Barbarian',
+    value: 'Barbarian'
+}, {
+    name: 'Bard',
+    value: 'Bard'
+}, {
+    name: 'Cleric',
+    value: 'Cleric'
+}, {
+    name: 'Druid',
+    value: 'Druid'
+}, {
+    name: 'Fighter',
+    value: 'Fighter'
+}, {
+    name: 'Monk',
+    value: 'Monk'
+}, {
+    name: 'Paladin',
+    value: 'Paladin'
+}, {
+    name: 'Ranger',
+    value: 'Ranger'
+}, {
+    name: 'Rogue',
+    value: 'Rogue'
+}, {
+    name: 'Sorcerer',
+    value: 'Sorcerer'
+}, {
+    name: 'Warlock',
+    value: 'Warlock'
+}, {
+    name: 'Wizard',
+    value: 'Wizard'
+}, {
+    name: 'Artificer',
+    value: 'Artificer'
+}, {
+    name: 'Blood Hunter',
+    value: 'Blood Hunter'
+}, {
+    name: 'Other Class',
+    value: 'Other Class'
+}];
+
 /**
  * Parse the incoming url for the character id and then use
  * https://character-service.dndbeyond.com/character/v3/character/xxxxxx
  * to retrieve the json
  * @param {Message} msg
+ * @param {Array} paramArray
  * @param {GuildModel} guildConfig
  */
-async function handleRegister(msg, msgParms, guildConfig) {
+async function handleRegister(msg, paramArray, guildConfig) {
     try {
-        const charID = parseCharIdFromURL(msgParms);
+        const charID = parseCharIdFromURL(paramArray[0].value);
         const settings = { method: "Get" };
         let response = await fetch(Config.dndBeyondCharServiceUrl + charID, settings);
         let charJSON = await response.json();
@@ -55,7 +344,9 @@ async function handleRegister(msg, msgParms, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Register', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -64,25 +355,25 @@ async function handleRegister(msg, msgParms, guildConfig) {
 /**
  * create a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
  * @param {Message} msg
- * @param {String} msgParms
+ * @param {Array} paramArray
  * @param {GuildModel} guildConfig
  */
-async function handleRegisterManual(msg, msgParms, guildConfig) {
+async function handleRegisterManual(msg, paramArray, guildConfig) {
     try {
-        const paramArray = msgParms.split(' ');
+        // const paramArray = msgParms.split(' ');
         if (paramArray.length < 4) {
             throw new Error('Not enough parameters passed.');
         }
         let char = new CharModel();
         char.id = Types.ObjectId();
-        char.name = paramArray[0];
+        char.name = paramArray[0].value;
         char.classes = [];
-        char.classes[0] = { definition: { name: paramArray[1] }, level: paramArray[2] };
-        char.race.fullName = paramArray[3];
+        char.classes[0] = { definition: { name: paramArray[1].value }, level: paramArray[2].value };
+        char.race.fullName = paramArray[3].value;
         if (paramArray.length > 4) {
             char.campaignOverride = '';
             for (let i = 4; i < paramArray.length; i++) {
-                char.campaignOverride += paramArray[i] + ' ';
+                char.campaignOverride += paramArray[i].value + ' ';
             }
             char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
         }
@@ -96,7 +387,9 @@ async function handleRegisterManual(msg, msgParms, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Register Manual', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -135,12 +428,12 @@ function parseCharIdFromURL(msgParms) {
  * https://character-service.dndbeyond.com/character/v3/character/xxxxxx
  * to retrieve the json
  * @param {Message} msg
- * @param {String} msgParms
+ * @param {Array} paramArray
  * @param {GuildModel} guildConfig
  */
-async function handleUpdate(msg, msgParms, guildConfig) {
+async function handleUpdate(msg, paramArray, guildConfig) {
     try {
-        const charID = parseCharIdFromURL(msgParms);
+        const charID = parseCharIdFromURL(paramArray[0].value);
         const settings = { method: "Get" };
         let response = await fetch(Config.dndBeyondCharServiceUrl + charID, settings);
         let charJSON = await response.json();
@@ -179,7 +472,9 @@ async function handleUpdate(msg, msgParms, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -188,39 +483,39 @@ async function handleUpdate(msg, msgParms, guildConfig) {
 /**
  * update a stub character with params [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}
  * @param {Message} msg
- * @param {String} msgParms
+ * @param {Array} paramArray
  * @param {GuildModel} guildConfig
  */
-async function handleUpdateManual(msg, msgParms, guildConfig) {
+async function handleUpdateManual(msg, paramArray, guildConfig) {
     try {
-        const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
-        const paramArray = parameters.split(' ');
+        // const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
+        // const paramArray = parameters.split(' ');
         if (paramArray.length < 5) {
             throw new Error('Not enough parameters passed.');
         }
-        console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, paramArray[0]);
-        let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: paramArray[0], isUpdate: false });
+        console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, paramArray[0].value);
+        let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: paramArray[0].value, isUpdate: false });
         if (!checkRegisterStatus) {
             throw new Error('Sorry, this character has not been registered and approved yet.  `register` and `approve` it first.');
         } else if (checkRegisterStatus.approvalStatus == false) {
-            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + paramArray[0] + '` and then re-register if you would like to replace the `register` request');
+            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + paramArray[0].value + '` and then re-register if you would like to replace the `register` request');
         }
-        const req = await CharModel.findOne({ id: paramArray[0], isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
+        const req = await CharModel.findOne({ id: paramArray[0].value, isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
         if (req) {
-            throw new Error('Sorry, this character has already has an update pending.  `remove ' + paramArray[0] + '` if you would like to replace the update request');
+            throw new Error('Sorry, this character has already has an update pending.  `remove ' + paramArray[0].value + '` if you would like to replace the update request');
         }
         let char = checkRegisterStatus;
         if (guildConfig.requireCharacterApproval) {
             char = new CharModel({
-                id: paramArray[0],
-                name: paramArray[1],
-                classes: [{ definition: { name: paramArray[2] }, level: paramArray[3] }],
-                "race.fullName": paramArray[4],
+                id: paramArray[0].value,
+                name: paramArray[1].value,
+                classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
+                "race.fullName": paramArray[4].value,
             });
             if (paramArray.length > 5) {
                 char.campaignOverride = '';
                 for (let i = 5; i < paramArray.length; i++) {
-                    char.campaignOverride += paramArray[i] + ' ';
+                    char.campaignOverride += paramArray[i].value + ' ';
                 }
                 char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
             }
@@ -232,15 +527,15 @@ async function handleUpdateManual(msg, msgParms, guildConfig) {
             char.approvedBy = checkRegisterStatus.approvedBy;
         } else {
             char.overwrite({
-                id: paramArray[0],
-                name: paramArray[1],
-                classes: [{ definition: { name: paramArray[2] }, level: paramArray[3] }],
-                "race.fullName": paramArray[4],
+                id: paramArray[0].value,
+                name: paramArray[1].value,
+                classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
+                "race.fullName": paramArray[4].value,
             });
             if (paramArray.length > 5) {
                 char.campaignOverride = '';
                 for (let i = 5; i < paramArray.length; i++) {
-                    char.campaignOverride += paramArray[i] + ' ';
+                    char.campaignOverride += paramArray[i].value + ' ';
                 }
                 char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
             }
@@ -253,7 +548,9 @@ async function handleUpdateManual(msg, msgParms, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -262,20 +559,22 @@ async function handleUpdateManual(msg, msgParms, guildConfig) {
 /**
  * Handler for displaying character changes
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleChanges(msg, guildConfig) {
+async function handleChanges(msg, msgParms, guildConfig) {
     try {
-        const charId = msg.content.substring((guildConfig.prefix + 'changes').length + 1);
+        const charId = msgParms[0].value;
         let updatedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: false });
         let approvedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: true });
         if (typeof updatedChar === 'undefined' || !updatedChar || typeof approvedChar === 'undefined' || !approvedChar) {
-            await msg.channel.send(`<@${msg.member.id}>, an updated character for id "${charId}" could not be located.`);
-            await msg.delete();
+            throw new Error(`an updated character for id "${charId}" could not be located.`);
         } else {
             const changesEmbed = embedForChanges(msg, approvedChar, updatedChar);
             // console.log(changesEmbed);
             await utils.sendDirectOrFallbackToChannelEmbeds(changesEmbed, msg);
+        }
+        if (msg.deletable) {
             await msg.delete();
         }
     } catch (error) {
@@ -643,11 +942,12 @@ function stringForNameChange(approvedChar, updatedChar) {
 /**
  * list all characters for the campaign requested
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleListCampaign(msg, guildConfig) {
+async function handleListCampaign(msg, msgParms, guildConfig) {
     try {
-        let campaignToList = msg.content.substring((guildConfig.prefix + 'list campaign').length + 1);
+        let campaignToList = msgParms[0].value;
         let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, approvalStatus: false });
 
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -665,7 +965,9 @@ async function handleListCampaign(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`There are no registered characters for that campaign, \`register\` one!`);
         }
@@ -682,10 +984,19 @@ function getIdsFromCharacterArray(charArray) {
     return names;
 }
 
-async function handleListUser(msg, guildConfig) {
+/**
+ * list characters for this user
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleListUser(msg, msgParms, guildConfig) {
     try {
-        let userToList = msg.content.substring((guildConfig.prefix + 'list user').length + 1);
-        userToList = userToList.substring(3, userToList.length - 1);
+        let userToList = msgParms[0].value;
+        if (userToList.startsWith('<')) {
+            userToList = userToList.substring(3, userToList.length - 1);
+        }
+        console.debug("handleListUser: usertolist:", userToList);
         let memberToList = await msg.guild.members.fetch(userToList);
         let charArrayUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -694,7 +1005,9 @@ async function handleListUser(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${memberToList.displayName} in the Vault`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any registered characters for ${userToList}`);
         }
@@ -834,7 +1147,13 @@ function stringForApprovalsAndUpdates(char) {
     }
 }
 
-async function handleListAll(msg, guildConfig) {
+/**
+ * list all characters in guild
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleListAll(msg, msgParms, guildConfig) {
     try {
         let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -843,7 +1162,9 @@ async function handleListAll(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault', false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any registered characters \`register\` one!`);
         }
@@ -853,17 +1174,20 @@ async function handleListAll(msg, guildConfig) {
 }
 
 /**
- *
+ * list all characters queued for approval
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleListQueued(msg, guildConfig) {
+async function handleListQueued(msg, msgParms, guildConfig) {
     try {
         const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
         }
@@ -875,9 +1199,10 @@ async function handleListQueued(msg, guildConfig) {
 /**
  *
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleList(msg, guildConfig) {
+async function handleList(msg, msgParms, guildConfig) {
     try {
         let vaultUser = await UserModel.findOne({ guildID: msg.guild.id, userID: msg.member.id });
         // console.log('handlelist vaultuser', vaultUser);
@@ -888,7 +1213,9 @@ async function handleList(msg, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`, false, vaultUser);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`There are no registered characters for you, \`register\` one`);
         }
@@ -898,24 +1225,20 @@ async function handleList(msg, guildConfig) {
 }
 
 /**
- *
+ * remove a character (or pending update) from the vault, if username is passed, remove for that user
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleRemove(msg, guildConfig) {
+async function handleRemove(msg, msgParms, guildConfig) {
     try {
         let typeOfRemoval = 'Character Update';
-        const arguments = msg.content.substring((guildConfig.prefix + 'remove').length + 1);
-        let charIdToDelete, forUser;
-        let indexToSplit = arguments.indexOf(' ');
-        if (indexToSplit != -1) {
-            charIdToDelete = arguments.substring(0, indexToSplit);
-            forUser = arguments.substring(indexToSplit + 4, arguments.length - 1);
-        } else {
-            charIdToDelete = arguments;
-            forUser = msg.member.id;
+        let charIdToDelete = msgParms[0].value;
+        let forUser = msgParms.length > 1 ? msgParms[1].value : msg.member.id;
+        if (forUser.startsWith('<')) {
+            forUser = forUser.substring(3, forUser.length - 1);
         }
-        console.log('about to remove charid %s for user %s', charIdToDelete, forUser);
+        console.log('handleRemove: about to remove charid %s for user %s', charIdToDelete, forUser);
         // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
         // doesn't exist, then remove the actual registered character
         let deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: true, approvalStatus: false });
@@ -927,32 +1250,36 @@ async function handleRemove(msg, guildConfig) {
                 if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
                     deleteResponse = await CharModel.deleteMany({ guildUser: forUser, id: charIdToDelete, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 } else {
-                    msg.reply(`Please ask an <@&${guildConfig.arole}> to remove this character, as it has already been approved`);
-                    return;
+                    throw new Error(`Please ask an <@&${guildConfig.arole}> to remove this character, as it has already been approved`);
                 }
             }
         }
         await utils.sendDirectOrFallbackToChannel({ name: 'Remove', value: `<@${msg.member.id}>, ${charIdToDelete} (${typeOfRemoval}) was removed (${deleteResponse.deletedCount} records) from vault.` }, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
 /**
- *
+ * approve a new/updated character within vault
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleApprove(msg, guildConfig) {
+async function handleApprove(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            const charIdToApprove = msg.content.substring((guildConfig.prefix + 'approve').length + 1);
+            const charIdToApprove = msgParms[0].value;
+            // const charIdToApprove = msg.content.substring((guildConfig.prefix + 'approve').length + 1);
             // console.log('charid: ' + charIdToApprove);
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
-                await msg.channel.send(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`);
-                await msg.delete();
+                throw new Error(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`)
+                // await msg.channel.send(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`);
+                // await msg.delete();
             } else {
                 // console.log('char: ' + charToApprove);
                 charToApprove.approvalStatus = true;
@@ -964,7 +1291,9 @@ async function handleApprove(msg, guildConfig) {
                 }
                 await charToApprove.save();
                 await utils.sendDirectOrFallbackToChannel({ name: 'Approve', value: `<@${msg.member.id}>, ${stringForCharacter(charToApprove)} was approved.` }, msg);
-                await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete();
+                }
             }
         } else {
             throw new Error(`please ask an \`approver role\` to approve.`);
@@ -975,20 +1304,24 @@ async function handleApprove(msg, guildConfig) {
 }
 
 /**
- * Show a character
+ * show a user's character from the vault
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleShow(msg, guildConfig) {
+async function handleShow(msg, msgParms, guildConfig) {
     try {
-        const charID = msg.content.substring((guildConfig.prefix + 'show').length + 1);
+        const charID = msgParms[0].value;
+        // const charID = msg.content.substring((guildConfig.prefix + 'show').length + 1);
         const showUser = (await CharModel.find({ id: charID, guildID: msg.guild.id }).sort({ isUpdate: 'desc' }))[0];
         if (!showUser) {
             throw new Error(`That character (${charID}) doesn't exist`);
         }
         const embedsChar = embedForCharacter(msg, [showUser], 'Show Character', true);
         await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -997,17 +1330,18 @@ async function handleShow(msg, guildConfig) {
 /**
  * allow editing of campaign to override dndbeyond
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleCampaign(msg, guildConfig) {
+async function handleCampaign(msg, msgParms, guildConfig) {
     try {
-        const parameterString = msg.content.substring((guildConfig.prefix + 'campaign').length + 1);
-        const charID = parameterString.substring(0, parameterString.indexOf(' '));
-        const campaignID = parameterString.substring(parameterString.indexOf(' ') + 1);
-        // console.log(`charid: ${charID} campaignID: ${campaignID}`);
-        if (!charID || !campaignID) {
+        if (msgParms.length < 2) {
             throw new Error('Please pass the character id and the campaign id.');
         }
+        const charID = msgParms[0].value;
+        const campaignID = msgParms[1].value;
+        // console.log(`charid: ${charID} campaignID: ${campaignID}`);
+
         const charToEdit = await CharModel.findOne({ guildUser: msg.member.id, id: charID, isUpdate: false, guildID: msg.guild.id });
         if (!charToEdit) {
             throw new Error(`No (approved) character (${charID}) found for your id.`);
@@ -1036,3 +1370,5 @@ exports.handleCampaign = handleCampaign;
 exports.stringForCharacterShort = stringForCharacterShort;
 exports.handleRegisterManual = handleRegisterManual;
 exports.handleUpdateManual = handleUpdateManual;
+exports.ClassLookup = ClassLookup;
+exports.RaceLookup = RaceLookup;

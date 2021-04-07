@@ -5,24 +5,27 @@ const { Channel } = require('discord.js');
 const GuildCache = {};
 
 /**
- *
+ * Show the configuration for your server
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfig(msg, guildConfig) {
+async function handleConfig(msg, msgParms, guildConfig) {
     try {
         let channelForEvents = {};
         let channelForPolls = {};
         try {
             if (guildConfig.channelForEvents) {
-                channelForEvents = await (new Channel(msg.client, { id: guildConfig.channelForEvents })).fetch();
+                channelForEvents = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+                // channelForEvents = await (new Channel(msg.client, { id: guildConfig.channelForEvents })).fetch();
             }
         } catch (error) {
             console.error(`handleConfig: could not resolve channel for events: ${guildConfig.channelForEvents}`, error);
         }
         try {
             if (guildConfig.channelForPolls) {
-                channelForPolls = await (new Channel(msg.client, { id: guildConfig.channelForPolls })).fetch();
+                // channelForPolls = await (new Channel(msg.client, { id: guildConfig.channelForPolls })).fetch();
+                channelForPolls = await msg.guild.channels.resolve(guildConfig.channelForPolls);
             }
         } catch (error) {
             console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForEvents}`, error);
@@ -38,7 +41,9 @@ async function handleConfig(msg, guildConfig) {
             { name: 'Poll Channel', value: channelForPolls.name, inline: true }
             ],
             msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         console.error("handleConfig:", error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -46,19 +51,25 @@ async function handleConfig(msg, guildConfig) {
 }
 
 /**
- *
+ * require that a user have matching character for event's campaigns
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigCampaign(msg, guildConfig) {
+async function handleConfigCampaign(msg, msgParms, guildConfig) {
     try {
+        if (msgParms.length == 0 || msgParms[0].value === '') {
+            throw new Error(`Not enough parameters, must pass at least one.`);
+        }
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let boolParam = msg.content.substring((guildConfig.prefix + 'config campaign').length + 1);
+            let boolParam = msgParms[0].value;
             guildConfig.requireCharacterForEvent = utils.isTrue(boolParam);
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Campaign', value: `Require Character for Events now set to: \`${guildConfig.requireCharacterForEvent}\`.` }, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`Please ask an \`approver role\` to configure.`);
         }
@@ -68,21 +79,29 @@ async function handleConfigCampaign(msg, guildConfig) {
 }
 
 /**
- *
+ * modify approver role (allows user to approve characters)
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigArole(msg, guildConfig) {
+async function handleConfigArole(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configAroleIdCheck = msg.content.substring((guildConfig.prefix + 'config arole').length + 1);
+            let configAroleIdCheck;
+            if (msgParms.length == 0 || msgParms[0].value === '') {
+                configAroleIdCheck = msg.guild.roles.everyone.id;
+            } else {
+                configAroleIdCheck = msgParms[0].value;
+            }
             let configArole = await getRoleForIdTagOrName(msg.guild, configAroleIdCheck);
             if (configArole) {
                 guildConfig.arole = configArole.id;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Approver Role', value: `${configArole.name} is now the \`approver role\`.` }, msg);
-                await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete();
+                }
             } else {
                 throw new Error(`could not locate the role for: ${configAroleIdCheck}`);
             }
@@ -95,21 +114,29 @@ async function handleConfigArole(msg, guildConfig) {
 }
 
 /**
- *
+ * modify player role (allows user to use bot)
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigProle(msg, guildConfig) {
+async function handleConfigProle(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configProleIdCheck = msg.content.substring((guildConfig.prefix + 'config prole').length + 1);
+            let configProleIdCheck;
+            if (msgParms.length == 0 || msgParms[0].value === '') {
+                configProleIdCheck = msg.guild.roles.everyone.id;
+            } else {
+                configProleIdCheck = msgParms[0].value;
+            }
             let configProle = await getRoleForIdTagOrName(msg.guild, configProleIdCheck);
             if (configProle) {
                 guildConfig.prole = configProle.id;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Player Role', value: `${configProle.name} is now the \`player role\`.` }, msg);
-                await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete();
+                }
             } else {
                 throw new Error(`could not locate the role for: ${configProleIdCheck}`);
             }
@@ -122,10 +149,11 @@ async function handleConfigProle(msg, guildConfig) {
 }
 
 async function getRoleForIdTagOrName(guild, roleIdCheck) {
-    if (roleIdCheck.startsWith('<@&')) {
+    const checkAlphaRegex = /[a-zA-Z]/g;
+    if (roleIdCheck.startsWith('<')) {
         // need to strip the tailing '>' off as well ...
         roleIdCheck = roleIdCheck.substring(3, roleIdCheck.length - 1);
-    } else {
+    } else if (checkAlphaRegex.test(roleIdCheck)) {
         roleIdCheck = await utils.retrieveRoleIdForName(guild, roleIdCheck);
     }
     // console.log(roleIdCheck);
@@ -134,19 +162,26 @@ async function getRoleForIdTagOrName(guild, roleIdCheck) {
 }
 
 /**
- *
+ * modify the command prefix
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigPrefix(msg, guildConfig) {
+async function handleConfigPrefix(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configPrefix = msg.content.substring((guildConfig.prefix + 'config prefix').length + 1);
-            guildConfig.prefix = configPrefix;
+            let configPrefix = msgParms.length > 0 ? msgParms[0].value : '';
+            if (configPrefix.trim() == '') {
+                guildConfig.prefix = Config.defaultPrefix;
+            } else {
+                guildConfig.prefix = configPrefix;
+            }
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Prefix', value: `\`${guildConfig.prefix}\` is now my prefix, don't forget!` }, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
         }
@@ -156,19 +191,25 @@ async function handleConfigPrefix(msg, guildConfig) {
 }
 
 /**
- *
+ * does character registration and updates require arole approval?
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigApproval(msg, guildConfig) {
+async function handleConfigApproval(msg, msgParms, guildConfig) {
     try {
+        if (msgParms.length == 0 || msgParms[0].value === '') {
+            throw new Error(`Not enough parameters, must pass at least one.`);
+        }
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let boolParam = msg.content.substring((guildConfig.prefix + 'config approval').length + 1);
+            let boolParam = msgParms[0].value;
             guildConfig.requireCharacterApproval = utils.isTrue(boolParam);
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Approval', value: `Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.` }, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
         }
@@ -243,19 +284,23 @@ async function confirmGuildConfig(guild) {
 }
 
 /**
- *
+ * send all events to this channel
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigEventChannel(msg, guildConfig) {
+async function handleConfigEventChannel(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let stringParam = msg.content.substring((guildConfig.prefix + 'config eventchannel').length + 1);
+            let channelTest;
+            let stringParam = msgParms.length > 0 ? msgParms[0].value : '';
             if (stringParam.trim() == '') {
                 guildConfig.channelForEvents = undefined;
             } else {
-                stringParam = stringParam.substring(2, stringParam.length - 1);
-                let channelTest = await msg.guild.channels.resolve(stringParam);
+                if (stringParam.startsWith('<')) {
+                    stringParam = stringParam.substring(2, stringParam.length - 1);
+                }
+                channelTest = await msg.guild.channels.resolve(stringParam);
                 if (!channelTest) {
                     throw new Error(`Could not locate channel: ${stringParam}`);
                 }
@@ -263,8 +308,10 @@ async function handleConfigEventChannel(msg, guildConfig) {
             }
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
-            await utils.sendDirectOrFallbackToChannel({ name: 'Config Event Channel', value: `Event Channel now set to: \`${guildConfig.channelForEvents}\`.` }, msg);
-            await msg.delete();
+            await utils.sendDirectOrFallbackToChannel({ name: 'Config Event Channel', value: `Event Channel now set to: \`${guildConfig.channelForEvents ? channelTest.name : guildConfig.channelForEvents}\`.` }, msg);
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
         }
@@ -274,19 +321,23 @@ async function handleConfigEventChannel(msg, guildConfig) {
 }
 
 /**
- *
+ * Configure what channel to send all polls to
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigPollChannel(msg, guildConfig) {
+async function handleConfigPollChannel(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let stringParam = msg.content.substring((guildConfig.prefix + 'config pollchannel').length + 1);
+            let channelTest;
+            let stringParam = msgParms.length > 0 ? msgParms[0].value : '';
             if (stringParam.trim() == '') {
                 guildConfig.channelForPolls = undefined;
             } else {
-                stringParam = stringParam.substring(2, stringParam.length - 1);
-                let channelTest = await msg.guild.channels.resolve(stringParam);
+                if (stringParam.startsWith('<')) {
+                    stringParam = stringParam.substring(2, stringParam.length - 1);
+                }
+                channelTest = await msg.guild.channels.resolve(stringParam);
                 if (!channelTest) {
                     throw new Error(`Could not locate channel: ${stringParam}`);
                 }
@@ -294,8 +345,10 @@ async function handleConfigPollChannel(msg, guildConfig) {
             }
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
-            await utils.sendDirectOrFallbackToChannel({ name: 'Config Poll Channel', value: `Poll Channel now set to: \`${guildConfig.channelForPolls}\`.` }, msg);
-            await msg.delete();
+            await utils.sendDirectOrFallbackToChannel({ name: 'Config Poll Channel', value: `Poll Channel now set to: \`${guildConfig.channelForPolls ? channelTest.name : guildConfig.channelForPolls}\`.` }, msg);
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
         }
