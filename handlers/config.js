@@ -134,19 +134,26 @@ async function getRoleForIdTagOrName(guild, roleIdCheck) {
 }
 
 /**
- *
+ * modify the command prefix
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigPrefix(msg, guildConfig) {
+async function handleConfigPrefix(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configPrefix = msg.content.substring((guildConfig.prefix + 'config prefix').length + 1);
-            guildConfig.prefix = configPrefix;
+            let configPrefix = msgParms.length > 0 ? msgParms[0].value : '';
+            if (configPrefix.trim() == '') {
+                guildConfig.prefix = Config.defaultPrefix;
+            } else {
+                guildConfig.prefix = configPrefix;
+            }
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Prefix', value: `\`${guildConfig.prefix}\` is now my prefix, don't forget!` }, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
         }

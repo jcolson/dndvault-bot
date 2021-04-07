@@ -495,7 +495,17 @@ const COMMANDS = {
             "type": 7 // channel
         }]
     },
-    "configPrefix": "config prefix",
+    "configPrefix": {
+        "name": "config_prefix",
+        "description": "Configure/modify the command prefix",
+        "slash": true,
+        "options": [{
+            "name": "prefix",
+            "description": "New prefix to use for all commands, don't forget what you use! `unset` by not setting this value.",
+            "required": false,
+            "type": 3
+        }]
+    },
     "configArole": "config arole",
     "configProle": "config prole",
     "configCampaign": "config campaign",
@@ -686,9 +696,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.configPrefix)) {
-            config.handleConfigPrefix(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configArole)) {
+        if (messageContentLowercase.startsWith(COMMANDS.configArole)) {
             config.handleConfigArole(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configProle)) {
             config.handleConfigProle(msg, guildConfig);
@@ -827,6 +835,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } if (messageContentLowercase.startsWith(COMMANDS.configPollchannel.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configPollchannel.name, commandPrefix);
             config.handleConfigPollChannel(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.configPrefix.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configPrefix.name, commandPrefix);
+            config.handleConfigPrefix(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
