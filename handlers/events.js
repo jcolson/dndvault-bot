@@ -11,20 +11,23 @@ const utils = require('../utils/utils.js');
 /**
  * Create an event
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventCreate(msg, guildConfig) {
+async function handleEventCreate(msg, msgParms, guildConfig) {
     let eventChannelID = guildConfig.channelForEvents ? guildConfig.channelForEvents : msg.channel.id;
     try {
-        let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
-        let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, eventString);
+        // let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
+        let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, msgParms, msg);
         if (eventCreateResult) {
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error("Could not create event.");
         }
     } catch (error) {
-        console.error('events.handleEventCreate:', error.message);
+        console.error('handleEventCreate:', error.message);
         await utils.sendDirectOrFallbackToChannel([
             { name: 'Event Create Error', value: `${error.message}` },
             { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
@@ -37,10 +40,11 @@ async function handleEventCreate(msg, guildConfig) {
  * @param {String} currUserId
  * @param {String} channelIDForEvent
  * @param {String} guildID
- * @param {String} eventString
+ * @param {Array} msgParms
+ * @param {Message} msg optional, pass if there was an original message for the event creation
  * @returns
  */
-async function bc_eventCreate(currUserId, channelIDForEvent, guildID, eventString) {
+async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, msg) {
     try {
         let theGuild = client.guilds.cache.get(guildID);
         if (theGuild) {
@@ -48,19 +52,19 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, eventStrin
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
             } else {
-                let eventArray = parseEventString(eventString);
-                let validatedEvent = await validateEvent(eventArray, guildID, currUser);
+                // let eventArray = parseEventString(eventString);
+                let validatedEvent = await validateEvent(msgParms, guildID, currUser);
                 let eventChannel = await theGuild.channels.resolve(channelIDForEvent);
                 let sentMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
                 validatedEvent.channelID = sentMessage.channel.id;
                 validatedEvent.messageID = sentMessage.id;
                 await validatedEvent.save();
-                await sentMessage.react('✅');
-                await sentMessage.react('❎');
-                await sentMessage.react('▶️');
-                await sentMessage.react('🕟');
-                await sentMessage.react(`\u{1F5D1}`);
-                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${currUserId}> - created event successfully.`, inline: true }], sentMessage, await client.users.resolve(currUserId));
+                sentMessage.react('✅');
+                sentMessage.react('❎');
+                sentMessage.react('▶️');
+                sentMessage.react('🕟');
+                sentMessage.react(`\u{1F5D1}`);
+                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
                 return true;
             }
         } else {
@@ -74,26 +78,30 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, eventStrin
     return false;
 }
 
-async function handleEventEdit(msg, guildConfig) {
+/**
+ * Edits a pre-existing event using the event's ID
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleEventEdit(msg, msgParms, guildConfig) {
     let eventChannelID = guildConfig.channelForEvents ? guildConfig.channelForEvents : msg.channel.id;
-    // let eventChannel = msg.channel;
     try {
-        let eventString = msg.content.substring((guildConfig.prefix + 'event edit').length + 1);
-        const indexForEventID = eventString.indexOf(' ');
-        const eventID = eventString.substring(0, indexForEventID);
-        // console.log(eventID);
-        if (eventID.length < 1) {
-            throw new Error('Not enough parameters');
+        if (msgParms.length < 2) {
+            throw new Error('Not enough parameters, you need to pass at least one editable parameter.');
         }
-        eventString = eventString.substring(indexForEventID);
-        let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, eventString);
+        const eventID = msgParms.find(p => p.name == 'event_id').value;
+        // console.log(eventID);
+        let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error("Could not edit event.");
         }
     } catch (error) {
-        console.error('events.handleEventEdit:', error.message);
+        console.error('handleEventEdit:', error);
         await utils.sendDirectOrFallbackToChannel([
             { name: 'Event Edit Error', value: `${error.message}` },
             { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
@@ -103,13 +111,15 @@ async function handleEventEdit(msg, guildConfig) {
 
 /**
  * broadcast safe method of event creation
+ * @param {String} eventID
  * @param {String} currUserId
  * @param {String} channelIDForEvent
  * @param {String} guildID
- * @param {String} eventString
+ * @param {Array} msgParms
+ * @param {Message} msg optional, pass if a message was used to create event
  * @returns
  */
-async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString) {
+async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, msgParms, msg) {
     try {
         // check and make sure that this client is servicing this guild (broadcast safe)
         let theGuild = client.guilds.cache.get(guildID);
@@ -118,28 +128,24 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
             } else {
-                let existingEvent;
-                try {
-                    existingEvent = await EventModel.findById(eventID);
-                    if (!existingEvent) {
-                        throw new Error();
-                    }
-                } catch (error) {
-                    throw new Error('Event not found.');
+                let existingEvent = await EventModel.findById(eventID);
+                if (!existingEvent) {
+                    throw new Error(`Unknown event id (${eventID})`);
                 }
-                const guildMember = await theGuild.members.resolve(currUserId);
+                let guildMember = await theGuild.members.fetch(currUserId);
+                // console.debug(`bc_eventEdit:currUserId: ${currUserId} guildMember:`, guildMember);
                 if (!await users.hasRoleOrIsAdmin(guildMember, guildApprovalRole) && currUserId != existingEvent.userID) {
                     throw new Error(`Please have <@${existingEvent.userID}> edit, or ask an <@&${guildApprovalRole}> to edit.`);
                 }
-                let eventArray = parseEventString(eventString, existingEvent);
-                let validatedEvent = await validateEvent(eventArray, guildID, currUser, existingEvent);
+                // let eventArray = parseEventString(eventString, existingEvent);
+                let validatedEvent = await validateEvent(msgParms, guildID, currUser, existingEvent);
+                //since we're editing the event, we'll re-remind users
                 validatedEvent.reminderSent = undefined;
                 let eventMessage;
                 try {
                     eventMessage = await (
                         theGuild.channels.resolve(validatedEvent.channelID)
                     ).messages.fetch(validatedEvent.messageID);
-                    //@todo find all embedForEvent(msg and change to theGuild.iconURL()
                     await eventMessage.edit(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
                 } catch (error) {
                     console.log(`couldn't edit old event message on edit: ${error.message}`);
@@ -147,34 +153,42 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                     eventMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
                     validatedEvent.channelID = eventMessage.channel.id;
                     validatedEvent.messageID = eventMessage.id;
-                    await eventMessage.react('✅');
-                    await eventMessage.react('❎');
-                    await eventMessage.react('▶️');
-                    await eventMessage.react('🕟');
-                    await sentMessage.react(`\u{1F5D1}`);
+                    eventMessage.react('✅');
+                    eventMessage.react('❎');
+                    eventMessage.react('▶️');
+                    eventMessage.react('🕟');
+                    eventMessage.react(`\u{1F5D1}`);
                 }
                 await validatedEvent.save();
-                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${currUserId}> - edited event successfully.`, inline: true }], eventMessage, await client.users.resolve(currUserId));
+                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
                 return true;
             }
         } else {
             console.log('events.bc_eventEdit: unknown guild on this shard, ignoring');
         }
     } catch (error) {
-        console.error('events.bc_eventEdit:', error.message);
+        // console.error('events.bc_eventEdit:', error.message);
         error.message += ` For Channel: ${channelIDForEvent}`;
         throw error;
     }
     return false;
 }
 
-async function handleEventRemove(msg, guildConfig) {
+/**
+ * Removes a pre-existing event using the event's ID
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleEventRemove(msg, msgParms, guildConfig) {
     try {
-        let eventID = msg.content.substring((guildConfig.prefix + 'event remove').length + 1);
+        let eventID = msgParms[0].value;
         // console.log(eventID);
         let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
         await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -209,12 +223,13 @@ async function removeEvent(guild, memberUser, eventID, guildConfig) {
 /**
  * show an event
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventShow(msg, guildConfig) {
+async function handleEventShow(msg, msgParms, guildConfig) {
     let eventChannel = msg.channel;
     try {
-        const eventID = msg.content.substring((guildConfig.prefix + 'event show').length + 1);
+        const eventID = msgParms[0].value;
         let showEvent;
         try {
             showEvent = await EventModel.findById(eventID);
@@ -232,7 +247,9 @@ async function handleEventShow(msg, guildConfig) {
             eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
         }
         const sentMessage = await eventChannel.send(embedEvent);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
         try {
             // remove old event message
             const eventMessage = await (
@@ -245,11 +262,12 @@ async function handleEventShow(msg, guildConfig) {
         showEvent.channelID = sentMessage.channel.id;
         showEvent.messageID = sentMessage.id;
         await showEvent.save();
-        await sentMessage.react('✅');
-        await sentMessage.react('❎');
-        await sentMessage.react('▶️');
-        await sentMessage.react('🕟');
-        await sentMessage.react(`\u{1F5D1}`);
+        sentMessage.react('✅');
+        sentMessage.react('❎');
+        sentMessage.react('▶️');
+        sentMessage.react('🕟');
+        sentMessage.react(`\u{1F5D1}`);
+        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Show 🛡', value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('handleEventShow:', error.message);
         error.message += ` For Channel: ${eventChannel.name}`;
@@ -260,17 +278,20 @@ async function handleEventShow(msg, guildConfig) {
 /**
  * list events that are in the future or n days old
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventList(msg, guildConfig) {
+async function handleEventList(msg, msgParms, guildConfig) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 3);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `All Events`, false);
+            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any events yet.  Create one with \`event create\`!`);
         }
@@ -282,9 +303,10 @@ async function handleEventList(msg, guildConfig) {
 /**
  * list PROPOSED (not deployed) events that are in the future or n days old
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventListProposed(msg, guildConfig) {
+async function handleEventListProposed(msg, msgParms, guildConfig) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 1);
@@ -292,7 +314,9 @@ async function handleEventListProposed(msg, guildConfig) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any PROPOSED events yet.  Create one with \`event create\`!`);
         }
@@ -304,17 +328,20 @@ async function handleEventListProposed(msg, guildConfig) {
 /**
  * list DEPLOYED events that are in the future or n days old
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventListDeployed(msg, guildConfig) {
+async function handleEventListDeployed(msg, msgParms, guildConfig) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 1);
-        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $ne: null } }).sort({ date_time: 'asc' });
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $exists: true, $ne: null } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any DEPLOYED events yet.  Create one with \`event create\`!`);
         }
@@ -325,33 +352,43 @@ async function handleEventListDeployed(msg, guildConfig) {
 
 /**
  * validate event and return object with proper types
- * @param {Array} eventArray
+ * @param {Array} msgParms
  * @param {Message} msg
  * @param {UserModel} currUser
  * @returns {EventModel}
  */
-async function validateEvent(eventArray, guildID, currUser, existingEvent) {
-    if ((!eventArray['!TITLE'] && !existingEvent && !existingEvent.title) || eventArray['!TITLE'] === null) {
+async function validateEvent(msgParms, guildID, currUser, existingEvent) {
+    let etitle = msgParms.find(p => p.name == 'title') ? msgParms.find(p => p.name == 'title').value : undefined;
+    let efor = msgParms.find(p => p.name == 'for') ? msgParms.find(p => p.name == 'for').value : undefined;
+    let eon = msgParms.find(p => p.name == 'on') ? msgParms.find(p => p.name == 'on').value : undefined;
+    let eat = msgParms.find(p => p.name == 'at') ? msgParms.find(p => p.name == 'at').value : undefined;
+    let ewith = msgParms.find(p => p.name == 'with') ? msgParms.find(p => p.name == 'with').value : undefined;
+    let edesc = msgParms.find(p => p.name == 'desc') ? msgParms.find(p => p.name == 'desc').value : undefined;
+    let edmgm = msgParms.find(p => p.name == 'dmgm') ? msgParms.find(p => p.name == 'dmgm').value : undefined;
+    let ecampaign = msgParms.find(p => p.name == 'campaign') ? msgParms.find(p => p.name == 'campaign').value : undefined;
+
+    if ((!etitle && !existingEvent && !existingEvent.title) || etitle === null) {
         throw new Error('You must include a title for your event.');
-    } else if ((!eventArray['!FOR'] && eventArray['!FOR'] === null && !existingEvent && !existingEvent.duration) || eventArray['!FOR'] === null) {
-        throw new Error('You must include a duration for your event.');
-    } else if (eventArray['!FOR'] && isNaN(eventArray['!FOR'])) {
-        throw new Error(`The duration hours needs to be a number, not: "${eventArray['!FOR']}"`);
-    } else if ((!eventArray['!ON'] && eventArray['!ON'] === null && !existingEvent && !existingEvent.date_time) || eventArray['!ON'] === null) {
+    } else if ((!efor && (!existingEvent || (existingEvent && !existingEvent.duration_hours))) || efor === null) {
+        // console.debug('existingEvent', existingEvent);
+        throw new Error(`You must include a duration for your event, was ${efor}`);
+    } else if (efor && isNaN(efor)) {
+        throw new Error(`The duration hours needs to be a number, not: "${efor}"`);
+    } else if ((!eon && (!existingEvent || (existingEvent && !existingEvent.date_time))) || eon === null) {
         throw new Error('You must include a date for your event.');
-    } else if ((!eventArray['!AT'] && eventArray['!AT'] === null && !existingEvent && !existingEvent.date_time) || eventArray['!AT'] === null) {
+    } else if ((!eat && (!existingEvent || (existingEvent && !existingEvent.date_time))) || eat === null) {
         throw new Error('You must include a time for your event.');
-    } else if ((!eventArray['!WITH'] && eventArray['!WITH'] === null && !existingEvent && !existingEvent.number_player_slots) || eventArray['!WITH'] === null) {
+    } else if ((!ewith && (!existingEvent || (existingEvent && !existingEvent.number_player_slots))) || ewith === null) {
         throw new Error('You must include a number of player slots for your event.');
-    } else if ((!eventArray['!DESC'] && eventArray['!DESC'] === null && !existingEvent && !existingEvent.description) || eventArray['!DESC'] === null) {
+    } else if ((!edesc && (!existingEvent || (existingEvent && !existingEvent.description))) || edesc === null) {
         throw new Error('You must include a description for your event.');
-    } else if (eventArray['!WITH'] && isNaN(eventArray['!WITH'])) {
-        throw new Error(`The number of player slots needs to be a number, not: "${eventArray['!WITH']}"`);
+    } else if (ewith && isNaN(ewith)) {
+        throw new Error(`The number of player slots needs to be a number, not: "${ewith}"`);
     }
 
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: guildID, userID: currUser.userID });
 
-    if (eventArray['!ON'] || eventArray['!AT']) {
+    if (eon || eat) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
         console.log('tz offset: ' + timezoneOffset);
 
@@ -363,8 +400,8 @@ async function validateEvent(eventArray, guildID, currUser, existingEvent) {
             // console.log('usersoriginaleventdate %s', usersOriginalEventDate);
         }
         //@todo: figure out a way to get the fuzzy parsing per date and per time working
-        let onDate = eventArray['!ON'] ? eventArray['!ON'] : formatJustDate(usersOriginalEventDate);
-        let atTime = eventArray['!AT'] ? eventArray['!AT'] : formatJustTime(usersOriginalEventDate);
+        let onDate = eon ? eon : formatJustDate(usersOriginalEventDate);
+        let atTime = eat ? eat : formatJustTime(usersOriginalEventDate);
         let dateTimeStringToParse = `${onDate} at ${atTime}`;
         let refDate = usersOriginalEventDate ? usersOriginalEventDate : getDateInDifferentTimezone(new Date(), currUser.timezone);//new Date(new Date().toLocaleString("en-US", { timeZone: currUser.timezone }));
         // console.log('refDate %s then - on %s at %s', refDate, onDate, atTime);
@@ -374,18 +411,18 @@ async function validateEvent(eventArray, guildID, currUser, existingEvent) {
     }
 
     // console.log(eventArray);
-    validatedEvent.title = eventArray['!TITLE'] === null ? undefined : (eventArray['!TITLE'] ? eventArray['!TITLE'] : validatedEvent.title);
-    validatedEvent.dm = eventArray['!DMGM'] === null ? undefined : (eventArray['!DMGM'] ? eventArray['!DMGM'] : validatedEvent.dm);
-    validatedEvent.duration_hours = eventArray['!FOR'] === null ? undefined : (eventArray['!FOR'] ? eventArray['!FOR'] : validatedEvent.duration_hours);
-    validatedEvent.number_player_slots = eventArray['!WITH'] === null ? undefined : (eventArray['!WITH'] ? eventArray['!WITH'] : validatedEvent.number_player_slots);
-    validatedEvent.campaign = eventArray['!CAMPAIGN'] === null ? undefined : (eventArray['!CAMPAIGN'] ? eventArray['!CAMPAIGN'] : validatedEvent.campaign);
-    validatedEvent.description = eventArray['!DESC'] === null ? undefined : (eventArray['!DESC'] ? eventArray['!DESC'] : validatedEvent.description);
-    let changeDetected = false;
-    for (let key of Object.keys(eventArray)) {
-        if (eventArray[key]) {
-            changeDetected = true;
-        }
-    }
+    validatedEvent.title = etitle === null ? undefined : (etitle ? etitle : validatedEvent.title);
+    validatedEvent.dm = edmgm === null ? undefined : (edmgm ? edmgm : validatedEvent.dm);
+    validatedEvent.duration_hours = efor === null ? undefined : (efor ? efor : validatedEvent.duration_hours);
+    validatedEvent.number_player_slots = ewith === null ? undefined : (ewith ? ewith : validatedEvent.number_player_slots);
+    validatedEvent.campaign = ecampaign === null ? undefined : (ecampaign ? ecampaign : validatedEvent.campaign);
+    validatedEvent.description = edesc === null ? undefined : (edesc ? edesc : validatedEvent.description);
+    let changeDetected = msgParms.length > 0;
+    // for (let key of Object.keys(eventArray)) {
+    //     if (eventArray[key]) {
+    //         changeDetected = true;
+    //     }
+    // }
     if (!changeDetected) {
         throw new Error("No changes where detected, please verify your `event edit` command");
     }
@@ -498,7 +535,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
                 .setColor(utils.COLORS.BLUE);
             i = 0;
         }
-        let dmgmString = theEvent.dm ? theEvent.dm : 'Unassigned';
+        let dmgmString = theEvent.dm ? '<@' + theEvent.dm + '>' : 'Unassigned';
         let messageTitleAndUrl = isShow
             ? `${theEvent.title} id: ${theEvent._id}`
             : `${getEmbedLinkForEvent(theEvent)}`;

@@ -1,14 +1,21 @@
 const { MessageEmbed } = require('discord.js');
 const utils = require('../utils/utils.js');
 
-async function handleHelp(msg, prefix) {
+/**
+ * return help info about bot
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {String} prefix
+ */
+async function handleHelp(msg, msgParms, prefix) {
     try {
         const charEmbedArray = [];
         let charEmbed = new MessageEmbed()
             .setColor(utils.COLORS.BLUE)
             .setTitle('Help for D&D Vault BOT')
             .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
-            .setDescription(`Current Command Prefix is "${prefix}"`);
+            .setDescription(`Current Command Prefix is "${prefix}"
+            [If you have any issues or ideas, please let us know here.](https://github.com/jcolson/dndvault-bot/issues/new)`);
         if (msg.guild) {
             charEmbed.setThumbnail(msg.guild.iconURL());
         }

@@ -79,15 +79,22 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                         embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
                     }
                 }
-                for (let embed of embedsArray) {
-                    sentMessage = await user.send(embed);
-                }
-                if (msg.interaction) {
-                    let interactionEmbed = new MessageEmbed()
-                        .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
-                        .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
-
-                    clientWsReply(msg.interaction, interactionEmbed);
+                // if it's an interaction (slash command) and there is only 1 embed, then just reply with it
+                if (msg.interaction && embedsArray.length == 1) {
+                    for (let embed of embedsArray) {
+                        clientWsReply(msg.interaction, embed);
+                    }
+                // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
+                } else {
+                    for (let embed of embedsArray) {
+                        sentMessage = await user.send(embed);
+                    }
+                    if (msg.interaction) {
+                        let interactionEmbed = new MessageEmbed()
+                            .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
+                            .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
+                        clientWsReply(msg.interaction, interactionEmbed);
+                    }
                 }
                 messageSent = true;
             } catch (error) {
