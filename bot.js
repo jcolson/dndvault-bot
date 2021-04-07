@@ -389,11 +389,6 @@ const COMMANDS = {
             "required": true,
             "type": 3
         }, {
-            "name": "option_0",
-            "description": "Option to choose",
-            "required": false,
-            "type": 3
-        }, {
             "name": "option_1",
             "description": "Option to choose",
             "required": false,
@@ -435,6 +430,11 @@ const COMMANDS = {
             "type": 3
         }, {
             "name": "option_9",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_10",
             "description": "Option to choose",
             "required": false,
             "type": 3
