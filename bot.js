@@ -846,7 +846,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.configEventchannel.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configEventchannel.name, commandPrefix);
             config.handleConfigEventChannel(msg, msgParms, guildConfig);
-        } if (messageContentLowercase.startsWith(COMMANDS.configPollchannel.name)) {
+        } else if (messageContentLowercase.startsWith(COMMANDS.configPollchannel.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configPollchannel.name, commandPrefix);
             config.handleConfigPollChannel(msg, msgParms, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configPrefix.name)) {
@@ -868,6 +868,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
             handled = false;
         }
     }
+    // console.debug('handled', handled);
     if (handled) {
         console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
     }

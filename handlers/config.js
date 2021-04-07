@@ -16,14 +16,16 @@ async function handleConfig(msg, msgParms, guildConfig) {
         let channelForPolls = {};
         try {
             if (guildConfig.channelForEvents) {
-                channelForEvents = await (new Channel(msg.client, { id: guildConfig.channelForEvents })).fetch();
+                channelForEvents = await msg.guild.channels.resolve(guildConfig.channelForEvents);
+                // channelForEvents = await (new Channel(msg.client, { id: guildConfig.channelForEvents })).fetch();
             }
         } catch (error) {
             console.error(`handleConfig: could not resolve channel for events: ${guildConfig.channelForEvents}`, error);
         }
         try {
             if (guildConfig.channelForPolls) {
-                channelForPolls = await (new Channel(msg.client, { id: guildConfig.channelForPolls })).fetch();
+                // channelForPolls = await (new Channel(msg.client, { id: guildConfig.channelForPolls })).fetch();
+                channelForPolls = await msg.guild.channels.resolve(guildConfig.channelForPolls);
             }
         } catch (error) {
             console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForEvents}`, error);
