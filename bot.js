@@ -13,7 +13,8 @@ const poll = require('./handlers/poll.js');
 const roll = require('./handlers/roll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+//https://discord.com/developers/docs/topics/gateway#gateway-intents
+const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] } });
 
 /**
  * scheduled cron for calendar reminders
@@ -606,7 +607,7 @@ async function registerCommands() {
 /**
  * listen for emitted events from discordjs
  */
-client.on('ready', async () => {
+client.once('ready', async () => {
     console.info(`D&D Vault Bot - logged in as ${client.user.tag}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type /help', type: 'PLAYING' }, status: 'online' });
     registerCommands();
