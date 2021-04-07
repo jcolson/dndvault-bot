@@ -342,7 +342,7 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "eventRemove":  {
+    "eventRemove": {
         "name": "event_remove",
         "description": "Removes a pre-existing event using the event's ID",
         "slash": true,
@@ -353,7 +353,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "eventShow": "event show",
+    "eventShow": {
+        "name": "event_show",
+        "description": "replace the posting for an event (for instance if it got deleted by accident)",
+        "slash": true,
+        "options": [{
+            "name": "event_id",
+            "description": "The event that you wish to show's ID",
+            "required": true,
+            "type": 3
+        }]
+    },
     "eventListProposed": "event list proposed",
     "eventListDeployed": "event list deployed",
     "eventList": "event list",
@@ -614,9 +624,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.eventShow)) {
-            events.handleEventShow(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventListProposed)) {
+        if (messageContentLowercase.startsWith(COMMANDS.eventListProposed)) {
             events.handleEventListProposed(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed)) {
             events.handleEventListDeployed(msg, guildConfig);
@@ -745,6 +753,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.eventRemove.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventRemove.name, commandPrefix);
             events.handleEventRemove(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventShow.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventShow.name, commandPrefix);
+            events.handleEventShow(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }

@@ -223,12 +223,13 @@ async function removeEvent(guild, memberUser, eventID, guildConfig) {
 /**
  * show an event
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventShow(msg, guildConfig) {
+async function handleEventShow(msg, msgParms, guildConfig) {
     let eventChannel = msg.channel;
     try {
-        const eventID = msg.content.substring((guildConfig.prefix + 'event show').length + 1);
+        const eventID = msgParms[0].value;
         let showEvent;
         try {
             showEvent = await EventModel.findById(eventID);
@@ -246,7 +247,9 @@ async function handleEventShow(msg, guildConfig) {
             eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
         }
         const sentMessage = await eventChannel.send(embedEvent);
-        await msg.delete();
+        if (msg.deletable) {
+            await msg.delete();
+        }
         try {
             // remove old event message
             const eventMessage = await (
@@ -259,11 +262,12 @@ async function handleEventShow(msg, guildConfig) {
         showEvent.channelID = sentMessage.channel.id;
         showEvent.messageID = sentMessage.id;
         await showEvent.save();
-        await sentMessage.react('✅');
-        await sentMessage.react('❎');
-        await sentMessage.react('▶️');
-        await sentMessage.react('🕟');
-        await sentMessage.react(`\u{1F5D1}`);
+        sentMessage.react('✅');
+        sentMessage.react('❎');
+        sentMessage.react('▶️');
+        sentMessage.react('🕟');
+        sentMessage.react(`\u{1F5D1}`);
+        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Show 🛡', value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('handleEventShow:', error.message);
         error.message += ` For Channel: ${eventChannel.name}`;
