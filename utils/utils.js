@@ -84,16 +84,10 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     for (let embed of embedsArray) {
                         clientWsReply(msg.interaction, embed);
                     }
-                // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
+                    // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
                 } else {
                     for (let embed of embedsArray) {
                         sentMessage = await user.send(embed);
-                    }
-                    if (msg.interaction) {
-                        let interactionEmbed = new MessageEmbed()
-                            .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
-                            .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
-                        clientWsReply(msg.interaction, interactionEmbed);
                     }
                 }
                 messageSent = true;
@@ -103,19 +97,30 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (!messageSent && (msg.channel || msg.interaction)) {
             try {
-                for (let embed of embedsArray) {
-                    embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
-                    if (msg.interaction) {
-                        await clientWsReply(msg.interaction, embed);
-                    } else {
-                        await msg.channel.send(embed);
+                if (msg.interaction && embedsArray.length == 1) {
+                    for (let embed of embedsArray) {
+                        clientWsReply(msg.interaction, embed);
+                    }
+                    // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
+                } else {
+                    for (let embed of embedsArray) {
+                        embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
+                        sentMessage = await msg.channel.send(embed);
                     }
                 }
+                messageSent = true;
             } catch (error) {
                 error.message += ': could not channel send.';
                 throw error;
             }
-        } else if (!messageSent) {
+        }
+        if (messageSent && sentMessage && msg.interaction) {
+            let interactionEmbed = new MessageEmbed()
+                .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
+                .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
+            clientWsReply(msg.interaction, interactionEmbed);
+        }
+        if (!messageSent) {
             throw new Error('No channel or DM method to send messaeg');
         }
     } catch (error) {
