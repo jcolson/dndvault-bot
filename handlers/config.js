@@ -156,19 +156,25 @@ async function handleConfigPrefix(msg, guildConfig) {
 }
 
 /**
- *
+ * does character registration and updates require arole approval?
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigApproval(msg, guildConfig) {
+async function handleConfigApproval(msg, msgParms, guildConfig) {
     try {
+        if (msgParms.length == 0 || msgParms[0].value === '') {
+            throw new Error(`Not enough parameters, must pass at least one.`);
+        }
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let boolParam = msg.content.substring((guildConfig.prefix + 'config approval').length + 1);
+            let boolParam = msgParms[0].value;
             guildConfig.requireCharacterApproval = utils.isTrue(boolParam);
             await guildConfig.save();
             GuildCache[msg.guild.id] = guildConfig;
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Approval', value: `Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.` }, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
         }

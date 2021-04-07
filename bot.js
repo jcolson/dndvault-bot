@@ -462,7 +462,17 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "configApproval": "config approval",
+    "configApproval": {
+        "name": "config_approval",
+        "description": "Configure if character registration and updates require arole approval?",
+        "slash": true,
+        "options": [{
+            "name": "true_or_false",
+            "description": "True or False",
+            "required": true,
+            "type": 5 // boolean
+        }]
+    },
     "configEventchannel": "config eventchannel",
     "configPollchannel": "config pollchannel",
     "configPrefix": "config prefix",
@@ -656,9 +666,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.configApproval)) {
-            config.handleConfigApproval(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configEventchannel)) {
+        if (messageContentLowercase.startsWith(COMMANDS.configEventchannel)) {
             config.handleConfigEventChannel(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.configPollchannel)) {
             config.handleConfigPollChannel(msg, guildConfig);
@@ -794,6 +802,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.timezone.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.timezone.name, commandPrefix);
             users.handleTimezone(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.configApproval.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configApproval.name, commandPrefix);
+            config.handleConfigApproval(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
