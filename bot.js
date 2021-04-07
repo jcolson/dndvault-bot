@@ -517,7 +517,17 @@ const COMMANDS = {
             "type": 8 // role
         }]
     },
-    "configProle": "config prole",
+    "configProle": {
+        "name": "config_prole",
+        "description": "Modify player role (allows user to use bot)",
+        "slash": true,
+        "options": [{
+            "name": "prole",
+            "description": "Role to set as player role.  set to @everyone by leaving by not setting this value",
+            "required": false,
+            "type": 8 // role
+        }]
+    },
     "configCampaign": "config campaign",
     "config": "config"
 };
@@ -706,9 +716,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.configProle)) {
-            config.handleConfigProle(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configCampaign)) {
+        if (messageContentLowercase.startsWith(COMMANDS.configCampaign)) {
             config.handleConfigCampaign(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.config)) {
             config.handleConfig(msg, guildConfig);
@@ -849,6 +857,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.configArole.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configArole.name, commandPrefix);
             config.handleConfigArole(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.configProle.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configProle.name, commandPrefix);
+            config.handleConfigProle(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }

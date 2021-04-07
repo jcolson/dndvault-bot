@@ -75,7 +75,6 @@ async function handleConfigCampaign(msg, guildConfig) {
  */
 async function handleConfigArole(msg, msgParms, guildConfig) {
     try {
-
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             let configAroleIdCheck;
             if (msgParms.length == 0 || msgParms[0].value === '') {
@@ -83,7 +82,6 @@ async function handleConfigArole(msg, msgParms, guildConfig) {
             } else {
                 configAroleIdCheck = msgParms[0].value;
             }
-
             let configArole = await getRoleForIdTagOrName(msg.guild, configAroleIdCheck);
             if (configArole) {
                 guildConfig.arole = configArole.id;
@@ -105,21 +103,29 @@ async function handleConfigArole(msg, msgParms, guildConfig) {
 }
 
 /**
- *
+ * modify player role (allows user to use bot)
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleConfigProle(msg, guildConfig) {
+async function handleConfigProle(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            let configProleIdCheck = msg.content.substring((guildConfig.prefix + 'config prole').length + 1);
+            let configProleIdCheck;
+            if (msgParms.length == 0 || msgParms[0].value === '') {
+                configProleIdCheck = msg.guild.roles.everyone.id;
+            } else {
+                configProleIdCheck = msgParms[0].value;
+            }
             let configProle = await getRoleForIdTagOrName(msg.guild, configProleIdCheck);
             if (configProle) {
                 guildConfig.prole = configProle.id;
                 await guildConfig.save();
                 GuildCache[msg.guild.id] = guildConfig;
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Player Role', value: `${configProle.name} is now the \`player role\`.` }, msg);
-                await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete();
+                }
             } else {
                 throw new Error(`could not locate the role for: ${configProleIdCheck}`);
             }
