@@ -369,7 +369,11 @@ const COMMANDS = {
         "description": "List all future PROPOSED events",
         "slash": true,
     },
-    "eventListDeployed": "event list deployed",
+    "eventListDeployed": {
+        "name": "event_list_deployed",
+        "description": "List all future DEPLOYED events",
+        "slash": true,
+    },
     "eventList": "event list",
     "poll": {
         "name": "poll",
@@ -628,9 +632,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed)) {
-            events.handleEventListDeployed(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventList)) {
+        if (messageContentLowercase.startsWith(COMMANDS.eventList)) {
             events.handleEventList(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.default)) {
             users.handleDefault(msg, guildConfig);
@@ -678,7 +680,8 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
      * spaces need to be replaced with _ so that we can match the command name
      * (commands used to have spaces in them with old-school prefix method)
      */
-    messageContentLowercase = messageContentLowercase.replace(' ', '_');
+    messageContentLowercase = messageContentLowercase.replace(/ /g, '_');
+    console.debug('handleCommandExec:', messageContentLowercase);
     let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
 
     let handled = true;
@@ -761,6 +764,10 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.eventListProposed.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventListProposed.name, commandPrefix);
             events.handleEventListProposed(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed.name)) {
+            console.debug("in eventListDeployed");
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventListDeployed.name, commandPrefix);
+            events.handleEventListDeployed(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }
@@ -788,7 +795,7 @@ function parseMessageParms(messageContent, command, prefix) {
      * _ need to be replaced with spaces so that we can match the command name
      * (commands used to have spaces in them with old-school prefix method)
      */
-    command = command.replace('_', ' ');
+    command = command.replace(/_/g, ' ');
     let messageContentLowercase = messageContent.toLowerCase();
     let commandIndex = messageContentLowercase.indexOf(prefix + command);
     if (commandIndex == -1) {

@@ -325,13 +325,14 @@ async function handleEventListProposed(msg, msgParms, guildConfig) {
 /**
  * list DEPLOYED events that are in the future or n days old
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventListDeployed(msg, guildConfig) {
+async function handleEventListDeployed(msg, msgParms, guildConfig) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 1);
-        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $ne: null } }).sort({ date_time: 'asc' });
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $exists: true, $ne: null } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
