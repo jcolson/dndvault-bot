@@ -364,7 +364,11 @@ const COMMANDS = {
             "type": 3
         }]
     },
-    "eventListProposed": "event list proposed",
+    "eventListProposed": {
+        "name": "event_list_proposed",
+        "description": "List all future PROPOSED events",
+        "slash": true,
+    },
     "eventListDeployed": "event list deployed",
     "eventList": "event list",
     "poll": {
@@ -624,9 +628,7 @@ client.on('message', async (msg) => {
 
         let dontLog = false;
 
-        if (messageContentLowercase.startsWith(COMMANDS.eventListProposed)) {
-            events.handleEventListProposed(msg, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed)) {
+        if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed)) {
             events.handleEventListDeployed(msg, guildConfig);
         } else if (messageContentLowercase.startsWith(COMMANDS.eventList)) {
             events.handleEventList(msg, guildConfig);
@@ -756,6 +758,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         } else if (messageContentLowercase.startsWith(COMMANDS.eventShow.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventShow.name, commandPrefix);
             events.handleEventShow(msg, msgParms, guildConfig);
+        } else if (messageContentLowercase.startsWith(COMMANDS.eventListProposed.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventListProposed.name, commandPrefix);
+            events.handleEventListProposed(msg, msgParms, guildConfig);
         } else {
             handled = false;
         }

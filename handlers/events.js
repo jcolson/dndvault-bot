@@ -300,9 +300,10 @@ async function handleEventList(msg, guildConfig) {
 /**
  * list PROPOSED (not deployed) events that are in the future or n days old
  * @param {Message} msg
+ * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleEventListProposed(msg, guildConfig) {
+async function handleEventListProposed(msg, msgParms, guildConfig) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 1);
@@ -310,7 +311,9 @@ async function handleEventListProposed(msg, guildConfig) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            await msg.delete();
+            if (msg.deletable) {
+                await msg.delete();
+            }
         } else {
             throw new Error(`I don't see any PROPOSED events yet.  Create one with \`event create\`!`);
         }
