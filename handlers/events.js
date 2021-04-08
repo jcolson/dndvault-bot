@@ -59,12 +59,12 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, 
                 validatedEvent.channelID = sentMessage.channel.id;
                 validatedEvent.messageID = sentMessage.id;
                 await validatedEvent.save();
-                sentMessage.react('✅');
-                sentMessage.react('❎');
-                sentMessage.react('▶️');
-                sentMessage.react('🕟');
-                sentMessage.react(`\u{1F5D1}`);
-                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
+                sentMessage.react(utils.EMOJIS.CHECK);
+                sentMessage.react(utils.EMOJIS.X);
+                sentMessage.react(utils.EMOJIS.PLAY);
+                sentMessage.react(utils.EMOJIS.CLOCK);
+                sentMessage.react(utils.EMOJIS.TRASH);
+                await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Create ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
                 return true;
             }
         } else {
@@ -153,14 +153,14 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                     eventMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
                     validatedEvent.channelID = eventMessage.channel.id;
                     validatedEvent.messageID = eventMessage.id;
-                    eventMessage.react('✅');
-                    eventMessage.react('❎');
-                    eventMessage.react('▶️');
-                    eventMessage.react('🕟');
-                    eventMessage.react(`\u{1F5D1}`);
+                    eventMessage.react(utils.EMOJIS.CHECK);
+                    eventMessage.react(utils.EMOJIS.X);
+                    eventMessage.react(utils.EMOJIS.PLAY);
+                    eventMessage.react(utils.EMOJIS.CLOCK);
+                    eventMessage.react(utils.EMOJIS.TRASH);
                 }
                 await validatedEvent.save();
-                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
+                await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Edit ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
                 return true;
             }
         } else {
@@ -208,7 +208,7 @@ async function removeEvent(guild, memberUser, eventID, guildConfig) {
         throw new Error(`Please have <@${existingEvent.userID}> remove, or ask an \`approver role\` to remove.`);
     }
     await existingEvent.delete();
-    let returnMessage = { name: '🗡 Event Remove 🛡', value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
+    let returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
     try {
         const eventMessage = await (
             await guild.channels.resolve(existingEvent.channelID)
@@ -262,12 +262,12 @@ async function handleEventShow(msg, msgParms, guildConfig) {
         showEvent.channelID = sentMessage.channel.id;
         showEvent.messageID = sentMessage.id;
         await showEvent.save();
-        sentMessage.react('✅');
-        sentMessage.react('❎');
-        sentMessage.react('▶️');
-        sentMessage.react('🕟');
-        sentMessage.react(`\u{1F5D1}`);
-        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Show 🛡', value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
+        sentMessage.react(utils.EMOJIS.CHECK);
+        sentMessage.react(utils.EMOJIS.X);
+        sentMessage.react(utils.EMOJIS.PLAY);
+        sentMessage.react(utils.EMOJIS.CLOCK);
+        sentMessage.react(utils.EMOJIS.TRASH);
+        await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Show ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('handleEventShow:', error.message);
         error.message += ` For Channel: ${eventChannel.name}`;
@@ -540,7 +540,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
             ? `${theEvent.title} id: ${theEvent._id}`
             : `${getEmbedLinkForEvent(theEvent)}`;
         eventEmbed.addFields(
-            { name: '🗡 Title 🛡', value: messageTitleAndUrl, inline: false },
+            { name: `${utils.EMOJIS.DAGGER} Title ${utils.EMOJIS.SHIELD}`, value: messageTitleAndUrl, inline: false },
             { name: 'DMGM', value: `${dmgmString}`, inline: true },
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs`, inline: true },
             { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
@@ -563,7 +563,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
     }
     let signUpInfo = '';
     if (isShow) {
-        signUpInfo = `✅Sign up ❎Withdrawal ▶️Deploy 🕟Your TZ and Calendar\n`;
+        signUpInfo = `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdrawal ▶️Deploy ${utils.EMOJIS.CLOCK}Your TZ and Calendar\n`;
     }
     eventEmbed.addFields(
         {
@@ -653,7 +653,6 @@ async function handleReactionAdd(reaction, user, guildConfig) {
     try {
         // The reaction is now also fully available and the properties will be reflected accurately:
         // console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
-
         let eventForMessage = await EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
         if (!eventForMessage) {
             console.log('Did not find event for reaction.');
@@ -662,23 +661,23 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         // console.log('about to save');
         await eventForMessage.save();
         // console.log(reaction.emoji);
-        if (reaction.emoji && reaction.emoji.name == '✅') {
+        if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.CHECK) {
             // console.log(eventForMessage);
             await attendeeAdd(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == '❎') {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.X) {
             // console.log(eventForMessage);
             await attendeeRemove(reaction, user, eventForMessage);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == '▶️') {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.PLAY) {
             // console.log(eventForMessage);
             await deployEvent(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == '🕟') {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.CLOCK) {
             // console.log(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == `\u{1F5D1}`) {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.TRASH) {
             await reaction.users.remove(user.id);
             let memberUser = await reaction.message.guild.members.resolve(user.id);
             let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage._id, guildConfig);

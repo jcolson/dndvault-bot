@@ -8,7 +8,30 @@ const COLORS = {
     BLUE: '0099ff',
     GREEN: '#57f542',
     RED: '#fc0335',
-}
+};
+
+const EMOJIS = {
+    TRASH: `\u{1F5D1}`,
+    ONE: `\u0031\uFE0F\u20E3`,
+    TWO: `\u0032\uFE0F\u20E3`,
+    THREE: `\u0033\uFE0F\u20E3`,
+    FOUR: `\u0034\uFE0F\u20E3`,
+    FIVE: `\u0035\uFE0F\u20E3`,
+    SIX: `\u0036\uFE0F\u20E3`,
+    SEVEN: `\u0037\uFE0F\u20E3`,
+    EIGHT: `\u0038\uFE0F\u20E3`,
+    NINE: `\u0039\uFE0F\u20E3`,
+    TEN: `\uD83D\uDD1F`,
+    YES: `\uD83D\uDC4D`,
+    NO: `\uD83D\uDC4E`,
+    MAYBE: `\uD83E\uDD37`,
+    CHECK: `\u2705`,
+    X: `\u274E`,
+    PLAY: `\u25B6\uFE0F`,
+    CLOCK: `\uD83D\uDD5F`,
+    DAGGER: `\uD83D\uDDE1`,
+    SHIELD: `\uD83D\uDEE1`,
+};
 
 /**
  *
@@ -334,9 +357,9 @@ async function createAPIMessage(interaction, content) {
 async function removeAllDataForGuild(guild) {
     // console.info(`removeAllDataForGuild: ${guild.id}(${guild.name})`);
     let charsDeleted = await CharModel.deleteMany({ guildID: guild.id });
-    let usersDeleted =     await UserModel.deleteMany({ guildID: guild.id });
-    let eventsDeleted =    await EventModel.deleteMany({ guildID: guild.id });
-    let configDeleted =    await GuildModel.deleteMany({ guildID: guild.id });
+    let usersDeleted = await UserModel.deleteMany({ guildID: guild.id });
+    let eventsDeleted = await EventModel.deleteMany({ guildID: guild.id });
+    let configDeleted = await GuildModel.deleteMany({ guildID: guild.id });
     console.info(`removeAllDataForGuild: ${guild.id}(${guild.name}): chars: ${charsDeleted.deletedCount} users: ${usersDeleted.deletedCount} events: ${eventsDeleted.deletedCount} config: ${configDeleted.deletedCount}`);
 }
 
@@ -354,4 +377,5 @@ exports.isTrue = isTrue;
 exports.getDiscordUrl = getDiscordUrl;
 exports.clientWsReply = clientWsReply;
 exports.COLORS = COLORS;
+exports.EMOJIS = EMOJIS;
 exports.removeAllDataForGuild = removeAllDataForGuild;
