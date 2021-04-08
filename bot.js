@@ -616,6 +616,37 @@ client.once('ready', async () => {
     });
 });
 
+/**
+ * guildCreate
+ */
+client.on("guildCreate", async (guild) => {
+    console.log(`guildCreate: ${guild.id}(${guild.name})`);
+    try {
+        await config.confirmGuildConfig(guild);
+        let channel = guild.channels.resolve(guild.systemChannelID);
+        if (!channel) {
+            channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'))
+        }
+        // console.debug('channel:', channel);
+        if (channel) {
+            channel.send('Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me. Cheers!');
+        }
+    } catch (error) {
+        console.error("guildCreate:", error);
+    }
+});
+
+/**
+ * guildDelete
+ */
+client.on("guildDelete", async (guild) => {
+    console.log(`guildDelete: ${guild.id}(${guild.name}) because of: ${guild.unavailable ? guild.unavailable : 'KICKED'}`);
+    // if bot was kicked from guild, then this 'unavailable' field will not be populated
+    if (!guild.unavailable) {
+        await utils.removeAllDataForGuild(guild);
+    }
+});
+
 client.on('messageReactionAdd', async (reaction, user) => {
     // When we receive a reaction we check if the reaction is partial or not
     try {
@@ -871,7 +902,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
     }
     // console.debug('handled', handled);
     if (handled) {
-        console.log(`msg processed:${msg.interaction?'INTERACTION:':''} ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+        console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''} ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
     }
     return handled;
 }

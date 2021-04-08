@@ -1,4 +1,8 @@
 const { MessageEmbed, APIMessage } = require("discord.js");
+const CharModel = require('../models/Character');
+const UserModel = require('../models/User');
+const EventModel = require('../models/Event');
+const GuildModel = require('../models/Guild');
 
 const COLORS = {
     BLUE: '0099ff',
@@ -323,6 +327,19 @@ async function createAPIMessage(interaction, content) {
     return { ...data, files };
 }
 
+/**
+ * remove all data for a guild
+ * @param {Guild} guild
+ */
+async function removeAllDataForGuild(guild) {
+    // console.info(`removeAllDataForGuild: ${guild.id}(${guild.name})`);
+    let charsDeleted = await CharModel.deleteMany({ guildID: guild.id });
+    let usersDeleted =     await UserModel.deleteMany({ guildID: guild.id });
+    let eventsDeleted =    await EventModel.deleteMany({ guildID: guild.id });
+    let configDeleted =    await GuildModel.deleteMany({ guildID: guild.id });
+    console.info(`removeAllDataForGuild: ${guild.id}(${guild.name}): chars: ${charsDeleted.deletedCount} users: ${usersDeleted.deletedCount} events: ${eventsDeleted.deletedCount} config: ${configDeleted.deletedCount}`);
+}
+
 exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
@@ -337,3 +354,4 @@ exports.isTrue = isTrue;
 exports.getDiscordUrl = getDiscordUrl;
 exports.clientWsReply = clientWsReply;
 exports.COLORS = COLORS;
+exports.removeAllDataForGuild = removeAllDataForGuild;

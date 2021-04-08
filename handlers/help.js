@@ -22,9 +22,9 @@ async function handleHelp(msg, msgParms, prefix) {
         charEmbed.addFields(
             {
                 name: 'HELP', value: `
-We recommend that you use our slash \`/\` commands instead of the prefix commands now. Just start typing with a \`/\` and look for all the commands that are available to you in the bot. They are MUCH easier to use!
+We recommend that you use our slash \`/\` commands instead of the old prefix commands (such as \`${prefix}help\`) now. Just start typing with a \`/\` and look for all the commands that are available to you in the bot. They are MUCH easier to use!
 
-If you would like to see all commands available, [they are on the github website here](https://github.com/jcolson/dndvault-bot#commands)
+If you would like to see all commands available, [they are on the github website here](https://github.com/jcolson/dndvault-bot#commands).
 `},
         );
         charEmbed.addFields(
