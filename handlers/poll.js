@@ -62,9 +62,9 @@ function parseMessageForPoll(pollParams) {
         thePoll.question = pollParams[0].value;
         if (pollParams.length > 1) {
             thePoll.choices = pollParams.slice(1).map(entity => entity.value);
-            thePoll.emojis = [`\u0030\uFE0F\u20E3`, `\u0031\uFE0F\u20E3`, `\u0032\uFE0F\u20E3`, `\u0033\uFE0F\u20E3`,
+            thePoll.emojis = [`\u0031\uFE0F\u20E3`, `\u0032\uFE0F\u20E3`, `\u0033\uFE0F\u20E3`,
                 `\u0034\uFE0F\u20E3`, `\u0035\uFE0F\u20E3`, `\u0036\uFE0F\u20E3`, `\u0037\uFE0F\u20E3`, `\u0038\uFE0F\u20E3`,
-                `\u0039\uFE0F\u20E3`];
+                `\u0039\uFE0F\u20E3`, `\uD83D\uDD1F`];
         } else {
             thePoll.choices = ['Yes', 'No', 'Maybe'];
             thePoll.emojis = [`\uD83D\uDC4D`, `\uD83D\uDC4E`, `\uD83E\uDD37`];
