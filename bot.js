@@ -572,35 +572,39 @@ function getClientApp() {
 
 async function registerCommands() {
     console.info('registerCommands: BEGIN');
-    let commandsToKeep = [];
-    let commandsToRegister = [];
-    for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
-        if (commandValue.slash) {
-            // console.info("registerCommands: command key and value to register", commandKey, commandValue);
-            commandsToKeep.push(commandValue.name);
-            // await getClientApp().commands.post({
-            //     data: commandValue,
-            // });
-            commandsToRegister.push(
-                commandValue
-            );
+    try {
+        let commandsToKeep = [];
+        let commandsToRegister = [];
+        for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
+            if (commandValue.slash) {
+                // console.info("registerCommands: command key and value to register", commandKey, commandValue);
+                commandsToKeep.push(commandValue.name);
+                // await getClientApp().commands.post({
+                //     data: commandValue,
+                // });
+                commandsToRegister.push(
+                    commandValue
+                );
+            }
         }
+        // console.debug(JSON.stringify({data: commandsToRegister}));
+        await getClientApp().commands.put({ data: commandsToRegister });
+        /**
+         * this is not necessary, as the `commands.put` replaces all commands, so left overs should be auto-removed?
+         * if the single `post` method is used, then this is required
+         */
+        // const registeredCommands = await getClientApp().commands.get();
+        // console.debug("registerCommands: commandsToKeep & registeredCommands", commandsToKeep, registeredCommands);
+        // for (const command of registeredCommands) {
+        //     // console.debug("registerCommands: command", command.name);
+        //     if (!commandsToKeep.includes(command.name)) {
+        //         console.info("registerCommands: removing command ", command);
+        //         await getClientApp().commands(command.id).delete();
+        //     }
+        // }
+    } catch (error) {
+        console.error('registerCommands:', error);
     }
-    // console.debug(JSON.stringify({data: commandsToRegister}));
-    await getClientApp().commands.put({ data: commandsToRegister });
-    /**
-     * this is not necessary, as the `commands.put` replaces all commands, so left overs should be auto-removed?
-     * if the single `post` method is used, then this is required
-     */
-    // const registeredCommands = await getClientApp().commands.get();
-    // console.debug("registerCommands: commandsToKeep & registeredCommands", commandsToKeep, registeredCommands);
-    // for (const command of registeredCommands) {
-    //     // console.debug("registerCommands: command", command.name);
-    //     if (!commandsToKeep.includes(command.name)) {
-    //         console.info("registerCommands: removing command ", command);
-    //         await getClientApp().commands(command.id).delete();
-    //     }
-    // }
     console.info('registerCommands: END');
 }
 
@@ -623,13 +627,23 @@ client.on("guildCreate", async (guild) => {
     console.log(`guildCreate: ${guild.id}(${guild.name})`);
     try {
         await config.confirmGuildConfig(guild);
-        let channel = guild.channels.resolve(guild.systemChannelID);
-        if (!channel) {
-            channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'))
+        let channel;
+        if (guild.systemChannelID) {
+            channel = guild.channels.resolve(guild.systemChannelID);
         }
-        // console.debug('channel:', channel);
+        // console.debug('channel', channel);
+        if (!channel ||
+            (channel.type !== 'text' ||
+                !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']))) {
+            // console.debug('finding another channel');
+            channel = guild.channels.cache.find(c => {
+                // console.debug(`${c.name} - ${c.type} - ${c.permissionsFor(guild.me).has('VIEW_CHANNEL')} - ${c.permissionsFor(guild.me).has('SEND_MESSAGES')}`);
+                return (c.type == 'text' && c.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']));
+            });
+        }
+        // console.debug('channel', channel);
         if (channel) {
-            channel.send('Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me. Cheers!');
+            await channel.send('Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me. Cheers!');
         }
     } catch (error) {
         console.error("guildCreate:", error);
@@ -643,7 +657,11 @@ client.on("guildDelete", async (guild) => {
     console.log(`guildDelete: ${guild.id}(${guild.name}) because of: ${guild.unavailable ? guild.unavailable : 'KICKED'}`);
     // if bot was kicked from guild, then this 'unavailable' field will not be populated
     if (!guild.unavailable) {
-        await utils.removeAllDataForGuild(guild);
+        try {
+            await utils.removeAllDataForGuild(guild);
+        } catch (error) {
+            console.error('guildDelete:', error);
+        }
     }
 });
 
