@@ -13,7 +13,8 @@ const poll = require('./handlers/poll.js');
 const roll = require('./handlers/roll.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+//https://discord.com/developers/docs/topics/gateway#gateway-intents
+const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] } });
 
 /**
  * scheduled cron for calendar reminders
@@ -389,11 +390,6 @@ const COMMANDS = {
             "required": true,
             "type": 3
         }, {
-            "name": "option_0",
-            "description": "Option to choose",
-            "required": false,
-            "type": 3
-        }, {
             "name": "option_1",
             "description": "Option to choose",
             "required": false,
@@ -435,6 +431,11 @@ const COMMANDS = {
             "type": 3
         }, {
             "name": "option_9",
+            "description": "Option to choose",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "option_10",
             "description": "Option to choose",
             "required": false,
             "type": 3
@@ -571,48 +572,111 @@ function getClientApp() {
 
 async function registerCommands() {
     console.info('registerCommands: BEGIN');
-    let commandsToKeep = [];
-    let commandsToRegister = [];
-    for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
-        if (commandValue.slash) {
-            // console.info("registerCommands: command key and value to register", commandKey, commandValue);
-            commandsToKeep.push(commandValue.name);
-            // await getClientApp().commands.post({
-            //     data: commandValue,
-            // });
-            commandsToRegister.push(
-                commandValue
-            );
+    try {
+        // console.debug('shard ids:', client.shard.ids);
+        if (client.shard.ids.includes(0)) {
+            console.info('registerCommands: ShardId:0, registering commands ...');
+            let commandsToRegister = [];
+            for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
+                if (commandValue.slash) {
+                    commandsToRegister.push(
+                        commandValue
+                    );
+                }
+            }
+            const registeredCommands = await getClientApp().commands.get();
+            // console.debug('registerCommands:', registeredCommands);
+            let registerCommands = false;
+            // make sure that registeredCommands are all in commandsToRegister
+            for (const command of registeredCommands) {
+                // console.debug("registerCommands: checkForRemove", command.name);
+                if (!commandsToRegister.find(c => {
+                    // console.debug(c.name);
+                    return (c.name == command.name);
+                })) {
+                    registerCommands = true;
+                    break;
+                }
+            }
+            if (!registerCommands) {
+                // make sure that commandsToRegister are all in registeredCommands
+                for (const command of commandsToRegister) {
+                    // console.debug("registerCommands: checkForAdd", command.name);
+                    if (!registeredCommands.find(c => {
+                        // console.debug(c.name);
+                        return (c.name == command.name);
+                    })) {
+                        registerCommands = true;
+                        break;
+                    }
+                }
+            }
+            if (registerCommands) {
+                console.info('registerCommands: missing or unrecognized commands in commands.get, replacing all ...');
+                await getClientApp().commands.put({ data: commandsToRegister });
+            }
         }
+    } catch (error) {
+        console.error('registerCommands:', error);
     }
-    // console.debug(JSON.stringify({data: commandsToRegister}));
-    await getClientApp().commands.put({ data: commandsToRegister });
-    /**
-     * this is not necessary, as the `commands.put` replaces all commands, so left overs should be auto-removed?
-     * if the single `post` method is used, then this is required
-     */
-    // const registeredCommands = await getClientApp().commands.get();
-    // console.debug("registerCommands: commandsToKeep & registeredCommands", commandsToKeep, registeredCommands);
-    // for (const command of registeredCommands) {
-    //     // console.debug("registerCommands: command", command.name);
-    //     if (!commandsToKeep.includes(command.name)) {
-    //         console.info("registerCommands: removing command ", command);
-    //         await getClientApp().commands(command.id).delete();
-    //     }
-    // }
     console.info('registerCommands: END');
 }
 
 /**
  * listen for emitted events from discordjs
  */
-client.on('ready', async () => {
+client.once('ready', async () => {
     console.info(`D&D Vault Bot - logged in as ${client.user.tag}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type /help', type: 'PLAYING' }, status: 'online' });
     registerCommands();
     calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
         events.sendReminders(client);
     });
+});
+
+/**
+ * guildCreate
+ */
+client.on("guildCreate", async (guild) => {
+    console.log(`guildCreate: ${guild.id}(${guild.name})`);
+    try {
+        await config.confirmGuildConfig(guild);
+        let channel;
+        if (guild.systemChannelID) {
+            channel = guild.channels.resolve(guild.systemChannelID);
+        }
+        // console.debug('channel', channel);
+        if (!channel ||
+            (channel.type !== 'text' ||
+                !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']))) {
+            // console.debug('finding another channel');
+            channel = guild.channels.cache.find(c => {
+                // console.debug(`${c.name} - ${c.type} - ${c.permissionsFor(guild.me).has('VIEW_CHANNEL')} - ${c.permissionsFor(guild.me).has('SEND_MESSAGES')}`);
+                return (c.type == 'text' && c.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']));
+            });
+        }
+        // console.debug('channel', channel);
+        if (channel) {
+            await channel.send('Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me. Cheers!');
+        }
+    } catch (error) {
+        console.error("guildCreate:", error);
+    }
+});
+
+/**
+ * guildDelete
+ */
+client.on("guildDelete", async (guild) => {
+    console.log(`guildDelete: ${guild.id}(${guild.name}) because of: ${guild.unavailable ? guild.unavailable : 'KICKED'}`);
+    // if bot was kicked from guild, then this 'unavailable' field will not be populated
+    if (!guild.unavailable) {
+        try {
+            await utils.removeAllDataForGuild(guild);
+        } catch (error) {
+            console.error('guildDelete:', error);
+        }
+    }
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
@@ -870,7 +934,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
     }
     // console.debug('handled', handled);
     if (handled) {
-        console.log(`msg processed: ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+        console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''} ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
     }
     return handled;
 }
@@ -975,7 +1039,7 @@ process.on('SIGUSR2', async () => {
 
 process.on('uncaughtException', async (error) => {
     console.info('uncaughtException signal received.', error);
-    await cleanShutdown(true);
+    // await cleanShutdown(true);
 });
 
 /**

@@ -50,7 +50,7 @@ async function handleCalendarRequest(userID, excludeGuild) {
             // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>\r\n`;
             returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
             returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
-            returnICS += `SUMMARY:🗡${encodeStringICS(currEvent.title)} [Deployed? ${currEvent.deployedByID?'✅':'❎'}] (${encodeStringICS(guildConfig.name)})\r\n`;
+            returnICS += `SUMMARY:${utils.EMOJIS.DAGGER}${encodeStringICS(currEvent.title)} [Deployed? ${currEvent.deployedByID ? utils.EMOJIS.CHECK : utils.EMOJIS.X}] (${encodeStringICS(guildConfig.name)})\r\n`;
             returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
             returnICS += `END:VEVENT\r\n`;
         }

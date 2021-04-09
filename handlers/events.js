@@ -59,12 +59,12 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, 
                 validatedEvent.channelID = sentMessage.channel.id;
                 validatedEvent.messageID = sentMessage.id;
                 await validatedEvent.save();
-                sentMessage.react('✅');
-                sentMessage.react('❎');
-                sentMessage.react('▶️');
-                sentMessage.react('🕟');
-                sentMessage.react(`\u{1F5D1}`);
-                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Create 🛡', value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
+                sentMessage.react(utils.EMOJIS.CHECK);
+                sentMessage.react(utils.EMOJIS.X);
+                sentMessage.react(utils.EMOJIS.PLAY);
+                sentMessage.react(utils.EMOJIS.CLOCK);
+                sentMessage.react(utils.EMOJIS.TRASH);
+                await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Create ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
                 return true;
             }
         } else {
@@ -153,14 +153,14 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                     eventMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
                     validatedEvent.channelID = eventMessage.channel.id;
                     validatedEvent.messageID = eventMessage.id;
-                    eventMessage.react('✅');
-                    eventMessage.react('❎');
-                    eventMessage.react('▶️');
-                    eventMessage.react('🕟');
-                    eventMessage.react(`\u{1F5D1}`);
+                    eventMessage.react(utils.EMOJIS.CHECK);
+                    eventMessage.react(utils.EMOJIS.X);
+                    eventMessage.react(utils.EMOJIS.PLAY);
+                    eventMessage.react(utils.EMOJIS.CLOCK);
+                    eventMessage.react(utils.EMOJIS.TRASH);
                 }
                 await validatedEvent.save();
-                await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Edit 🛡', value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
+                await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Edit ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
                 return true;
             }
         } else {
@@ -208,7 +208,7 @@ async function removeEvent(guild, memberUser, eventID, guildConfig) {
         throw new Error(`Please have <@${existingEvent.userID}> remove, or ask an \`approver role\` to remove.`);
     }
     await existingEvent.delete();
-    let returnMessage = { name: '🗡 Event Remove 🛡', value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
+    let returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
     try {
         const eventMessage = await (
             await guild.channels.resolve(existingEvent.channelID)
@@ -262,12 +262,12 @@ async function handleEventShow(msg, msgParms, guildConfig) {
         showEvent.channelID = sentMessage.channel.id;
         showEvent.messageID = sentMessage.id;
         await showEvent.save();
-        sentMessage.react('✅');
-        sentMessage.react('❎');
-        sentMessage.react('▶️');
-        sentMessage.react('🕟');
-        sentMessage.react(`\u{1F5D1}`);
-        await utils.sendDirectOrFallbackToChannel([{ name: '🗡 Event Show 🛡', value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
+        sentMessage.react(utils.EMOJIS.CHECK);
+        sentMessage.react(utils.EMOJIS.X);
+        sentMessage.react(utils.EMOJIS.PLAY);
+        sentMessage.react(utils.EMOJIS.CLOCK);
+        sentMessage.react(utils.EMOJIS.TRASH);
+        await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Show ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('handleEventShow:', error.message);
         error.message += ` For Channel: ${eventChannel.name}`;
@@ -351,6 +351,24 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
 }
 
 /**
+ * find a param by name, if it's empty string, make it null
+ * @param {Array} msgParms
+ * @param {String} nameToFind
+ * @returns
+ */
+function findParmIfEmptyMakeNull(msgParms, nameToFind) {
+    let foundValue = msgParms.find(p => p.name == nameToFind);
+    if (foundValue) {
+        foundValue = foundValue.value;
+        if (foundValue == '') {
+            foundValue = null;
+        }
+    }
+    console.debug('findParmIfEmptyMakeNull', foundValue);
+    return foundValue;
+}
+
+/**
  * validate event and return object with proper types
  * @param {Array} msgParms
  * @param {Message} msg
@@ -358,19 +376,21 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
  * @returns {EventModel}
  */
 async function validateEvent(msgParms, guildID, currUser, existingEvent) {
-    let etitle = msgParms.find(p => p.name == 'title') ? msgParms.find(p => p.name == 'title').value : undefined;
-    let efor = msgParms.find(p => p.name == 'for') ? msgParms.find(p => p.name == 'for').value : undefined;
-    let eon = msgParms.find(p => p.name == 'on') ? msgParms.find(p => p.name == 'on').value : undefined;
-    let eat = msgParms.find(p => p.name == 'at') ? msgParms.find(p => p.name == 'at').value : undefined;
-    let ewith = msgParms.find(p => p.name == 'with') ? msgParms.find(p => p.name == 'with').value : undefined;
-    let edesc = msgParms.find(p => p.name == 'desc') ? msgParms.find(p => p.name == 'desc').value : undefined;
-    let edmgm = msgParms.find(p => p.name == 'dmgm') ? msgParms.find(p => p.name == 'dmgm').value : undefined;
-    let ecampaign = msgParms.find(p => p.name == 'campaign') ? msgParms.find(p => p.name == 'campaign').value : undefined;
+    let etitle = findParmIfEmptyMakeNull(msgParms, 'title');
+    let efor = findParmIfEmptyMakeNull(msgParms, 'for');
+    let eon = findParmIfEmptyMakeNull(msgParms, 'on');
+    let eat = findParmIfEmptyMakeNull(msgParms, 'at');
+    let ewith = findParmIfEmptyMakeNull(msgParms, 'with');
+    let edesc = findParmIfEmptyMakeNull(msgParms, 'desc');
+    let edmgm = findParmIfEmptyMakeNull(msgParms, 'dmgm');
+    if (edmgm && edmgm.startsWith('<')) {
+        edmgm = edmgm.substring(3, edmgm.length - 1);
+    }
+    let ecampaign = findParmIfEmptyMakeNull(msgParms, 'campaign');
 
     if ((!etitle && !existingEvent && !existingEvent.title) || etitle === null) {
         throw new Error('You must include a title for your event.');
     } else if ((!efor && (!existingEvent || (existingEvent && !existingEvent.duration_hours))) || efor === null) {
-        // console.debug('existingEvent', existingEvent);
         throw new Error(`You must include a duration for your event, was ${efor}`);
     } else if (efor && isNaN(efor)) {
         throw new Error(`The duration hours needs to be a number, not: "${efor}"`);
@@ -387,7 +407,6 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     }
 
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: guildID, userID: currUser.userID });
-
     if (eon || eat) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
         console.log('tz offset: ' + timezoneOffset);
@@ -395,7 +414,8 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         // convert to user's time if this exists already
         let usersOriginalEventDate;
         if (existingEvent && existingEvent.date_time) {
-            usersOriginalEventDate = getDateInDifferentTimezone(existingEvent.date_time, currUser.timezone);// new Date(existingEvent.date_time.toLocaleString("en-US", { timeZone: currUser.timezone }));
+            usersOriginalEventDate = getDateInDifferentTimezone(existingEvent.date_time, currUser.timezone);
+            // new Date(existingEvent.date_time.toLocaleString("en-US", { timeZone: currUser.timezone }));
             // console.log('GMToriginaleventdate %s', existingEvent.date_time);
             // console.log('usersoriginaleventdate %s', usersOriginalEventDate);
         }
@@ -403,29 +423,19 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         let onDate = eon ? eon : formatJustDate(usersOriginalEventDate);
         let atTime = eat ? eat : formatJustTime(usersOriginalEventDate);
         let dateTimeStringToParse = `${onDate} at ${atTime}`;
-        let refDate = usersOriginalEventDate ? usersOriginalEventDate : getDateInDifferentTimezone(new Date(), currUser.timezone);//new Date(new Date().toLocaleString("en-US", { timeZone: currUser.timezone }));
+        let refDate = usersOriginalEventDate ? usersOriginalEventDate : getDateInDifferentTimezone(new Date(), currUser.timezone);
+        //new Date(new Date().toLocaleString("en-US", { timeZone: currUser.timezone }));
         // console.log('refDate %s then - on %s at %s', refDate, onDate, atTime);
         let eventDate = parse(dateTimeStringToParse, refDate, { timezoneOffset: timezoneOffset }).start.date();
         // console.log('parsed date %s', eventDate);
         validatedEvent.date_time = eventDate;
     }
-
-    // console.log(eventArray);
     validatedEvent.title = etitle === null ? undefined : (etitle ? etitle : validatedEvent.title);
     validatedEvent.dm = edmgm === null ? undefined : (edmgm ? edmgm : validatedEvent.dm);
     validatedEvent.duration_hours = efor === null ? undefined : (efor ? efor : validatedEvent.duration_hours);
     validatedEvent.number_player_slots = ewith === null ? undefined : (ewith ? ewith : validatedEvent.number_player_slots);
     validatedEvent.campaign = ecampaign === null ? undefined : (ecampaign ? ecampaign : validatedEvent.campaign);
     validatedEvent.description = edesc === null ? undefined : (edesc ? edesc : validatedEvent.description);
-    let changeDetected = msgParms.length > 0;
-    // for (let key of Object.keys(eventArray)) {
-    //     if (eventArray[key]) {
-    //         changeDetected = true;
-    //     }
-    // }
-    if (!changeDetected) {
-        throw new Error("No changes where detected, please verify your `event edit` command");
-    }
     return validatedEvent;
 }
 
@@ -445,46 +455,6 @@ function getTimeZoneOffset(timezone) {
     let userDate = userDateTime.toJSDate();
     // console.log('getTimeZoneOffset/userDate: %s', userDate);
     return -Math.ceil((userDate - utcDate) / 60 / 1000);
-}
-
-/**
- * parse a message like
- * !event create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [test]
- * in order to create a mission
- * @param {String} eventString
- */
-function parseEventString(eventString) {
-    const separatorArray = ['!TITLE', '!DMGM', '!AT', '!FOR', '!ON', '!WITH', '!CAMPAIGN', '!DESC'];
-    const eventArray = {};
-    // console.log(`"${eventString}`);
-    // check if all required separators exist
-    const sepIndex = [];
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[0]));
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[1], sepIndex[0]));
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[2], sepIndex[1]));
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[3], sepIndex[2]));
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[4], sepIndex[3]));
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[5], sepIndex[4]));
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[6], sepIndex[5]));
-    sepIndex.push(eventString.toUpperCase().indexOf(' ' + separatorArray[7], sepIndex[6]));
-    // add last index as the length of the string
-    sepIndex.push(eventString.length + 1);
-    // console.log('all indexes', sepIndex);
-
-    for (let i = 0; i < separatorArray.length; i++) {
-        // console.log('sepind %d, separray %s, separraylen %d, nextValid %d', sepIndex[i], separatorArray[i], separatorArray[i].length + 1, nextValidIndex(i + 1, sepIndex));
-        let paramValue = sepIndex[i] != -1 ?
-            eventString.substring(sepIndex[i] + separatorArray[i].length + 2, nextValidIndex(i + 1, sepIndex)) :
-            undefined;
-        // allow the 'unsetting' of parameters
-        // console.log('sepind %s & paramvalue %s', sepIndex[i], paramValue);
-        if (sepIndex[i] != -1 && !paramValue) {
-            paramValue = null;
-        }
-        eventArray[separatorArray[i]] = paramValue;
-    }
-    // console.log('array', eventArray);
-    return eventArray;
 }
 
 /**
@@ -540,7 +510,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
             ? `${theEvent.title} id: ${theEvent._id}`
             : `${getEmbedLinkForEvent(theEvent)}`;
         eventEmbed.addFields(
-            { name: '🗡 Title 🛡', value: messageTitleAndUrl, inline: false },
+            { name: `${utils.EMOJIS.DAGGER} Title ${utils.EMOJIS.SHIELD}`, value: messageTitleAndUrl, inline: false },
             { name: 'DMGM', value: `${dmgmString}`, inline: true },
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs`, inline: true },
             { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
@@ -563,7 +533,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
     }
     let signUpInfo = '';
     if (isShow) {
-        signUpInfo = `✅Sign up ❎Withdrawal ▶️Deploy 🕟Your TZ and Calendar\n`;
+        signUpInfo = `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdrawal ▶️Deploy ${utils.EMOJIS.CLOCK}Your TZ and Calendar\n`;
     }
     eventEmbed.addFields(
         {
@@ -653,7 +623,6 @@ async function handleReactionAdd(reaction, user, guildConfig) {
     try {
         // The reaction is now also fully available and the properties will be reflected accurately:
         // console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
-
         let eventForMessage = await EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
         if (!eventForMessage) {
             console.log('Did not find event for reaction.');
@@ -662,23 +631,23 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         // console.log('about to save');
         await eventForMessage.save();
         // console.log(reaction.emoji);
-        if (reaction.emoji && reaction.emoji.name == '✅') {
+        if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.CHECK) {
             // console.log(eventForMessage);
             await attendeeAdd(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == '❎') {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.X) {
             // console.log(eventForMessage);
             await attendeeRemove(reaction, user, eventForMessage);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == '▶️') {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.PLAY) {
             // console.log(eventForMessage);
             await deployEvent(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == '🕟') {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.CLOCK) {
             // console.log(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == `\u{1F5D1}`) {
+        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.TRASH) {
             await reaction.users.remove(user.id);
             let memberUser = await reaction.message.guild.members.resolve(user.id);
             let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage._id, guildConfig);
