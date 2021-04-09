@@ -289,13 +289,17 @@ async function checkChannelPermissions(msg) {
     // throw new Error(`test error`);
     //check that I have the proper permissions
     let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
+    if (msg.interaction) {
+        // interactions don't remove old messages, so can ignore that permission in this case.
+        requiredPerms = ['SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
+    }
     let botPerms = msg.channel.permissionsFor(msg.guild.me);
     // if (!await botPerms.has(requiredPerms)) {
     //     throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permissions): ${requiredPerms}`);
     // }
     for (reqPerm of requiredPerms) {
         if (!await botPerms.has(reqPerm)) {
-            throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}`);
+            throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission for the bot to function properly (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}).`);
         }
     }
     // debug info below for permissions debugging in a channel
