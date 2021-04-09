@@ -365,6 +365,9 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     let ewith = msgParms.find(p => p.name == 'with') ? msgParms.find(p => p.name == 'with').value : undefined;
     let edesc = msgParms.find(p => p.name == 'desc') ? msgParms.find(p => p.name == 'desc').value : undefined;
     let edmgm = msgParms.find(p => p.name == 'dmgm') ? msgParms.find(p => p.name == 'dmgm').value : undefined;
+    if (edmgm && edmgm.startsWith('<')) {
+        edmgm = edmgm.substring(3, edmgm.length - 1);
+    }
     let ecampaign = msgParms.find(p => p.name == 'campaign') ? msgParms.find(p => p.name == 'campaign').value : undefined;
 
     if ((!etitle && !existingEvent && !existingEvent.title) || etitle === null) {
