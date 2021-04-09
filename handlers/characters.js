@@ -490,7 +490,15 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
     try {
         // const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
         // const paramArray = parameters.split(' ');
+        //        if (paramArray.length < 5) {
+
         if (paramArray.length < 5) {
+            //@todo allow updates to not require all fields
+            //       && !paramArray.find(p => {
+            //     returnValue = (p.name == COMMANDS.updateManual.options[0].name);
+            //     console.debug(`${p.name} ?? ${COMMANDS.updateManual.options[0].name} = ${returnValue}`);
+            //     return returnValue;
+            // }))
             throw new Error('Not enough parameters passed.');
         }
         console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, paramArray[0].value);
@@ -596,43 +604,43 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
     changesEmbed.addFields({ name: 'Core Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     changes = arrayForAbilitiesChange(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Abilities Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForBackgroundModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Background Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForClassModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Class Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForConditionModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Condition Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForFeatModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Feat Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForItemModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Item Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForRaceModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Race Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForTraitsChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Traits Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForInventoryChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Inventory Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForCurrenciesChange(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Currency Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     return changesEmbed;

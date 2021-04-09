@@ -18,7 +18,6 @@ const calendar = require('./handlers/calendar.js');
 
 const express = require('express');
 const session = require('express-session');
-const { Stats } = require('fs');
 const Grant = require('grant').express();
 const grant = new Grant(Config);
 
@@ -378,7 +377,7 @@ async function cleanShutdown(callProcessExit) {
         for ([number, shard] of manager.shards) {
             if (manager.mode == 'process') {
                 let count = 0;
-                while (shard.process && shard.process.exitCode === null) {
+                while (shard.process?.exitCode === null) {
                     if (++count > 5) {
                         shard.kill();
                     }
