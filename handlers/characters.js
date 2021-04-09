@@ -505,6 +505,7 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
             throw new Error('Sorry, this character has already has an update pending.  `remove ' + paramArray[0].value + '` if you would like to replace the update request');
         }
         let char = checkRegisterStatus;
+        //@todo this needs to get cleaned up ... duplicative code ick
         if (guildConfig.requireCharacterApproval) {
             char = new CharModel({
                 id: paramArray[0].value,
@@ -993,10 +994,9 @@ function getIdsFromCharacterArray(charArray) {
 async function handleListUser(msg, msgParms, guildConfig) {
     try {
         let userToList = msgParms[0].value;
-        if (userToList.startsWith('<')) {
-            userToList = userToList.substring(3, userToList.length - 1);
-        }
-        console.debug("handleListUser: usertolist:", userToList);
+        userToList = utils.trimTagsFromId(userToList);
+        //        if (userToList.startsWith('<')) {
+        // console.debug("handleListUser: usertolist:", userToList);
         let memberToList = await msg.guild.members.fetch(userToList);
         let charArrayUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -1235,9 +1235,7 @@ async function handleRemove(msg, msgParms, guildConfig) {
         let typeOfRemoval = 'Character Update';
         let charIdToDelete = msgParms[0].value;
         let forUser = msgParms.length > 1 ? msgParms[1].value : msg.member.id;
-        if (forUser.startsWith('<')) {
-            forUser = forUser.substring(3, forUser.length - 1);
-        }
+        forUser = utils.trimTagsFromId(forUser);
         console.log('handleRemove: about to remove charid %s for user %s', charIdToDelete, forUser);
         // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
         // doesn't exist, then remove the actual registered character

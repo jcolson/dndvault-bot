@@ -90,7 +90,11 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         if (msgParms.length < 2) {
             throw new Error('Not enough parameters, you need to pass at least one editable parameter.');
         }
-        const eventID = msgParms.find(p => p.name == 'event_id').value;
+        const eventIDparam = msgParms.find(p => p.name == 'event_id');
+        if (!eventIDparam) {
+            throw new Error('Please check the format of your `event edit` command');
+        }
+        const eventID = eventIDparam.value;
         // console.log(eventID);
         let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
@@ -364,7 +368,7 @@ function findParmIfEmptyMakeNull(msgParms, nameToFind) {
             foundValue = null;
         }
     }
-    console.debug('findParmIfEmptyMakeNull', foundValue);
+    // console.debug('findParmIfEmptyMakeNull', foundValue);
     return foundValue;
 }
 
@@ -383,9 +387,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     let ewith = findParmIfEmptyMakeNull(msgParms, 'with');
     let edesc = findParmIfEmptyMakeNull(msgParms, 'desc');
     let edmgm = findParmIfEmptyMakeNull(msgParms, 'dmgm');
-    if (edmgm && edmgm.startsWith('<')) {
-        edmgm = edmgm.substring(3, edmgm.length - 1);
-    }
+    edmgm = utils.trimTagsFromId(edmgm);
     let ecampaign = findParmIfEmptyMakeNull(msgParms, 'campaign');
 
     if ((!etitle && !existingEvent && !existingEvent.title) || etitle === null) {
@@ -702,7 +704,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = null;
     } else {
         if (!eventForMessage.dm) {
-            eventForMessage.dm = `<@${user.id}>`;
+            eventForMessage.dm = `${user.id}`;
         }
         eventForMessage.deployedByID = user.id;
     }

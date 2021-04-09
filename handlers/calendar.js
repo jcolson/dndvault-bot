@@ -30,7 +30,8 @@ async function handleCalendarRequest(userID, excludeGuild) {
     let userEvents = await EventModel.find(
         {
             $and: [
-                { $or: [{ 'dm': "<@!" + userID + ">" }, { 'userID': userID }, { "attendees.userID": userID }] },
+                //@todo at some point we can remove the <@! check here, as of 1.2.5 we're storing just the ID
+                { $or: [{ 'dm': "<@!" + userID + ">" }, { 'dm': userID }, { 'userID': userID }, { "attendees.userID": userID }] },
                 { date_time: { $gt: cutOffDate } }
             ]
         }

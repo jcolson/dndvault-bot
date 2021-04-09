@@ -193,21 +193,21 @@ async function retrieveRoleForID(guild, roleID) {
  * @param {String} roleName
  * @returns {Role}
  */
-async function retrieveRoleIdForName(guild, roleName) {
+async function retrieveRoleForName(guild, roleName) {
     let roleForName;
     // ensure that the guild is populated ... this sometimes can not be populated on a new server join
     // guild = await guild.fetch();
-    console.log('retrieveRoleIdForName: about to fetch roles cache');
+    console.log('retrieveRoleForName: about to fetch roles cache');
     await guild.roles.fetch();
-    // console.log('retrieveRoleIdForName: roles: ', guild.roles.cache);
+    // console.log('retrieveRoleForName: roles: ', guild.roles.cache);
     for (let [key, role] of guild.roles.cache) {
-        // console.log(`retrieveRoleIdForName: ${key}:${role.name}`);
+        // console.log(`retrieveRoleForName: ${key}:${role.name}`);
         if (role.name == roleName || '@' + role.name == roleName) {
             roleForName = role;
         }
     }
     // console.log("found rolename: " + roleForName.id);
-    return roleForName.id;
+    return roleForName;
 }
 
 function appendStringsForEmbedChanges(stringArray) {
@@ -320,6 +320,25 @@ async function checkChannelPermissions(msg) {
 }
 
 /**
+ *
+ * @param {String} idToTrim
+ * @returns {String}
+ */
+function trimTagsFromId(idToTrim) {
+    if (idToTrim) {
+        // idToTrim = '227562842591723521';
+        const tagRegex = /^([^0-9]*)([0-9]*)([^0-9]*)$/;
+        let matches = tagRegex.exec(idToTrim);
+        // console.debug('matches', matches);
+        if (matches.length > 2) {
+            //get the second grouping, which is third in the array
+            idToTrim = matches[2];
+        }
+    }
+    return idToTrim;
+}
+
+/**
  * sending messages for websockets
  */
 async function clientWsReply(interaction, replyMessage) {
@@ -373,7 +392,7 @@ exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbed
 exports.sendDirectOrFallbackToChannelError = sendDirectOrFallbackToChannelError;
 exports.lengthOfEmbed = lengthOfEmbed;
 exports.retrieveRoleForID = retrieveRoleForID;
-exports.retrieveRoleIdForName = retrieveRoleIdForName;
+exports.retrieveRoleForName = retrieveRoleForName;
 exports.appendStringsForEmbed = appendStringsForEmbed;
 exports.appendStringsForEmbedChanges = appendStringsForEmbedChanges;
 exports.checkChannelPermissions = checkChannelPermissions;
@@ -383,3 +402,4 @@ exports.clientWsReply = clientWsReply;
 exports.COLORS = COLORS;
 exports.EMOJIS = EMOJIS;
 exports.removeAllDataForGuild = removeAllDataForGuild;
+exports.trimTagsFromId = trimTagsFromId;
