@@ -99,7 +99,7 @@ async function handleTimezone(msg, msgParms, guildConfig) {
         }
     } catch (error) {
         console.log('users.handleTimezone:', error);
-        error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;
+        error.message += `\nexample timezones: \`Europe/Berlin\` or \`America/New_York\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }

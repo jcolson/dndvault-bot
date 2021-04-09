@@ -934,7 +934,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
     }
     // console.debug('handled', handled);
     if (handled) {
-        console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''} ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+        console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
     }
     return handled;
 }
