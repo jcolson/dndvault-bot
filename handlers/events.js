@@ -493,7 +493,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
     }
     let eventEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setTitle(title)
+        .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
         // .setDescription(description)
@@ -509,10 +509,10 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         }
         let dmgmString = theEvent.dm ? '<@' + theEvent.dm + '>' : 'Unassigned';
         let messageTitleAndUrl = isShow
-            ? `${theEvent.title} id: ${theEvent._id}`
+            ? `${theEvent._id}`
             : `${getEmbedLinkForEvent(theEvent)}`;
         eventEmbed.addFields(
-            { name: `${utils.EMOJIS.DAGGER} Title ${utils.EMOJIS.SHIELD}`, value: messageTitleAndUrl, inline: false },
+            { name: `${isShow ? '' : utils.EMOJIS.DAGGER}ID`, value: messageTitleAndUrl, inline: isShow },
             { name: 'DMGM', value: `${dmgmString}`, inline: true },
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs`, inline: true },
             { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
@@ -572,7 +572,7 @@ async function getStringForAttendees(event) {
 }
 
 function getEmbedLinkForEvent(theEvent) {
-    return `[${theEvent.title}](${getLinkForEvent(theEvent)}) (id: ${theEvent._id})`;
+    return `[${theEvent.title}](${getLinkForEvent(theEvent)}) ${theEvent._id}`;
 }
 
 function getLinkForEvent(theEvent) {
