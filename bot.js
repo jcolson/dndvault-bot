@@ -573,35 +573,49 @@ function getClientApp() {
 async function registerCommands() {
     console.info('registerCommands: BEGIN');
     try {
-        let commandsToKeep = [];
-        let commandsToRegister = [];
-        for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
-            if (commandValue.slash) {
-                // console.info("registerCommands: command key and value to register", commandKey, commandValue);
-                commandsToKeep.push(commandValue.name);
-                // await getClientApp().commands.post({
-                //     data: commandValue,
-                // });
-                commandsToRegister.push(
-                    commandValue
-                );
+        // console.debug('shard ids:', client.shard.ids);
+        if (client.shard.ids.includes(0)) {
+            console.info('registerCommands: ShardId:0, registering commands ...');
+            let commandsToRegister = [];
+            for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
+                if (commandValue.slash) {
+                    commandsToRegister.push(
+                        commandValue
+                    );
+                }
+            }
+            const registeredCommands = await getClientApp().commands.get();
+            // console.debug('registerCommands:', registeredCommands);
+            let registerCommands = false;
+            // make sure that registeredCommands are all in commandsToRegister
+            for (const command of registeredCommands) {
+                // console.debug("registerCommands: checkForRemove", command.name);
+                if (!commandsToRegister.find(c => {
+                    // console.debug(c.name);
+                    return (c.name == command.name);
+                })) {
+                    registerCommands = true;
+                    break;
+                }
+            }
+            if (!registerCommands) {
+                // make sure that commandsToRegister are all in registeredCommands
+                for (const command of commandsToRegister) {
+                    // console.debug("registerCommands: checkForAdd", command.name);
+                    if (!registeredCommands.find(c => {
+                        // console.debug(c.name);
+                        return (c.name == command.name);
+                    })) {
+                        registerCommands = true;
+                        break;
+                    }
+                }
+            }
+            if (registerCommands) {
+                console.info('registerCommands: missing or unrecognized commands in commands.get, replacing all ...');
+                await getClientApp().commands.put({ data: commandsToRegister });
             }
         }
-        // console.debug(JSON.stringify({data: commandsToRegister}));
-        await getClientApp().commands.put({ data: commandsToRegister });
-        /**
-         * this is not necessary, as the `commands.put` replaces all commands, so left overs should be auto-removed?
-         * if the single `post` method is used, then this is required
-         */
-        // const registeredCommands = await getClientApp().commands.get();
-        // console.debug("registerCommands: commandsToKeep & registeredCommands", commandsToKeep, registeredCommands);
-        // for (const command of registeredCommands) {
-        //     // console.debug("registerCommands: command", command.name);
-        //     if (!commandsToKeep.includes(command.name)) {
-        //         console.info("registerCommands: removing command ", command);
-        //         await getClientApp().commands(command.id).delete();
-        //     }
-        // }
     } catch (error) {
         console.error('registerCommands:', error);
     }
@@ -1025,7 +1039,7 @@ process.on('SIGUSR2', async () => {
 
 process.on('uncaughtException', async (error) => {
     console.info('uncaughtException signal received.', error);
-    await cleanShutdown(true);
+    // await cleanShutdown(true);
 });
 
 /**

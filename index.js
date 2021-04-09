@@ -362,7 +362,7 @@ process.on('SIGUSR2', async () => {
 
 process.on('uncaughtException', async (error) => {
     console.info('uncaughtException signal received.', error);
-    await cleanShutdown(true);
+    // await cleanShutdown(true);
 });
 
 /**

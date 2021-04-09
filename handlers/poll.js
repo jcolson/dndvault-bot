@@ -23,7 +23,7 @@ async function handlePoll(msg, msgParms, guildConfig) {
             sentMessage.react(thePoll.emojis[i]);
         }
         sentMessage.react(`\u{1F5D1}`);
-        await utils.sendDirectOrFallbackToChannel({ name: '🗡 Poll Create 🛡', value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
+        await utils.sendDirectOrFallbackToChannel({ name: `${utils.EMOJIS.DAGGER} Poll Create ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
         if (msg.deletable) {
             await msg.delete();
         }
@@ -62,12 +62,12 @@ function parseMessageForPoll(pollParams) {
         thePoll.question = pollParams[0].value;
         if (pollParams.length > 1) {
             thePoll.choices = pollParams.slice(1).map(entity => entity.value);
-            thePoll.emojis = [`\u0031\uFE0F\u20E3`, `\u0032\uFE0F\u20E3`, `\u0033\uFE0F\u20E3`,
-                `\u0034\uFE0F\u20E3`, `\u0035\uFE0F\u20E3`, `\u0036\uFE0F\u20E3`, `\u0037\uFE0F\u20E3`, `\u0038\uFE0F\u20E3`,
-                `\u0039\uFE0F\u20E3`, `\uD83D\uDD1F`];
+            thePoll.emojis = [utils.EMOJIS.ONE, utils.EMOJIS.TWO, utils.EMOJIS.THREE,
+            utils.EMOJIS.FOUR, utils.EMOJIS.FIVE, utils.EMOJIS.SIX, utils.EMOJIS.SEVEN,
+            utils.EMOJIS.EIGHT, utils.EMOJIS.NINE, utils.EMOJIS.TEN];
         } else {
             thePoll.choices = ['Yes', 'No', 'Maybe'];
-            thePoll.emojis = [`\uD83D\uDC4D`, `\uD83D\uDC4E`, `\uD83E\uDD37`];
+            thePoll.emojis = [utils.EMOJIS.YES, utils.EMOJIS.NO, utils.EMOJIS.MAYBE];
         }
     }
     return thePoll;
@@ -81,16 +81,19 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         // console.log('user info %s and %s', user.id, pollAuthor);
         let memberUser = await reaction.message.guild.members.resolve(user.id);
         // handle trashbin (delete poll)
-        if (reaction.emoji.name == `\u{1F5D1}`) {
+        if (reaction.emoji.name == utils.EMOJIS.TRASH) {
             if (user.id == pollAuthor || await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole)) {
                 // if (false) {
                 await reaction.users.remove(user.id);
                 if (reaction.message.embeds.length > 0) {
                     reaction.message.embeds[0].setTitle(`Removed: ${reaction.message.embeds[0].title}`);
+                    let resultsString = ``;
                     for (aReaction of reaction.message.reactions.cache.values()) {
-                        reaction.message.embeds[0].addFields({ name: `${aReaction.emoji.name}`, value: `${aReaction.count}` });
-                        // console.log(`${aReaction.emoji.name}:${aReaction.count}`);
+                        if (aReaction.emoji.name != utils.EMOJIS.TRASH) {
+                            resultsString += `${aReaction.emoji.name}:${aReaction.count}\n`;
+                        }
                     }
+                    reaction.message.embeds[0].addFields({ name: `Poll Results`, value: `${resultsString}` });
                 }
                 try {
                     await utils.sendDirectOrFallbackToChannelEmbeds(reaction.message.embeds, reaction.message, user);
