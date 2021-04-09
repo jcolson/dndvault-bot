@@ -505,48 +505,37 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
             throw new Error('Sorry, this character has already has an update pending.  `remove ' + paramArray[0].value + '` if you would like to replace the update request');
         }
         let char = checkRegisterStatus;
-        //@todo this needs to get cleaned up ... duplicative code ick
         if (guildConfig.requireCharacterApproval) {
             char = new CharModel({
                 id: paramArray[0].value,
                 name: paramArray[1].value,
                 classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
                 "race.fullName": paramArray[4].value,
+                approvalStatus: false,
+                isUpdate: true,
+                approvedBy: checkRegisterStatus.approvedBy,
             });
-            if (paramArray.length > 5) {
-                char.campaignOverride = '';
-                for (let i = 5; i < paramArray.length; i++) {
-                    char.campaignOverride += paramArray[i].value + ' ';
-                }
-                char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
-            }
-            char.approvalStatus = false;
-            char.isUpdate = true;
-            char.guildUser = msg.member.id;
-            char.guildID = msg.guild.id;
-            char.campaignOverride = checkRegisterStatus.campaignOverride;
-            char.approvedBy = checkRegisterStatus.approvedBy;
         } else {
             char.overwrite({
                 id: paramArray[0].value,
                 name: paramArray[1].value,
                 classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
                 "race.fullName": paramArray[4].value,
+                approvalStatus: true,
+                isUpdate: false,
+                approvedBy: msg.guild.me.id,
             });
-            if (paramArray.length > 5) {
-                char.campaignOverride = '';
-                for (let i = 5; i < paramArray.length; i++) {
-                    char.campaignOverride += paramArray[i].value + ' ';
-                }
-                char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
-            }
-            char.approvalStatus = true;
-            char.isUpdate = false;
-            char.guildUser = msg.member.id;
-            char.guildID = msg.guild.id;
-            char.campaignOverride = checkRegisterStatus.campaignOverride;
-            char.approvedBy = msg.guild.me.id;
         }
+        if (paramArray.length > 5) {
+            char.campaignOverride = '';
+            for (let i = 5; i < paramArray.length; i++) {
+                char.campaignOverride += paramArray[i].value + ' ';
+            }
+            char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
+        }
+        char.guildUser = msg.member.id;
+        char.guildID = msg.guild.id;
+        char.campaignOverride = checkRegisterStatus.campaignOverride;
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
         if (msg.deletable) {
