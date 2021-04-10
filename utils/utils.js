@@ -31,6 +31,7 @@ const EMOJIS = {
     CLOCK: `\uD83D\uDD5F`,
     DAGGER: `\uD83D\uDDE1`,
     SHIELD: `\uD83D\uDEE1`,
+    ASTERISK: `\u2733`,
 };
 
 /**
@@ -164,8 +165,8 @@ function lengthOfEmbed(embed) {
     let embedLength = (embed.title ? embed.title.length : 0)
         + (embed.url ? embed.url.length : 0)
         + (embed.description ? embed.description.length : 0)
-        + (embed.footer && embed.footer.text ? embed.footer.text.length : 0)
-        + (embed.author && embed.author.name ? embed.author.name.length : 0);
+        + (embed.footer?.text ? embed.footer.text.length : 0)
+        + (embed.author?.name ? embed.author.name.length : 0);
     for (let field of embed.fields) {
         // embed.fields.forEach((field) => {
         embedLength += field.name.length + field.value.length;

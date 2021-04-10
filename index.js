@@ -273,7 +273,7 @@ let server = app
             // console.log(request.session.discordMe);
             let eventID = requestUrl.searchParams.get('eventID');
             let event = await EventModel.findById(eventID);
-            if (event && event.userID != request.session.discordMe.id) {
+            if (event?.userID != request.session.discordMe.id) {
                 console.log(`event is not owned by current user, dereferencing`);
                 event = undefined;
             }

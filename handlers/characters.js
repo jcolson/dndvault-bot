@@ -910,7 +910,7 @@ function arrayForClassChange(approvedChar, updatedChar) {
 }
 
 function stringForClass(charClass) {
-    if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
+    if (typeof charClass !== 'undefined' && charClass?.definition) {
         return `${charClass.definition.name}(${charClass.level})` + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : '');
     } else {
         return '';
@@ -918,7 +918,7 @@ function stringForClass(charClass) {
 }
 
 function stringForClassShort(charClass) {
-    if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
+    if (typeof charClass !== 'undefined' && charClass?.definition) {
         return `${charClass.definition.name}(${charClass.level})`;
     } else {
         return '';
@@ -1044,12 +1044,12 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
             i = 0;
         }
         // console.log('vaultuser', vaultUser);
-        let defCharString = (vaultUser && vaultUser.defaultCharacter && vaultUser.defaultCharacter == char.id) ? `\:asterisk: ` : '';
+        let defCharString = vaultUser?.defaultCharacter == char.id ? ` ${utils.EMOJIS.ASTERISK}` : '';
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
                 name: `\:dagger: Name | ID | Status | Campaign \:shield:`,
-                value: `${defCharString}[${char.name}](${char.readonlyUrl}) | ${char.id} |
+                value: `[${char.name}](${char.readonlyUrl})${defCharString} | ${char.id} |
                     ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
@@ -1094,9 +1094,9 @@ function stringForCharacterShort(char) {
 }
 
 function stringForCampaign(char) {
-    const dndCampaign = (char.campaign && char.campaign.name
+    const dndCampaign = char.campaign?.name
         ? `DDB: [${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
-        : undefined);
+        : undefined;
     let returnCampaign = 'No Campaign Set';
     if (dndCampaign && char.campaignOverride) {
         returnCampaign = char.campaignOverride + '\n' + dndCampaign;
