@@ -490,7 +490,15 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
     try {
         // const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
         // const paramArray = parameters.split(' ');
+        //        if (paramArray.length < 5) {
+
         if (paramArray.length < 5) {
+            //@todo allow updates to not require all fields
+            //       && !paramArray.find(p => {
+            //     returnValue = (p.name == COMMANDS.updateManual.options[0].name);
+            //     console.debug(`${p.name} ?? ${COMMANDS.updateManual.options[0].name} = ${returnValue}`);
+            //     return returnValue;
+            // }))
             throw new Error('Not enough parameters passed.');
         }
         console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, paramArray[0].value);
@@ -511,41 +519,31 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
                 name: paramArray[1].value,
                 classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
                 "race.fullName": paramArray[4].value,
+                approvalStatus: false,
+                isUpdate: true,
+                approvedBy: checkRegisterStatus.approvedBy,
             });
-            if (paramArray.length > 5) {
-                char.campaignOverride = '';
-                for (let i = 5; i < paramArray.length; i++) {
-                    char.campaignOverride += paramArray[i].value + ' ';
-                }
-                char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
-            }
-            char.approvalStatus = false;
-            char.isUpdate = true;
-            char.guildUser = msg.member.id;
-            char.guildID = msg.guild.id;
-            char.campaignOverride = checkRegisterStatus.campaignOverride;
-            char.approvedBy = checkRegisterStatus.approvedBy;
         } else {
             char.overwrite({
                 id: paramArray[0].value,
                 name: paramArray[1].value,
                 classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
                 "race.fullName": paramArray[4].value,
+                approvalStatus: true,
+                isUpdate: false,
+                approvedBy: msg.guild.me.id,
             });
-            if (paramArray.length > 5) {
-                char.campaignOverride = '';
-                for (let i = 5; i < paramArray.length; i++) {
-                    char.campaignOverride += paramArray[i].value + ' ';
-                }
-                char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
-            }
-            char.approvalStatus = true;
-            char.isUpdate = false;
-            char.guildUser = msg.member.id;
-            char.guildID = msg.guild.id;
-            char.campaignOverride = checkRegisterStatus.campaignOverride;
-            char.approvedBy = msg.guild.me.id;
         }
+        if (paramArray.length > 5) {
+            char.campaignOverride = '';
+            for (let i = 5; i < paramArray.length; i++) {
+                char.campaignOverride += paramArray[i].value + ' ';
+            }
+            char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
+        }
+        char.guildUser = msg.member.id;
+        char.guildID = msg.guild.id;
+        char.campaignOverride = checkRegisterStatus.campaignOverride;
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
         if (msg.deletable) {
@@ -606,43 +604,43 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
     changesEmbed.addFields({ name: 'Core Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     changes = arrayForAbilitiesChange(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Abilities Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForBackgroundModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Background Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForClassModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Class Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForConditionModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Condition Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForFeatModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Feat Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForItemModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Item Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForRaceModifiersChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Race Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForTraitsChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Traits Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForInventoryChanges(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Inventory Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForCurrenciesChange(approvedChar, updatedChar);
-    if (changes && changes.length > 0) {
+    if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Currency Changes', value: trimAndElipsiseStringArray(changes, 1024) });
     }
     return changesEmbed;
@@ -912,7 +910,7 @@ function arrayForClassChange(approvedChar, updatedChar) {
 }
 
 function stringForClass(charClass) {
-    if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
+    if (typeof charClass !== 'undefined' && charClass?.definition) {
         return `${charClass.definition.name}(${charClass.level})` + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : '');
     } else {
         return '';
@@ -920,7 +918,7 @@ function stringForClass(charClass) {
 }
 
 function stringForClassShort(charClass) {
-    if (typeof charClass !== 'undefined' && charClass && charClass.definition) {
+    if (typeof charClass !== 'undefined' && charClass?.definition) {
         return `${charClass.definition.name}(${charClass.level})`;
     } else {
         return '';
@@ -993,10 +991,9 @@ function getIdsFromCharacterArray(charArray) {
 async function handleListUser(msg, msgParms, guildConfig) {
     try {
         let userToList = msgParms[0].value;
-        if (userToList.startsWith('<')) {
-            userToList = userToList.substring(3, userToList.length - 1);
-        }
-        console.debug("handleListUser: usertolist:", userToList);
+        userToList = utils.trimTagsFromId(userToList);
+        //        if (userToList.startsWith('<')) {
+        // console.debug("handleListUser: usertolist:", userToList);
         let memberToList = await msg.guild.members.fetch(userToList);
         let charArrayUpdates = await CharModel.find({ guildUser: userToList, guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -1047,12 +1044,12 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
             i = 0;
         }
         // console.log('vaultuser', vaultUser);
-        let defCharString = (vaultUser && vaultUser.defaultCharacter && vaultUser.defaultCharacter == char.id) ? `\:asterisk: ` : '';
+        let defCharString = vaultUser?.defaultCharacter == char.id ? ` ${utils.EMOJIS.ASTERISK}` : '';
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
                 name: `\:dagger: Name | ID | Status | Campaign \:shield:`,
-                value: `${defCharString}[${char.name}](${char.readonlyUrl}) | ${char.id} |
+                value: `[${char.name}](${char.readonlyUrl})${defCharString} | ${char.id} |
                     ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
@@ -1097,9 +1094,9 @@ function stringForCharacterShort(char) {
 }
 
 function stringForCampaign(char) {
-    const dndCampaign = (char.campaign && char.campaign.name
+    const dndCampaign = char.campaign?.name
         ? `DDB: [${char.campaign.name}](${Config.dndBeyondUrl}/campaigns/${char.campaign.id}) (${char.campaign.id})`
-        : undefined);
+        : undefined;
     let returnCampaign = 'No Campaign Set';
     if (dndCampaign && char.campaignOverride) {
         returnCampaign = char.campaignOverride + '\n' + dndCampaign;
@@ -1235,9 +1232,7 @@ async function handleRemove(msg, msgParms, guildConfig) {
         let typeOfRemoval = 'Character Update';
         let charIdToDelete = msgParms[0].value;
         let forUser = msgParms.length > 1 ? msgParms[1].value : msg.member.id;
-        if (forUser.startsWith('<')) {
-            forUser = forUser.substring(3, forUser.length - 1);
-        }
+        forUser = utils.trimTagsFromId(forUser);
         console.log('handleRemove: about to remove charid %s for user %s', charIdToDelete, forUser);
         // we only want to remove one type of character, not every character (if there is an update pending).  so remove update, if it
         // doesn't exist, then remove the actual registered character

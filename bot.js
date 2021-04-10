@@ -29,7 +29,7 @@ global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
 global.client = client;
 
-const COMMANDS = {
+global.COMMANDS = {
     "help": {
         "name": "help",
         "description": "Get help about D&D Vault Bot",
@@ -701,7 +701,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
                 // Now the message has been cached and is fully available
                 await utils.checkChannelPermissions(reaction.message);
                 let guildConfig = await config.confirmGuildConfig(reaction.message.guild);
-                if (reaction.message.embeds && reaction.message.embeds[0].author && reaction.message.embeds[0].author.name == 'Pollster') {
+                if (reaction.message.embeds[0]?.author?.name == 'Pollster') {
                     console.debug(`messageReactionAdd:POLL:${reaction.message.author}'s"${reaction.message.id}" gained a reaction!`);
                     await poll.handleReactionAdd(reaction, user, guildConfig);
                 } else {
@@ -934,7 +934,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
     }
     // console.debug('handled', handled);
     if (handled) {
-        console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''} ${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+        console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
     }
     return handled;
 }
