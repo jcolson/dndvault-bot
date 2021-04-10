@@ -19,6 +19,7 @@
     "log-timestamp": "0.3.0",
     "luxon": "^1.25.0",
     "mongoose": "^5.11.8",
+    "morgan": "^1.10.0",
     "node-cron": "^2.0.3",
     "node-fetch": "2.6.1",
     "pug": "^3.0.0",
