@@ -39,7 +39,7 @@ function embedForPoll(msg, thePoll) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(`${thePoll.question}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('Pollster', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('Pollster', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     pollEmbed.addFields({ name: 'Author', value: `<@${msg.author.id}>` });
