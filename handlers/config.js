@@ -249,10 +249,11 @@ async function confirmGuildConfig(guild) {
                 guildConfig = new GuildModel({ guildID: guild.id });
                 needsSave = true;
             }
-        } else {
-            console.log(`confirmGuildConfig: guild cached: ${guild.name}`);
         }
-        // console.log("confirmGuildConfig:", guildConfig);
+        // else {
+        //     console.debug(`confirmGuildConfig: guild cached: ${guild.name}`);
+        // }
+        // console.debug("confirmGuildConfig:", guildConfig);
         if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
             let theRole = await utils.retrieveRoleForName(guild, Config.defaultARoleName);
             if (theRole) {
