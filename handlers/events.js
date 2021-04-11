@@ -90,7 +90,11 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         if (msgParms.length < 2) {
             throw new Error('Not enough parameters, you need to pass at least one editable parameter.');
         }
-        const eventID = msgParms.find(p => p.name == 'event_id').value;
+        const eventIDparam = msgParms.find(p => p.name == 'event_id');
+        if (!eventIDparam) {
+            throw new Error('Please check the format of your `event edit` command');
+        }
+        const eventID = eventIDparam.value;
         // console.log(eventID);
         let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
@@ -364,7 +368,7 @@ function findParmIfEmptyMakeNull(msgParms, nameToFind) {
             foundValue = null;
         }
     }
-    console.debug('findParmIfEmptyMakeNull', foundValue);
+    // console.debug('findParmIfEmptyMakeNull', foundValue);
     return foundValue;
 }
 
@@ -383,24 +387,22 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     let ewith = findParmIfEmptyMakeNull(msgParms, 'with');
     let edesc = findParmIfEmptyMakeNull(msgParms, 'desc');
     let edmgm = findParmIfEmptyMakeNull(msgParms, 'dmgm');
-    if (edmgm && edmgm.startsWith('<')) {
-        edmgm = edmgm.substring(3, edmgm.length - 1);
-    }
+    edmgm = utils.trimTagsFromId(edmgm);
     let ecampaign = findParmIfEmptyMakeNull(msgParms, 'campaign');
 
-    if ((!etitle && !existingEvent && !existingEvent.title) || etitle === null) {
+    if ((!etitle && !existingEvent?.title) || etitle === null) {
         throw new Error('You must include a title for your event.');
-    } else if ((!efor && (!existingEvent || (existingEvent && !existingEvent.duration_hours))) || efor === null) {
+    } else if ((!efor && !existingEvent?.duration_hours) || efor === null) {
         throw new Error(`You must include a duration for your event, was ${efor}`);
     } else if (efor && isNaN(efor)) {
         throw new Error(`The duration hours needs to be a number, not: "${efor}"`);
-    } else if ((!eon && (!existingEvent || (existingEvent && !existingEvent.date_time))) || eon === null) {
+    } else if ((!eon && !existingEvent?.date_time) || eon === null) {
         throw new Error('You must include a date for your event.');
-    } else if ((!eat && (!existingEvent || (existingEvent && !existingEvent.date_time))) || eat === null) {
+    } else if ((!eat && !existingEvent?.date_time) || eat === null) {
         throw new Error('You must include a time for your event.');
-    } else if ((!ewith && (!existingEvent || (existingEvent && !existingEvent.number_player_slots))) || ewith === null) {
+    } else if ((!ewith && !existingEvent?.number_player_slots) || ewith === null) {
         throw new Error('You must include a number of player slots for your event.');
-    } else if ((!edesc && (!existingEvent || (existingEvent && !existingEvent.description))) || edesc === null) {
+    } else if ((!edesc && !existingEvent?.description) || edesc === null) {
         throw new Error('You must include a description for your event.');
     } else if (ewith && isNaN(ewith)) {
         throw new Error(`The number of player slots needs to be a number, not: "${ewith}"`);
@@ -413,7 +415,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
 
         // convert to user's time if this exists already
         let usersOriginalEventDate;
-        if (existingEvent && existingEvent.date_time) {
+        if (existingEvent?.date_time) {
             usersOriginalEventDate = getDateInDifferentTimezone(existingEvent.date_time, currUser.timezone);
             // new Date(existingEvent.date_time.toLocaleString("en-US", { timeZone: currUser.timezone }));
             // console.log('GMToriginaleventdate %s', existingEvent.date_time);
@@ -491,9 +493,9 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
     }
     let eventEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setTitle(title)
+        .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(guildIconURL);
     // .setThumbnail(msg.guild.iconURL());
@@ -507,10 +509,10 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         }
         let dmgmString = theEvent.dm ? '<@' + theEvent.dm + '>' : 'Unassigned';
         let messageTitleAndUrl = isShow
-            ? `${theEvent.title} id: ${theEvent._id}`
+            ? `${theEvent._id}`
             : `${getEmbedLinkForEvent(theEvent)}`;
         eventEmbed.addFields(
-            { name: `${utils.EMOJIS.DAGGER} Title ${utils.EMOJIS.SHIELD}`, value: messageTitleAndUrl, inline: false },
+            { name: `${isShow ? '' : utils.EMOJIS.DAGGER}ID`, value: messageTitleAndUrl, inline: isShow },
             { name: 'DMGM', value: `${dmgmString}`, inline: true },
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs`, inline: true },
             { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
@@ -570,7 +572,7 @@ async function getStringForAttendees(event) {
 }
 
 function getEmbedLinkForEvent(theEvent) {
-    return `[${theEvent.title}](${getLinkForEvent(theEvent)}) (id: ${theEvent._id})`;
+    return `[${theEvent.title}](${getLinkForEvent(theEvent)}) ${theEvent._id}`;
 }
 
 function getLinkForEvent(theEvent) {
@@ -631,23 +633,23 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         // console.log('about to save');
         await eventForMessage.save();
         // console.log(reaction.emoji);
-        if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.CHECK) {
+        if (reaction.emoji?.name == utils.EMOJIS.CHECK) {
             // console.log(eventForMessage);
             await attendeeAdd(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.X) {
+        } else if (reaction.emoji?.name == utils.EMOJIS.X) {
             // console.log(eventForMessage);
             await attendeeRemove(reaction, user, eventForMessage);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.PLAY) {
+        } else if (reaction.emoji?.name == utils.EMOJIS.PLAY) {
             // console.log(eventForMessage);
             await deployEvent(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.CLOCK) {
+        } else if (reaction.emoji?.name == utils.EMOJIS.CLOCK) {
             // console.log(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji && reaction.emoji.name == utils.EMOJIS.TRASH) {
+        } else if (reaction.emoji?.name == utils.EMOJIS.TRASH) {
             await reaction.users.remove(user.id);
             let memberUser = await reaction.message.guild.members.resolve(user.id);
             let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage._id, guildConfig);
@@ -702,7 +704,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = null;
     } else {
         if (!eventForMessage.dm) {
-            eventForMessage.dm = `<@${user.id}>`;
+            eventForMessage.dm = `${user.id}`;
         }
         eventForMessage.deployedByID = user.id;
     }
@@ -717,7 +719,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
     // check array for characters that will work for no campaign
     if (!eventForMessage.campaign) {
         for (let charCheck of characterArray) {
-            if (vaultUser && vaultUser.defaultCharacter) {
+            if (vaultUser?.defaultCharacter) {
                 if (charCheck.id == vaultUser.defaultCharacter) {
                     character = charCheck;
                 }
@@ -730,7 +732,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
         for (let charCheck of characterArray) {
             if (charCheck.campaignOverride == eventForMessage.campaign || charCheck.campaign.id == eventForMessage.campaign) {
                 character = charCheck;
-            } else if (vaultUser && vaultUser.defaultCharacter && charCheck.id == vaultUser.defaultCharacter) {
+            } else if (charCheck.id == vaultUser?.defaultCharacter) {
                 characterDefault = charCheck;
             } else if (!guildConfig.requireCharacterForEvent && !character && !characterBackup) { //if characters aren't required for a campaign and a character hasn't been found yet, use the first one
                 characterBackup = charCheck;
@@ -753,14 +755,14 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
     let alreadySignedUp = false;
     eventForMessage.attendees.forEach((attendee) => {
         if (attendee.userID == user.id) {
-            attendee.characterID = character && character.id ? character.id : undefined;
+            attendee.characterID = character?.id ? character.id : undefined;
             attendee.date_time = new Date();
             alreadySignedUp = true;
         }
     });
     if (!alreadySignedUp) {
         if (eventForMessage.attendees.length < eventForMessage.number_player_slots) {
-            eventForMessage.attendees.push({ userID: user.id, characterID: character && character.id ? character.id : undefined, date_time: new Date() });
+            eventForMessage.attendees.push({ userID: user.id, characterID: character?.id ? character.id : undefined, date_time: new Date() });
         } else {
             throw new Error(`Could not add another attendee, there are only ${eventForMessage.number_player_slots} total slots available, and they're all taken.`);
         }
@@ -801,7 +803,7 @@ async function sendReminders(client) {
             let eventEmbeds = await embedForEvent(guild.iconURL(), [theEvent], "Reminder of Upcoming Event", true);
             let usersToNotify = [];
             if (theEvent.dm) {
-                usersToNotify.push(theEvent.dm.substring(3, theEvent.dm.length - 1));
+                usersToNotify.push(theEvent.dm);
             }
             for (attendee of theEvent.attendees) {
                 usersToNotify.push(attendee.userID);

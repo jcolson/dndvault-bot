@@ -12,7 +12,7 @@ async function handleDefault(msg, msgParms, guildConfig) {
     try {
         let defaultChar = msgParms.length > 0 ? msgParms[0].value : undefined;
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (!defaultChar && currUser && currUser.defaultCharacter) {
+        if (!defaultChar && currUser?.defaultCharacter) {
             await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character is currently set to: ${currUser.defaultCharacter}` }], msg);
         } else if (!defaultChar) {
             await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `No default character set yet.` }], msg);
@@ -76,7 +76,7 @@ async function handleTimezone(msg, msgParms, guildConfig) {
     try {
         let timeZoneString = msgParms.length > 0 ? msgParms[0].value : undefined;
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
-        if (!timeZoneString && currUser && currUser.timezone) {
+        if (!timeZoneString && currUser?.timezone) {
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` },
                 { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
@@ -99,7 +99,7 @@ async function handleTimezone(msg, msgParms, guildConfig) {
         }
     } catch (error) {
         console.log('users.handleTimezone:', error);
-        error.message += `\nexample timezone: \`Europe/Berlin\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;
+        error.message += `\nexample timezones: \`Europe/Berlin\` or \`America/New_York\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }

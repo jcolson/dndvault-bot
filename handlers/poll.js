@@ -22,7 +22,7 @@ async function handlePoll(msg, msgParms, guildConfig) {
         for (let i = 0; i < thePoll.choices.length; i++) {
             sentMessage.react(thePoll.emojis[i]);
         }
-        sentMessage.react(`\u{1F5D1}`);
+        sentMessage.react(utils.EMOJIS.TRASH);
         await utils.sendDirectOrFallbackToChannel({ name: `${utils.EMOJIS.DAGGER} Poll Create ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
         if (msg.deletable) {
             await msg.delete();
@@ -39,7 +39,7 @@ function embedForPoll(msg, thePoll) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(`${thePoll.question}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('Pollster', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('Pollster', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     pollEmbed.addFields({ name: 'Author', value: `<@${msg.author.id}>` });

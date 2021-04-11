@@ -31,6 +31,7 @@ const EMOJIS = {
     CLOCK: `\uD83D\uDD5F`,
     DAGGER: `\uD83D\uDDE1`,
     SHIELD: `\uD83D\uDEE1`,
+    ASTERISK: `\u2733`,
 };
 
 /**
@@ -42,6 +43,7 @@ const EMOJIS = {
  */
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank) {
     let embed = new MessageEmbed()
+        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.RED);
     embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
@@ -59,6 +61,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
         fields = [fields];
     }
     let embed = new MessageEmbed()
+        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.BLUE);
     for (let field of fields) {
         field.name = typeof field.name !== 'undefined' && '' + field.name != '' ? field.name : 'UNSET';
@@ -143,6 +146,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (messageSent && sentMessage && msg.interaction) {
             let interactionEmbed = new MessageEmbed()
+                .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                 .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
             clientWsReply(msg.interaction, interactionEmbed);
@@ -164,8 +168,8 @@ function lengthOfEmbed(embed) {
     let embedLength = (embed.title ? embed.title.length : 0)
         + (embed.url ? embed.url.length : 0)
         + (embed.description ? embed.description.length : 0)
-        + (embed.footer && embed.footer.text ? embed.footer.text.length : 0)
-        + (embed.author && embed.author.name ? embed.author.name.length : 0);
+        + (embed.footer?.text ? embed.footer.text.length : 0)
+        + (embed.author?.name ? embed.author.name.length : 0);
     for (let field of embed.fields) {
         // embed.fields.forEach((field) => {
         embedLength += field.name.length + field.value.length;
@@ -193,21 +197,21 @@ async function retrieveRoleForID(guild, roleID) {
  * @param {String} roleName
  * @returns {Role}
  */
-async function retrieveRoleIdForName(guild, roleName) {
+async function retrieveRoleForName(guild, roleName) {
     let roleForName;
     // ensure that the guild is populated ... this sometimes can not be populated on a new server join
     // guild = await guild.fetch();
-    console.log('retrieveRoleIdForName: about to fetch roles cache');
+    console.log('retrieveRoleForName: about to fetch roles cache');
     await guild.roles.fetch();
-    // console.log('retrieveRoleIdForName: roles: ', guild.roles.cache);
+    // console.log('retrieveRoleForName: roles: ', guild.roles.cache);
     for (let [key, role] of guild.roles.cache) {
-        // console.log(`retrieveRoleIdForName: ${key}:${role.name}`);
+        // console.log(`retrieveRoleForName: ${key}:${role.name}`);
         if (role.name == roleName || '@' + role.name == roleName) {
             roleForName = role;
         }
     }
     // console.log("found rolename: " + roleForName.id);
-    return roleForName.id;
+    return roleForName;
 }
 
 function appendStringsForEmbedChanges(stringArray) {
@@ -320,6 +324,25 @@ async function checkChannelPermissions(msg) {
 }
 
 /**
+ *
+ * @param {String} idToTrim
+ * @returns {String}
+ */
+function trimTagsFromId(idToTrim) {
+    if (idToTrim) {
+        // idToTrim = '227562842591723521';
+        const tagRegex = /^([^0-9]*)([0-9]*)([^0-9]*)$/;
+        let matches = tagRegex.exec(idToTrim);
+        // console.debug('matches', matches);
+        if (matches.length > 2) {
+            //get the second grouping, which is third in the array
+            idToTrim = matches[2];
+        }
+    }
+    return idToTrim;
+}
+
+/**
  * sending messages for websockets
  */
 async function clientWsReply(interaction, replyMessage) {
@@ -373,7 +396,7 @@ exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbed
 exports.sendDirectOrFallbackToChannelError = sendDirectOrFallbackToChannelError;
 exports.lengthOfEmbed = lengthOfEmbed;
 exports.retrieveRoleForID = retrieveRoleForID;
-exports.retrieveRoleIdForName = retrieveRoleIdForName;
+exports.retrieveRoleForName = retrieveRoleForName;
 exports.appendStringsForEmbed = appendStringsForEmbed;
 exports.appendStringsForEmbedChanges = appendStringsForEmbedChanges;
 exports.checkChannelPermissions = checkChannelPermissions;
@@ -383,3 +406,4 @@ exports.clientWsReply = clientWsReply;
 exports.COLORS = COLORS;
 exports.EMOJIS = EMOJIS;
 exports.removeAllDataForGuild = removeAllDataForGuild;
+exports.trimTagsFromId = trimTagsFromId;

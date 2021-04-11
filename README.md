@@ -29,8 +29,6 @@ DND Vault Table of Contents
     - [discordjs](#discordjs)
     - [Bot Commands for testing](#bot-commands-for-testing)
     - [Test Bot Invite](#test-bot-invite)
-    - [Mongodb docker](#mongodb-docker)
-    - [Run bot locally in container](#run-bot-locally-in-container)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -288,38 +286,4 @@ Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue):
 
 ```html
 https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=223296&scope=bot%20applications.commands
-```
-
-### Mongodb docker
-
-```sh
-export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
-docker run -d --name dnd-mongo \
-    -p 27017:27017 \
-    --restart always \
-    --ulimit nofile=64000:64000 \
-    -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
-    -e MONGO_INITDB_DATABASE=dnd \
-    -e MONGO_INITDB_ROOT_PASSWORD_FILE=/data/db/mongoadmin \
-    -v ${VOLUME}:/data/db \
-    -v ${VOLUME}-init:/docker-entrypoint-initdb.d \
-    mongo:4.4.3-bionic
-```
-
-repair mongodb in container
-
-```sh
-export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
-docker run -it -v ${VOLUME}:/data/db mongo:4.4.3-bionic mongod --repair
-```
-
-### Run bot locally in container
-
-```sh
-docker build -t dndvaultlocal . && \
-docker container stop dndvault && docker container rm dndvault && \
-export VOLUME=/Users/jcolson/src/personal/dndvault && \
-docker run --name dndvault -v ${VOLUME}:/config \
-    -p 8080:8080 \
-    --restart always -d dndvaultlocal
 ```

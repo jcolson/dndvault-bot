@@ -148,17 +148,17 @@ async function handleConfigProle(msg, msgParms, guildConfig) {
     }
 }
 
-async function getRoleForIdTagOrName(guild, roleIdCheck) {
-    const checkAlphaRegex = /[a-zA-Z]/g;
-    if (roleIdCheck.startsWith('<')) {
-        // need to strip the tailing '>' off as well ...
-        roleIdCheck = roleIdCheck.substring(3, roleIdCheck.length - 1);
-    } else if (checkAlphaRegex.test(roleIdCheck)) {
-        roleIdCheck = await utils.retrieveRoleIdForName(guild, roleIdCheck);
+async function getRoleForIdTagOrName(guild, roleIdOrNameCheck) {
+    let role = undefined;
+    let roleIdCheck = utils.trimTagsFromId(roleIdOrNameCheck);
+    if (roleIdCheck && roleIdCheck != '') {
+        role = await utils.retrieveRoleForID(guild, roleIdCheck);
     }
-    // console.log(roleIdCheck);
-    let configProle = await utils.retrieveRoleForID(guild, roleIdCheck);
-    return configProle;
+    if (!role) {
+        role = await utils.retrieveRoleForName(guild, roleIdOrNameCheck);
+    }
+    // console.log('getRoleForIdTagOrName:', role);
+    return role;
 }
 
 /**
@@ -249,17 +249,24 @@ async function confirmGuildConfig(guild) {
                 guildConfig = new GuildModel({ guildID: guild.id });
                 needsSave = true;
             }
-        } else {
-            console.log(`confirmGuildConfig: guild cached: ${guild.name}`);
         }
-        // console.log("confirmGuildConfig:", guildConfig);
+        // else {
+        //     console.debug(`confirmGuildConfig: guild cached: ${guild.name}`);
+        // }
+        // console.debug("confirmGuildConfig:", guildConfig);
         if (typeof guildConfig.arole === 'undefined' || !guildConfig.arole) {
-            guildConfig.arole = await utils.retrieveRoleIdForName(guild, Config.defaultARoleName);
-            needsSave = true;
+            let theRole = await utils.retrieveRoleForName(guild, Config.defaultARoleName);
+            if (theRole) {
+                guildConfig.arole = theRole.id;
+                needsSave = true;
+            }
         }
         if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
-            guildConfig.prole = await utils.retrieveRoleIdForName(guild, Config.defaultPRoleName);
-            needsSave = true;
+            let theRole = await utils.retrieveRoleForName(guild, Config.defaultPRoleName);
+            if (theRole) {
+                guildConfig.arole = theRole.id;
+                needsSave = true;
+            }
         }
         if (typeof guildConfig.prefix === 'undefined' || !guildConfig.prefix) {
             guildConfig.prefix = Config.defaultPrefix;
@@ -297,9 +304,7 @@ async function handleConfigEventChannel(msg, msgParms, guildConfig) {
             if (stringParam.trim() == '') {
                 guildConfig.channelForEvents = undefined;
             } else {
-                if (stringParam.startsWith('<')) {
-                    stringParam = stringParam.substring(2, stringParam.length - 1);
-                }
+                stringParam = utils.trimTagsFromId(stringParam);
                 channelTest = await msg.guild.channels.resolve(stringParam);
                 if (!channelTest) {
                     throw new Error(`Could not locate channel: ${stringParam}`);
@@ -334,9 +339,7 @@ async function handleConfigPollChannel(msg, msgParms, guildConfig) {
             if (stringParam.trim() == '') {
                 guildConfig.channelForPolls = undefined;
             } else {
-                if (stringParam.startsWith('<')) {
-                    stringParam = stringParam.substring(2, stringParam.length - 1);
-                }
+                stringParam = utils.trimTagsFromId(stringParam);
                 channelTest = await msg.guild.channels.resolve(stringParam);
                 if (!channelTest) {
                     throw new Error(`Could not locate channel: ${stringParam}`);
