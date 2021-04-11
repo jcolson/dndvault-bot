@@ -495,7 +495,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(guildIconURL);
     // .setThumbnail(msg.guild.iconURL());
@@ -803,7 +803,7 @@ async function sendReminders(client) {
             let eventEmbeds = await embedForEvent(guild.iconURL(), [theEvent], "Reminder of Upcoming Event", true);
             let usersToNotify = [];
             if (theEvent.dm) {
-                usersToNotify.push(theEvent.dm.substring(3, theEvent.dm.length - 1));
+                usersToNotify.push(theEvent.dm);
             }
             for (attendee of theEvent.attendees) {
                 usersToNotify.push(attendee.userID);

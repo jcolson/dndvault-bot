@@ -592,7 +592,7 @@ function embedForChanges(msg, approvedChar, updatedChar) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(`Review Changes for Character: ${approvedChar.name}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let changes = [];
@@ -1032,7 +1032,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(title)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', Config.dndVaultIcon, 'https://github.com/jcolson/dndvault-bot')
+        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
