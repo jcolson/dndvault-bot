@@ -803,7 +803,7 @@ async function sendReminders(client) {
             let eventEmbeds = await embedForEvent(guild.iconURL(), [theEvent], "Reminder of Upcoming Event", true);
             let usersToNotify = [];
             if (theEvent.dm) {
-                usersToNotify.push(theEvent.dm.substring(3, theEvent.dm.length - 1));
+                usersToNotify.push(theEvent.dm);
             }
             for (attendee of theEvent.attendees) {
                 usersToNotify.push(attendee.userID);
