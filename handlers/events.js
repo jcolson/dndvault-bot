@@ -496,7 +496,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
         // @todo fix the fact that guildid is not passed
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg?.guild?.id}`)
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}`)
         // .setDescription(description)
         .setThumbnail(guildIconURL);
     // .setThumbnail(msg.guild.iconURL());
