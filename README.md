@@ -293,9 +293,11 @@ https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permission
 ### Mongodb docker
 
 ```sh
+docker container stop dnd-mongo && docker container rm dnd-mongo && \
 export VOLUME=/Users/jcolson/src/personal/dndvault/dnd-mongo && \
 docker run -d --name dnd-mongo \
     -p 27017:27017 \
+    --network wisper-net \
     --restart always \
     --ulimit nofile=64000:64000 \
     -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
@@ -321,5 +323,6 @@ docker container stop dndvault && docker container rm dndvault && \
 export VOLUME=/Users/jcolson/src/personal/dndvault && \
 docker run --name dndvault -v ${VOLUME}:/config \
     -p 8080:8080 \
+    --network wisper-net \
     --restart always -d dndvaultlocal
 ```
