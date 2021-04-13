@@ -830,9 +830,6 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         help.handleHelp(msg, msgParms, commandPrefix);
     } else if (messageContentLowercase.startsWith(COMMANDS.stats.name)) {
         config.handleStats(msg);
-    } else if (messageContentLowercase.startsWith(COMMANDS.roll.name)) {
-        msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.roll.name, commandPrefix);
-        roll.handleDiceRoll(msg, msgParms);
     } else if (!msg.guild) {
         await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
     } else {
@@ -843,6 +840,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         await utils.checkChannelPermissions(msg);
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
             await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
+        } else if (messageContentLowercase.startsWith(COMMANDS.roll.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.roll.name, commandPrefix);
+            roll.handleDiceRoll(msg, msgParms);
         } else if (messageContentLowercase.startsWith(COMMANDS.registerManual.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.registerManual.name, commandPrefix);
             characters.handleRegisterManual(msg, msgParms, guildConfig);
