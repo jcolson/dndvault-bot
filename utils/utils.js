@@ -185,9 +185,9 @@ function lengthOfEmbed(embed) {
  * @returns {Role}
  */
 async function retrieveRoleForID(guild, roleID) {
-    // console.log('retrieveRoleID: %s', roleID);
+    // console.debug('retrieveRoleForID: %s', roleID);
     let roleForID = await guild.roles.resolve(roleID);
-    // console.log('retrieveRoleID, name: %s ', roleForID.name);
+    // console.debug('retrieveRoleForID: name: %s ', roleForID);
     return roleForID;
 }
 
