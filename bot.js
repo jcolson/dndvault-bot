@@ -724,6 +724,8 @@ client.ws.on('INTERACTION_CREATE', async (interaction) => {
         interaction: interaction,
         url: utils.getDiscordUrl(interaction.guild_id, interaction.channel_id, interaction.id),
     };
+    const { name, options } = interaction.data;
+    const command = name.toLowerCase();
     try {
         // console.debug("INTERACTION_CREATE:", interaction);
         if (interaction.guild_id) {
@@ -745,13 +747,9 @@ client.ws.on('INTERACTION_CREATE', async (interaction) => {
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
-
-        const { name, options } = interaction.data;
-        const command = name.toLowerCase();
-
         await handleCommandExec(guildConfig, command, msg, options);
     } catch (error) {
-        console.error('INTERACTION_CREATE:', error);
+        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
@@ -789,7 +787,7 @@ client.on('message', async (msg) => {
         }
         await handleCommandExec(guildConfig, messageContentLowercase, msg);
     } catch (error) {
-        console.error('on_message: ', error);
+        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
