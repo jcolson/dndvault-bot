@@ -78,7 +78,7 @@ let app = express();
 
 app.locals.pretty = true;
 let server = app
-    .use(morgan('[:date[iso]] [mngr] :remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'))
+    .use(morgan('[:date[iso]] [mngr: HTTP] :remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'))
     .set('views', Config.httpPugDir)
     .set('view engine', 'pug')
     .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
