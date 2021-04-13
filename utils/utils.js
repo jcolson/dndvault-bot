@@ -324,7 +324,7 @@ async function checkChannelPermissions(msg) {
 }
 
 /**
- *
+ * remove tags from an snowflake tag passed
  * @param {String} idToTrim
  * @returns {String}
  */
