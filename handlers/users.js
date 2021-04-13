@@ -129,7 +129,7 @@ async function hasRoleOrIsAdmin(member, roleId) {
     try {
         if (member.hasPermission('ADMINISTRATOR') || member.id == Config.adminUser) {
             hasRole = true;
-            console.log(`hasRoleOrIsAdmin ${member.id}: admin`);
+            console.info(`hasRoleOrIsAdmin: ${member.id}: admin`);
         } else {
             member.roles.cache.array().forEach((role) => {
                 // console.log('role check: ' + role.id + " : " + roleId);
@@ -137,7 +137,7 @@ async function hasRoleOrIsAdmin(member, roleId) {
                     hasRole = true;
                 }
             });
-            console.log(`hasRoleOrIsAdmin ${member.id}: ${hasRole}`);
+            console.info(`hasRoleOrIsAdmin: ${member.id}: ${hasRole}`);
         }
     } catch (error) {
         // console.error(`Could not determine user (${member?member.id:member}) role`, error);

@@ -750,7 +750,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
         } else if (guildConfig.requireCharacterForEvent) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have set \`!default\` character for events with no campaign set.`);
         } else {
-            console.log(`Could not locate an eligible character to join the mission, but guild doesn't require.`);
+            console.info(`attendeeAdd: Could not locate an eligible character to join the mission, but guild doesn't require.`);
         }
     }
     if (!eventForMessage.attendees) {
