@@ -1045,11 +1045,12 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         }
         // console.log('vaultuser', vaultUser);
         let defCharString = vaultUser?.defaultCharacter == char.id ? ` ${utils.EMOJIS.ASTERISK}` : '';
+        let charNameString = isShow ? `[${char.name}](${char.readonlyUrl})${defCharString}` : stringForCharacter(char);
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
                 name: `\:dagger: Name | ID | Status | Campaign \:shield:`,
-                value: `[${char.name}](${char.readonlyUrl})${defCharString} | ${char.id} |
+                value: `${charNameString} | ${char.id} |
                     ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
