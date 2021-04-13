@@ -14,6 +14,8 @@ async function handleConfig(msg, msgParms, guildConfig) {
     try {
         let channelForEvents = {};
         let channelForPolls = {};
+        let approverRoleName;
+        let playerRoleName;
         try {
             if (guildConfig.channelForEvents) {
                 channelForEvents = await msg.guild.channels.resolve(guildConfig.channelForEvents);
@@ -30,11 +32,21 @@ async function handleConfig(msg, msgParms, guildConfig) {
         } catch (error) {
             console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForEvents}`, error);
         }
+        try {
+            approverRoleName = (await utils.retrieveRoleForID(msg.guild, guildConfig.arole)).name;
+        } catch (error) {
+            console.error(`handleConfig: could not retrieve role for id: ${guildConfig.arole}`, error);
+        }
+        try {
+            playerRoleName = (await utils.retrieveRoleForID(msg.guild, guildConfig.prole)).name;
+        } catch (error) {
+            console.error(`handleConfig: could not retrieve role for id: ${guildConfig.prole}`, error);
+        }
         await utils.sendDirectOrFallbackToChannel(
             [{ name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
             { name: 'Prefix', value: guildConfig.prefix, inline: true },
-            { name: 'Approver Role', value: (await utils.retrieveRoleForID(msg.guild, guildConfig.arole)).name, inline: true },
-            { name: 'Player Role', value: (await utils.retrieveRoleForID(msg.guild, guildConfig.prole)).name, inline: true },
+            { name: 'Approver Role', value: approverRoleName, inline: true },
+            { name: 'Player Role', value: playerRoleName, inline: true },
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
             { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
             { name: 'Event Channel', value: channelForEvents.name, inline: true },
