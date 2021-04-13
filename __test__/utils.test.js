@@ -41,6 +41,7 @@ test(`isTrue`, () => {
     expect(utils.isTrue(false)).toBe(false);
     expect(utils.isTrue(0)).toBe(false);
     expect(utils.isTrue("no")).toBe(false);
+    expect(utils.isTrue(undefined)).toBe(false);
 });
 
 test('lengthOfEmbed', () => {

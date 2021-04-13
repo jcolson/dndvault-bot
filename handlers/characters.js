@@ -1330,11 +1330,11 @@ async function handleShow(msg, msgParms, guildConfig) {
  */
 async function handleCampaign(msg, msgParms, guildConfig) {
     try {
-        if (msgParms.length < 2) {
-            throw new Error('Please pass the character id and the campaign id.');
+        if (msgParms.length < 1) {
+            throw new Error('Please pass the (in the least) the character id.');
         }
-        const charID = msgParms[0].value;
-        const campaignID = msgParms[1].value;
+        const charID = msgParms[0]?.value;
+        const campaignID = msgParms[1]?.value;
         // console.log(`charid: ${charID} campaignID: ${campaignID}`);
 
         const charToEdit = await CharModel.findOne({ guildUser: msg.member.id, id: charID, isUpdate: false, guildID: msg.guild.id });
@@ -1343,8 +1343,10 @@ async function handleCampaign(msg, msgParms, guildConfig) {
         }
         charToEdit.campaignOverride = campaignID;
         await charToEdit.save();
-        await utils.sendDirectOrFallbackToChannel({ name: 'Campaign', value: `Character ${charID} campaign changed to ${campaignID}` }, msg);
-        await msg.delete();
+        await utils.sendDirectOrFallbackToChannel({ name: 'Campaign', value: `Character ${charID} campaign changed to \`${campaignID ? campaignID : 'No Campaign Override'}\`` }, msg);
+        if (msg.deletable) {
+            await msg.delete();
+        }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }

@@ -166,8 +166,8 @@ global.COMMANDS = {
             "type": 3
         }, {
             "name": "campaign_id",
-            "description": "The Campaign ID which you'd like to associate this character",
-            "required": true,
+            "description": "The Campaign which you'd like to associate this character, if ommitted the override is unset",
+            "required": false,
             "type": 3
         }]
     },
@@ -448,7 +448,7 @@ global.COMMANDS = {
         "options": [{
             "name": "character_id",
             "description": "The chacter id (from `list`) to set as your default.",
-            "required": false,
+            "required": true,
             "type": 3
         }]
     },
@@ -585,41 +585,54 @@ async function registerCommands() {
                 }
             }
             const registeredCommands = await getClientApp().commands.get();
-            // console.debug('registerCommands:', registeredCommands);
-            let registerCommands = false;
-            // make sure that registeredCommands are all in commandsToRegister
-            for (const command of registeredCommands) {
-                // console.debug("registerCommands: checkForRemove", command.name);
-                if (!commandsToRegister.find(c => {
-                    // console.debug(c.name);
-                    return (c.name == command.name);
-                })) {
-                    registerCommands = true;
-                    break;
-                }
-            }
-            if (!registerCommands) {
-                // make sure that commandsToRegister are all in registeredCommands
-                for (const command of commandsToRegister) {
-                    // console.debug("registerCommands: checkForAdd", command.name);
-                    if (!registeredCommands.find(c => {
-                        // console.debug(c.name);
-                        return (c.name == command.name);
-                    })) {
-                        registerCommands = true;
-                        break;
-                    }
-                }
-            }
+            //console.debug('registeredCommands:', registeredCommands);
+            let registerCommands = checkIfCommandsChanged(registeredCommands, commandsToRegister);
             if (registerCommands) {
-                console.info('registerCommands: missing or unrecognized commands in commands.get, replacing all ...');
+                console.info('registerCommands: command differences between registered and this version - replacing all ...');
                 await getClientApp().commands.put({ data: commandsToRegister });
+            } else {
+                console.info('registerCommands: no command differences found between registered and this version - nothing to register');
             }
         }
     } catch (error) {
         console.error('registerCommands:', error);
     }
     console.info('registerCommands: END');
+}
+
+function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfterThis) {
+    let registerCommands = false;
+    for (const command of registeredCommands) {
+        // console.debug("registerCommands: checkForRemove", command.name);
+        if (!commandsToRegister.find(c => {
+            // console.debug(c.name);
+            if (c.name == command.name) {
+                // console.debug('command options', command.options);
+                if (!c.options && !command.options) {
+                    return true;
+                } else {
+                    for (const regOpt of command.options) {
+                        // console.debug('c options', c.options);
+                        for (const toRegOpt of c.options) {
+                            console.info(`checkIfCommandsChanged: checking ${regOpt.name}:${toRegOpt.name} and ${regOpt.required}:${toRegOpt.required}`);
+                            if (regOpt.name.toLowerCase() == toRegOpt.name.toLowerCase() && utils.isTrue(regOpt.required) == utils.isTrue(toRegOpt.required)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        })) {
+            registerCommands = true;
+            break;
+        }
+    }
+    // recursively call the other way around
+    if (!registerCommands && !stopAfterThis) {
+        registerCommands = checkIfCommandsChanged(commandsToRegister, registeredCommands, !stopAfterThis);
+    }
+    return registerCommands;
 }
 
 /**
