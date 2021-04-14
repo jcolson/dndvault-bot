@@ -10,7 +10,7 @@ DND Vault Table of Contents
   - [Rolling dice](#rolling-dice)
     - [Die quantity](#die-quantity)
     - [Example usages](#example-usages)
-  - [Feedback Please](#feedback-please)
+  - [Feedback and Support Discord](#feedback-and-support-discord)
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
   - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
@@ -102,7 +102,7 @@ roll 4 fudge dice
 
 ```
 
-## Feedback Please
+## Feedback and Support Discord
 
 I'm looking for feedback, so please feel free to open bugs, feature requests, etc.  As well as hop on my discord for direct conversation.  [Join me on this discord for support](https://discord.gg/ueCkbQgxrF)
 
