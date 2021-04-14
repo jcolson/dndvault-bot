@@ -104,7 +104,7 @@ let server = app
             } else if (!request.session.guildConfig && request.session.discordMe) {
                 console.log(`HTTP: Retrieving any guild for user, ${request.session.discordMe.id}`);
                 const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
-                const guildConfig = await GuildModel.findOne({ guildID: userConfig.guildID });
+                const guildConfig = userConfig?await GuildModel.findOne({ guildID: userConfig.guildID }):undefined;
                 if (guildConfig) {
                     request.session.guildConfig = guildConfig;
                 }
@@ -117,7 +117,7 @@ let server = app
             }
             next();
         } catch (error) {
-            console.error("guildID/channelID middleware error", error);
+            console.error("HTTP: guildID/channelID middleware error", error);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.end("ERROR PROCESSING");
