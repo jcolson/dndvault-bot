@@ -576,17 +576,10 @@ async function registerCommands() {
         // console.debug('shard ids:', client.shard.ids);
         if (client.shard.ids.includes(0)) {
             console.info('registerCommands: ShardId:0, registering commands ...');
-            let commandsToRegister = [];
-            for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
-                if (commandValue.slash) {
-                    commandsToRegister.push(
-                        commandValue
-                    );
-                }
-            }
+            let commandsToRegister = utils.transformCommandsToDiscordFormat(COMMANDS);
             const registeredCommands = await getClientApp().commands.get();
             //console.debug('registeredCommands:', registeredCommands);
-            let registerCommands = checkIfCommandsChanged(registeredCommands, commandsToRegister);
+            let registerCommands = utils.checkIfCommandsChanged(registeredCommands, commandsToRegister);
             if (registerCommands) {
                 console.info('registerCommands: command differences between registered and this version - replacing all ...');
                 await getClientApp().commands.put({ data: commandsToRegister });
@@ -598,41 +591,6 @@ async function registerCommands() {
         console.error('registerCommands:', error);
     }
     console.info('registerCommands: END');
-}
-
-function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfterThis) {
-    let registerCommands = false;
-    for (const command of registeredCommands) {
-        // console.debug("registerCommands: checkForRemove", command.name);
-        if (!commandsToRegister.find(c => {
-            // console.debug(c.name);
-            if (c.name == command.name) {
-                // console.debug('command options', command.options);
-                if (!c.options && !command.options) {
-                    return true;
-                } else {
-                    for (const regOpt of command.options) {
-                        // console.debug('c options', c.options);
-                        for (const toRegOpt of c.options) {
-                            console.info(`checkIfCommandsChanged: checking ${regOpt.name}:${toRegOpt.name} and ${regOpt.required}:${toRegOpt.required}`);
-                            if (regOpt.name.toLowerCase() == toRegOpt.name.toLowerCase() && utils.isTrue(regOpt.required) == utils.isTrue(toRegOpt.required)) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
-        })) {
-            registerCommands = true;
-            break;
-        }
-    }
-    // recursively call the other way around
-    if (!registerCommands && !stopAfterThis) {
-        registerCommands = checkIfCommandsChanged(commandsToRegister, registeredCommands, !stopAfterThis);
-    }
-    return registerCommands;
 }
 
 /**

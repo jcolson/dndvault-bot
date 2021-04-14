@@ -3,29 +3,29 @@ extends layout.pug
 
 block content
     .thebody
-        b Work in progress - this form does not work yet ... please move on ...
+        b Work in progress - this form does not work yet ... WORK IN PROGRESS ... I'll update the Discord server when working
         div(id='event-info')
         form(id='event-form')
             .row
                 .column
                 .column
                     | Title:
-                    input(type='text' name='title' id='event-title' placeholder='Title' required value=`${event?.title?event.title:''}`)
+                    input(type='text' name='title' id='event-title' placeholder='Title' required value=`${event&&event.title?event.title:''}`)
                     | DM/GM:
-                    input(type='text' name='dm' id='event-dm' placeholder='DM/GM' value=`${event?.dm?event.dm:''}`)
+                    input(type='text' name='dm' id='event-dm' placeholder='DM/GM' value=`${event&&event.dm?event.dm:''}`)
                     | Duration (in hours):
-                    input(type='number' name='duration_hours' id='event-duration_hours' min='0' step='.01' required placeholder='Duration (in hours)' value=`${event?.duration_hours?event.duration_hours:''}`)
+                    input(type='number' name='duration_hours' id='event-duration_hours' min='0' step='.01' required placeholder='Duration (in hours)' value=`${event&&event.duration_hours?event.duration_hours:''}`)
                     | Start Date (in #{userConfig.timezone} TZ):
                     input(type='date' name='date' id='event-date' required value=`${event?event.date_time.toISOString().substring(0,10):''}`)
                     | Start Time (in #{userConfig.timezone} TZ):
                     input(type='time' name='time' id='event-time' required value=`${event?event.date_time.toISOString().substring(11,16):''}`)
                 .column
                     | Number of Players:
-                    input(type='number' name='number_player_slots' id='event-number_player_slots' placeholder='Number of Players' min='1' required value=`${event?.number_player_slots?event.number_player_slots:''}`)
+                    input(type='number' name='number_player_slots' id='event-number_player_slots' placeholder='Number of Players' min='1' required value=`${event&&event.number_player_slots?event.number_player_slots:''}`)
                     | Campaign:
-                    input(type='text' name='campaign' id='event-campaign' placeholder='Campaign' value=`${event?.campaign?event.campaign:''}`)
+                    input(type='text' name='campaign' id='event-campaign' placeholder='Campaign' value=`${event&&event.campaign?event.campaign:''}`)
                     | Description:
-                    textarea(name='description' id='event-description' placeholder='Description' required) #{event?.description?event.description:''}
+                    textarea(name='description' id='event-description' placeholder='Description' required) #{event&&event.description?event.description:''}
                 .column
             button(type='button' id='event-save' onclick='setEvent();') Save
     script.
