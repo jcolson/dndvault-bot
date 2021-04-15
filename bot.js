@@ -53,7 +53,7 @@ global.COMMANDS = {
     },
     "registerManual": {
         "name": "register_manual",
-        "description": "Create a stub character, do not use spaces in any of the parameters except the campaign",
+        "description": "Create a stub character if you don't have a character on dndbeyond",
         "slash": true,
         "options": [{
             "name": "char_name",
