@@ -48,7 +48,7 @@ async function handleConfig(msg, msgParms, guildConfig) {
             { name: 'Approver Role', value: approverRoleName, inline: true },
             { name: 'Player Role', value: playerRoleName, inline: true },
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
-            { name: 'Char Req 4 Events', value: guildConfig.requireCharacterForEvent, inline: true },
+            { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent, inline: true },
             { name: 'Event Channel', value: channelForEvents.name, inline: true },
             { name: 'Poll Channel', value: channelForPolls.name, inline: true }
             ],
