@@ -78,6 +78,7 @@ let app = express();
 
 app.locals.pretty = true;
 let server = app
+    .set('trust proxy', true)
     .use(morgan('[:date[iso]] [mngr: HTTP] :remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'))
     .set('views', Config.httpPugDir)
     .set('view engine', 'pug')
