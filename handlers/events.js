@@ -1,7 +1,7 @@
 const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
-const { MessageEmbed, Message, User, Guild, TextChannel } = require('discord.js');
+const { MessageEmbed, Message, User, Guild, TextChannel, GuildMember } = require('discord.js');
 const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
 const { DateTime } = require('luxon');
 const users = require('../handlers/users.js');
@@ -198,28 +198,36 @@ async function handleEventRemove(msg, msgParms, guildConfig) {
     }
 }
 
-async function removeEvent(guild, memberUser, eventID, guildConfig) {
-    let existingEvent;
+/**
+ * remove event from db (if can find it) and the Discord message
+ * @param {Guild} guild
+ * @param {GuildMember} memberUser
+ * @param {String} eventID
+ * @param {GuildModel} guildConfig
+ * @param {Message} existingEventMessage optional
+ * @returns
+ */
+async function removeEvent(guild, memberUser, eventID, guildConfig, existingEventMessage) {
+    let returnMessage;
     try {
-        existingEvent = await EventModel.findById(eventID);
-        if (!existingEvent) {
-            throw new Error();
+        let existingEvent = await EventModel.findById(eventID);
+        if (!await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole) && memberUser.id != existingEvent?.userID) {
+            throw new Error(`Please have <@${existingEvent?.userID}> remove, or ask an \`approver role\` to remove.`);
+        }
+        if (existingEvent) {
+            await existingEvent.delete();
+        }
+        returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
+        let channelId = existingEvent?.channelID ? existingEvent.channelID : existingEventMessage?.channel?.id;
+        let messageId = existingEvent?.messageID ? existingEvent.messageID : existingEventMessage?.id;
+        const eventMessage = await (
+            await guild.channels.resolve(channelId)
+        ).messages.fetch(messageId);
+        if (eventMessage.deletable) {
+            await eventMessage.delete();
         }
     } catch (error) {
-        throw new Error('Event not found.');
-    }
-    if (!await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole) && memberUser.id != existingEvent.userID) {
-        throw new Error(`Please have <@${existingEvent.userID}> remove, or ask an \`approver role\` to remove.`);
-    }
-    await existingEvent.delete();
-    let returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
-    try {
-        const eventMessage = await (
-            await guild.channels.resolve(existingEvent.channelID)
-        ).messages.fetch(existingEvent.messageID);
-        await eventMessage.delete();
-    } catch (error) {
-        console.error(`couldn't delete old event message on edit: ${error.message}`);
+        console.error(`removeEvent: couldn't delete old event message on edit: ${error.message}`);
     }
     return returnMessage;
 }
@@ -495,7 +503,8 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        // @todo fix the fact that guildid is not passed
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}`)
         // .setDescription(description)
         .setThumbnail(guildIconURL);
     // .setThumbnail(msg.guild.iconURL());
@@ -535,7 +544,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
     }
     let signUpInfo = '';
     if (isShow) {
-        signUpInfo = `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdrawal ▶️Deploy ${utils.EMOJIS.CLOCK}Your TZ and Calendar\n`;
+        signUpInfo = `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy ${utils.EMOJIS.CLOCK}Your TZ and Calendar\n`;
     }
     eventEmbed.addFields(
         {
@@ -623,39 +632,34 @@ function formatJustTime(theDate) {
 
 async function handleReactionAdd(reaction, user, guildConfig) {
     try {
-        // The reaction is now also fully available and the properties will be reflected accurately:
-        // console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
+        // console.debug(`${reaction.count} user(s) have given the same reaction to this message!`);
         let eventForMessage = await EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
         if (!eventForMessage) {
-            console.log('Did not find event for reaction.');
-            return;
+            console.info('handleReactionAdd: Did not find event for reaction.');
         }
-        // console.log('about to save');
-        await eventForMessage.save();
-        // console.log(reaction.emoji);
-        if (reaction.emoji?.name == utils.EMOJIS.CHECK) {
-            // console.log(eventForMessage);
+        if (reaction.emoji?.name == utils.EMOJIS.CHECK && eventForMessage) {
+            // console.debug(eventForMessage);
             await attendeeAdd(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji?.name == utils.EMOJIS.X) {
-            // console.log(eventForMessage);
+        } else if (reaction.emoji?.name == utils.EMOJIS.X && eventForMessage) {
+            // console.debug(eventForMessage);
             await attendeeRemove(reaction, user, eventForMessage);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji?.name == utils.EMOJIS.PLAY) {
-            // console.log(eventForMessage);
+        } else if (reaction.emoji?.name == utils.EMOJIS.PLAY && eventForMessage) {
+            // console.debug(eventForMessage);
             await deployEvent(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji?.name == utils.EMOJIS.CLOCK) {
-            // console.log(eventForMessage);
+        } else if (reaction.emoji?.name == utils.EMOJIS.CLOCK && eventForMessage) {
+            // console.debug(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.TRASH) {
             await reaction.users.remove(user.id);
             let memberUser = await reaction.message.guild.members.resolve(user.id);
-            let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage._id, guildConfig);
+            let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage?._id, guildConfig, reaction.message);
             await utils.sendDirectOrFallbackToChannel(deleteMessage, reaction.message, user);
         } else {
-            console.log('Unknown reaction');
+            console.log(`handleReactionAdd: EventFromDb: ${eventForMessage ? true : false} Reaction: ${reaction.emoji?.name}`);
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
@@ -746,7 +750,7 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
         } else if (guildConfig.requireCharacterForEvent) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have set \`!default\` character for events with no campaign set.`);
         } else {
-            console.log(`Could not locate an eligible character to join the mission, but guild doesn't require.`);
+            console.info(`attendeeAdd: Could not locate an eligible character to join the mission, but guild doesn't require.`);
         }
     }
     if (!eventForMessage.attendees) {

@@ -185,9 +185,9 @@ function lengthOfEmbed(embed) {
  * @returns {Role}
  */
 async function retrieveRoleForID(guild, roleID) {
-    // console.log('retrieveRoleID: %s', roleID);
+    // console.debug('retrieveRoleForID: %s', roleID);
     let roleForID = await guild.roles.resolve(roleID);
-    // console.log('retrieveRoleID, name: %s ', roleForID.name);
+    // console.debug('retrieveRoleForID: name: %s ', roleForID);
     return roleForID;
 }
 
@@ -294,10 +294,11 @@ async function checkChannelPermissions(msg) {
     //check that I have the proper permissions
     let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
     if (msg.interaction) {
-        // interactions don't remove old messages, so can ignore that permission in this case.
-        requiredPerms = ['SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
+        // interactions don't remove old messages or send messages to the channel, so can ignore those permission in this case.
+        requiredPerms = ['ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
     }
     let botPerms = msg.channel.permissionsFor(msg.guild.me);
+    // console.debug("channel perms: ", botPerms);
     // if (!await botPerms.has(requiredPerms)) {
     //     throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permissions): ${requiredPerms}`);
     // }
@@ -324,7 +325,7 @@ async function checkChannelPermissions(msg) {
 }
 
 /**
- *
+ * remove tags from an snowflake tag passed
  * @param {String} idToTrim
  * @returns {String}
  */
@@ -390,6 +391,60 @@ async function removeAllDataForGuild(guild) {
     console.info(`removeAllDataForGuild: ${guild.id}(${guild.name}): chars: ${charsDeleted.deletedCount} users: ${usersDeleted.deletedCount} events: ${eventsDeleted.deletedCount} config: ${configDeleted.deletedCount}`);
 }
 
+/**
+ * Check if discord commands have changed
+ * @param {Object} registeredCommands
+ * @param {Object} commandsToRegister
+ * @param {Boolean} stopAfterThis used for recursive call
+ * @returns {Boolean} true if changed; false if no change
+ */
+function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfterThis) {
+    let registerCommands = false;
+    for (const command of registeredCommands) {
+        // console.debug("registerCommands: checkForRemove", command.name);
+        if (!commandsToRegister.find(c => {
+            // console.debug(c.name);
+            if (c.name == command.name) {
+                // console.debug('command options', command.options);
+                if (!c.options && !command.options) {
+                    return true;
+                } else {
+                    for (const regOpt of command.options) {
+                        // console.debug('c options', c.options);
+                        for (const toRegOpt of c.options) {
+                            console.info(`checkIfCommandsChanged: checking ${regOpt.name}:${toRegOpt.name} and ${regOpt.required}:${toRegOpt.required}`);
+                            if (regOpt.name.toLowerCase() == toRegOpt.name.toLowerCase() && isTrue(regOpt.required) == isTrue(toRegOpt.required)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        })) {
+            registerCommands = true;
+            break;
+        }
+    }
+    // recursively call the other way around
+    if (!registerCommands && !stopAfterThis) {
+        registerCommands = checkIfCommandsChanged(commandsToRegister, registeredCommands, !stopAfterThis);
+    }
+    return registerCommands;
+}
+
+function transformCommandsToDiscordFormat(commandsToTransform) {
+    let commandsToRegister = [];
+    for (let [commandKey, commandValue] of Object.entries(commandsToTransform)) {
+        if (commandValue.slash) {
+            commandsToRegister.push(
+                commandValue
+            );
+        }
+    }
+    return commandsToRegister;
+}
+
 exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
@@ -407,3 +462,5 @@ exports.COLORS = COLORS;
 exports.EMOJIS = EMOJIS;
 exports.removeAllDataForGuild = removeAllDataForGuild;
 exports.trimTagsFromId = trimTagsFromId;
+exports.checkIfCommandsChanged = checkIfCommandsChanged;
+exports.transformCommandsToDiscordFormat = transformCommandsToDiscordFormat;

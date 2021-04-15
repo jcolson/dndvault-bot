@@ -166,8 +166,8 @@ global.COMMANDS = {
             "type": 3
         }, {
             "name": "campaign_id",
-            "description": "The Campaign ID which you'd like to associate this character",
-            "required": true,
+            "description": "The Campaign which you'd like to associate this character, if ommitted the override is unset",
+            "required": false,
             "type": 3
         }]
     },
@@ -448,7 +448,7 @@ global.COMMANDS = {
         "options": [{
             "name": "character_id",
             "description": "The chacter id (from `list`) to set as your default.",
-            "required": false,
+            "required": true,
             "type": 3
         }]
     },
@@ -576,44 +576,15 @@ async function registerCommands() {
         // console.debug('shard ids:', client.shard.ids);
         if (client.shard.ids.includes(0)) {
             console.info('registerCommands: ShardId:0, registering commands ...');
-            let commandsToRegister = [];
-            for (let [commandKey, commandValue] of Object.entries(COMMANDS)) {
-                if (commandValue.slash) {
-                    commandsToRegister.push(
-                        commandValue
-                    );
-                }
-            }
+            let commandsToRegister = utils.transformCommandsToDiscordFormat(COMMANDS);
             const registeredCommands = await getClientApp().commands.get();
-            // console.debug('registerCommands:', registeredCommands);
-            let registerCommands = false;
-            // make sure that registeredCommands are all in commandsToRegister
-            for (const command of registeredCommands) {
-                // console.debug("registerCommands: checkForRemove", command.name);
-                if (!commandsToRegister.find(c => {
-                    // console.debug(c.name);
-                    return (c.name == command.name);
-                })) {
-                    registerCommands = true;
-                    break;
-                }
-            }
-            if (!registerCommands) {
-                // make sure that commandsToRegister are all in registeredCommands
-                for (const command of commandsToRegister) {
-                    // console.debug("registerCommands: checkForAdd", command.name);
-                    if (!registeredCommands.find(c => {
-                        // console.debug(c.name);
-                        return (c.name == command.name);
-                    })) {
-                        registerCommands = true;
-                        break;
-                    }
-                }
-            }
+            //console.debug('registeredCommands:', registeredCommands);
+            let registerCommands = utils.checkIfCommandsChanged(registeredCommands, commandsToRegister);
             if (registerCommands) {
-                console.info('registerCommands: missing or unrecognized commands in commands.get, replacing all ...');
+                console.info('registerCommands: command differences between registered and this version - replacing all ...');
                 await getClientApp().commands.put({ data: commandsToRegister });
+            } else {
+                console.info('registerCommands: no command differences found between registered and this version - nothing to register');
             }
         }
     } catch (error) {
@@ -724,6 +695,8 @@ client.ws.on('INTERACTION_CREATE', async (interaction) => {
         interaction: interaction,
         url: utils.getDiscordUrl(interaction.guild_id, interaction.channel_id, interaction.id),
     };
+    const { name, options } = interaction.data;
+    const command = name.toLowerCase();
     try {
         // console.debug("INTERACTION_CREATE:", interaction);
         if (interaction.guild_id) {
@@ -745,13 +718,9 @@ client.ws.on('INTERACTION_CREATE', async (interaction) => {
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
-
-        const { name, options } = interaction.data;
-        const command = name.toLowerCase();
-
         await handleCommandExec(guildConfig, command, msg, options);
     } catch (error) {
-        console.error('INTERACTION_CREATE:', error);
+        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
@@ -789,7 +758,7 @@ client.on('message', async (msg) => {
         }
         await handleCommandExec(guildConfig, messageContentLowercase, msg);
     } catch (error) {
-        console.error('on_message: ', error);
+        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
@@ -814,127 +783,144 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
 
     let handled = true;
 
-    if (messageContentLowercase.startsWith(COMMANDS.help.name)) {
-        msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.help.name, commandPrefix);
-        help.handleHelp(msg, msgParms, commandPrefix);
-    } else if (messageContentLowercase.startsWith(COMMANDS.stats.name)) {
-        config.handleStats(msg);
-    } else if (messageContentLowercase.startsWith(COMMANDS.roll.name)) {
-        msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.roll.name, commandPrefix);
-        roll.handleDiceRoll(msg, msgParms);
-    } else if (!msg.guild) {
-        await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
-    } else {
-        handled = false;
-    }
-    if (!handled) {
-        handled = true;
-        await utils.checkChannelPermissions(msg);
-        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole)) {
-            await msg.reply(`<@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
-        } else if (messageContentLowercase.startsWith(COMMANDS.registerManual.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.registerManual.name, commandPrefix);
-            characters.handleRegisterManual(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.register.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.register.name, commandPrefix);
-            characters.handleRegister(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.updateManual.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.updateManual.name, commandPrefix);
-            characters.handleUpdateManual(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.update.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.update.name, commandPrefix);
-            characters.handleUpdate(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.poll.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.poll.name, commandPrefix);
-            poll.handlePoll(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.changes.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.changes.name, commandPrefix);
-            characters.handleChanges(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.campaign.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.campaign.name, commandPrefix);
-            characters.handleCampaign(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listCampaign.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listCampaign.name, commandPrefix);
-            characters.handleListCampaign(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listUser.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listUser.name, commandPrefix);
-            characters.handleListUser(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listAll.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listAll.name, commandPrefix);
-            characters.handleListAll(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.listQueued.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.listQueued.name, commandPrefix);
-            characters.handleListQueued(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.list.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.list.name, commandPrefix);
-            characters.handleList(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.remove.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.remove.name, commandPrefix);
-            characters.handleRemove(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.approve.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.approve.name, commandPrefix);
-            characters.handleApprove(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.show.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.show.name, commandPrefix);
-            characters.handleShow(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventCreate.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventCreate.name, commandPrefix);
-            events.handleEventCreate(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventEdit.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventEdit.name, commandPrefix);
-            events.handleEventEdit(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventRemove.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventRemove.name, commandPrefix);
-            events.handleEventRemove(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventShow.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventShow.name, commandPrefix);
-            events.handleEventShow(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventListProposed.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventListProposed.name, commandPrefix);
-            events.handleEventListProposed(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventListDeployed.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventListDeployed.name, commandPrefix);
-            events.handleEventListDeployed(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.eventList.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.eventList.name, commandPrefix);
-            events.handleEventList(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.default.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.default.name, commandPrefix);
-            users.handleDefault(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.timezone.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.timezone.name, commandPrefix);
-            users.handleTimezone(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configApproval.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configApproval.name, commandPrefix);
-            config.handleConfigApproval(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configEventchannel.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configEventchannel.name, commandPrefix);
-            config.handleConfigEventChannel(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configPollchannel.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configPollchannel.name, commandPrefix);
-            config.handleConfigPollChannel(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configPrefix.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configPrefix.name, commandPrefix);
-            config.handleConfigPrefix(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configArole.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configArole.name, commandPrefix);
-            config.handleConfigArole(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configProle.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configProle.name, commandPrefix);
-            config.handleConfigProle(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.configCampaign.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.configCampaign.name, commandPrefix);
-            config.handleConfigCampaign(msg, msgParms, guildConfig);
-        } else if (messageContentLowercase.startsWith(COMMANDS.config.name)) {
-            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.config.name, commandPrefix);
-            config.handleConfig(msg, msgParms, guildConfig);
+    try {
+        if (messageContentLowercase.startsWith(COMMANDS.help.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.help.name, commandPrefix);
+            help.handleHelp(msg, msgParms, commandPrefix);
+        } else if (messageContentLowercase.startsWith(COMMANDS.stats.name)) {
+            config.handleStats(msg);
+        } else if (!msg.guild) {
+            await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
         } else {
             handled = false;
         }
-    }
-    // console.debug('handled', handled);
-    if (handled) {
-        console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+        if (!handled) {
+            handled = true;
+            await utils.checkChannelPermissions(msg);
+            let userHasSufficientRole = await users.hasRoleOrIsAdmin(msg.member, guildConfig.prole);
+            let findCommand = Object.keys(COMMANDS).find((theCommand) => {
+                // console.debug('findcommand', theCommand);
+                return messageContentLowercase.startsWith(COMMANDS[theCommand].name);
+            }, messageContentLowercase);
+            // console.debug('findcommand RESULT', findCommand);
+            if (findCommand && userHasSufficientRole) {
+                msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS[findCommand].name, commandPrefix);
+                switch (COMMANDS[findCommand].name) {
+                    case COMMANDS.roll.name:
+                        roll.handleDiceRoll(msg, msgParms);
+                        break;
+                    case COMMANDS.registerManual.name:
+                        characters.handleRegisterManual(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.register.name:
+                        characters.handleRegister(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.updateManual.name:
+                        characters.handleUpdateManual(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.update.name:
+                        characters.handleUpdate(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.poll.name:
+                        poll.handlePoll(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.changes.name:
+                        characters.handleChanges(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.campaign.name:
+                        characters.handleCampaign(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.listCampaign.name:
+                        characters.handleListCampaign(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.listUser.name:
+                        characters.handleListUser(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.listAll.name:
+                        characters.handleListAll(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.listQueued.name:
+                        characters.handleListQueued(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.list.name:
+                        characters.handleList(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.remove.name:
+                        characters.handleRemove(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.approve.name:
+                        characters.handleApprove(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.show.name:
+                        characters.handleShow(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventCreate.name:
+                        events.handleEventCreate(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventEdit.name:
+                        events.handleEventEdit(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventRemove.name:
+                        events.handleEventRemove(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventShow.name:
+                        events.handleEventShow(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventListProposed.name:
+                        events.handleEventListProposed(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventListDeployed.name:
+                        events.handleEventListDeployed(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventList.name:
+                        events.handleEventList(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.default.name:
+                        users.handleDefault(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.timezone.name:
+                        users.handleTimezone(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configApproval.name:
+                        config.handleConfigApproval(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configEventchannel.name:
+                        config.handleConfigEventChannel(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configPollchannel.name:
+                        config.handleConfigPollChannel(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configPrefix.name:
+                        config.handleConfigPrefix(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configArole.name:
+                        config.handleConfigArole(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configProle.name:
+                        config.handleConfigProle(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configCampaign.name:
+                        config.handleConfigCampaign(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.config.name:
+                        config.handleConfig(msg, msgParms, guildConfig);
+                        break;
+                    default:
+                        handled = false;
+                }
+            } else if (findCommand && !userHasSufficientRole) {
+                console.info(`handleCommandExec: <@${msg.member.id}>, please have an admin add you to the proper player role to use this bot`);
+                await utils.sendDirectOrFallbackToChannel({ name: 'Insufficient Privileges', value: `Please have an admin add you to the proper role to use this bot` }, msg);
+            } else {
+                handled = false;
+            }
+        }
+        // console.debug('handled', handled);
+        if (handled) {
+            console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+        }
+    } catch (error) {
+        console.error('handleCommandExec:', error);
     }
     return handled;
 }

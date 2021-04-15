@@ -16,3 +16,11 @@ repos:
       - id: doctoc
         name: "Check Table of Contents for changes"
         # verbose: true
+  - repo: local
+    hooks:
+      - id: npm-test
+        name: Run node tests
+        language: system
+        entry: npm run test __test__
+        # entry: echo
+        # entry: echo && docker build --target test .

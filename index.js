@@ -4,7 +4,7 @@ const AutoPoster = require('topgg-autoposter');
 const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
-const { connect, disconnect } = require('mongoose');
+const { connect, disconnect, STATES, connection, Mongoose } = require('mongoose');
 
 const GuildModel = require('./models/Guild');
 const EventModel = require('./models/Event');
@@ -78,7 +78,7 @@ let app = express();
 
 app.locals.pretty = true;
 let server = app
-    .use(morgan('[:date[iso]] [mngr] :remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'))
+    .use(morgan('[:date[iso]] [mngr: HTTP] :remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'))
     .set('views', Config.httpPugDir)
     .set('view engine', 'pug')
     .use(session({ secret: 'grant', saveUninitialized: true, resave: false, maxAge: Date.now() + (7 * 86400 * 1000) }))
@@ -86,7 +86,11 @@ let server = app
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .use(express.json())
     .get(ROUTE_HEALTH, async (request, response) => {
-        response.json({ status: 'UP' });
+        if (STATES[STATES.connected] == STATES[connection.readyState]) {
+            response.json({ status: 'UP', dbState: STATES[connection.readyState] });
+        } else {
+            response.json({ status: 'DOWN', dbState: STATES[connection.readyState] });
+        }
     })
     .use(async function (request, response, next) {
         console.log(`HTTP: in middleware checking if I need to update guildID (and channelID), guildID status: ${request.session.guildConfig ? true : false}`);
@@ -104,7 +108,7 @@ let server = app
             } else if (!request.session.guildConfig && request.session.discordMe) {
                 console.log(`HTTP: Retrieving any guild for user, ${request.session.discordMe.id}`);
                 const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
-                const guildConfig = await GuildModel.findOne({ guildID: userConfig.guildID });
+                const guildConfig = userConfig ? await GuildModel.findOne({ guildID: userConfig.guildID }) : undefined;
                 if (guildConfig) {
                     request.session.guildConfig = guildConfig;
                 }
@@ -117,7 +121,7 @@ let server = app
             }
             next();
         } catch (error) {
-            console.error("guildID/channelID middleware error", error);
+            console.error("HTTP: guildID/channelID middleware error", error);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.end("ERROR PROCESSING");
