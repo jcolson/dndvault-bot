@@ -46,7 +46,7 @@ global.COMMANDS = {
         "slash": true,
         "options": [{
             "name": "Notation",
-            "description": "Dice notation, such as `2d8 + 1d4`",
+            "description": "Dice notation, such as `2d8 + 1d4` or `8d20dl2` (8 d20, drop lowest 2)",
             "required": true,
             "type": 3
         }]
