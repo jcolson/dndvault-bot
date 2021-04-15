@@ -4,7 +4,7 @@ const AutoPoster = require('topgg-autoposter');
 const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
-const { connect, disconnect } = require('mongoose');
+const { connect, disconnect, STATES, connection, Mongoose } = require('mongoose');
 
 const GuildModel = require('./models/Guild');
 const EventModel = require('./models/Event');
@@ -86,7 +86,11 @@ let server = app
     .use(ROUTE_ROOT, express.static(Config.httpStaticDir))
     .use(express.json())
     .get(ROUTE_HEALTH, async (request, response) => {
-        response.json({ status: 'UP' });
+        if (STATES[STATES.connected] == STATES[connection.readyState]) {
+            response.json({ status: 'UP', dbState: STATES[connection.readyState] });
+        } else {
+            response.json({ status: 'DOWN', dbState: STATES[connection.readyState] });
+        }
     })
     .use(async function (request, response, next) {
         console.log(`HTTP: in middleware checking if I need to update guildID (and channelID), guildID status: ${request.session.guildConfig ? true : false}`);
@@ -104,7 +108,7 @@ let server = app
             } else if (!request.session.guildConfig && request.session.discordMe) {
                 console.log(`HTTP: Retrieving any guild for user, ${request.session.discordMe.id}`);
                 const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
-                const guildConfig = userConfig?await GuildModel.findOne({ guildID: userConfig.guildID }):undefined;
+                const guildConfig = userConfig ? await GuildModel.findOne({ guildID: userConfig.guildID }) : undefined;
                 if (guildConfig) {
                     request.session.guildConfig = guildConfig;
                 }

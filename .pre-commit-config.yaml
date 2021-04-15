@@ -21,4 +21,6 @@ repos:
       - id: npm-test
         name: Run node tests
         language: system
-        entry: npm test __test__
+        entry: npm run test __test__
+        # entry: echo
+        # entry: echo && docker build --target test .
