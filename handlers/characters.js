@@ -1050,8 +1050,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         charEmbed.addFields(
             {
                 name: `\:dagger: Name | ID | Status | Campaign \:shield:`,
-                value: `${charNameString} | ${char.id} |
-                    ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
+                value: `${charNameString} | ${char.id} | ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
         // let campaignString = stringForCampaign(char);

@@ -40,12 +40,23 @@ global.COMMANDS = {
         "description": "Get statistics about bot",
         "slash": false
     },
+    "kick": {
+        "name": "kick",
+        "description": "D&D Bot should leave this server",
+        "slash": false,
+        "options": [{
+            "name": "server_id",
+            "description": "The server (guild) id to have the bot leave",
+            "required": true,
+            "type": 3
+        }]
+    },
     "roll": {
         "name": "roll",
         "description": "Rolls dice, using notation reference",
         "slash": true,
         "options": [{
-            "name": "Notation",
+            "name": "notation",
             "description": "Dice notation, such as `2d8 + 1d4` or `8d20dl2` (8 d20, drop lowest 2)",
             "required": true,
             "type": 3
@@ -53,7 +64,7 @@ global.COMMANDS = {
     },
     "registerManual": {
         "name": "register_manual",
-        "description": "Create a stub character, do not use spaces in any of the parameters except the campaign",
+        "description": "Create a stub character if you don't have a character on dndbeyond",
         "slash": true,
         "options": [{
             "name": "char_name",
@@ -789,6 +800,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
             help.handleHelp(msg, msgParms, commandPrefix);
         } else if (messageContentLowercase.startsWith(COMMANDS.stats.name)) {
             config.handleStats(msg);
+        } else if (messageContentLowercase.startsWith(COMMANDS.kick.name)) {
+            msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.kick.name, commandPrefix);
+            config.handleKick(msg, msgParms);
         } else if (!msg.guild) {
             await utils.sendDirectOrFallbackToChannel({ name: 'Direct Interaction Error', value: 'Please send commands to me on the server that you wish me to act with.' }, msg);
         } else {
