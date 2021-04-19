@@ -252,6 +252,7 @@ async function confirmGuildConfig(guild) {
     }
     let guildConfig = GuildCache[guild.id];
     try {
+        // don't really need this, mongoose is smart enough to not update the doc if it's not changed ... may remove someday
         let needsSave = false;
         if (!guildConfig) {
             console.log(`confirmGuildConfig: finding guild: ${guild.name}`);
@@ -290,6 +291,11 @@ async function confirmGuildConfig(guild) {
         }
         if (typeof guildConfig.iconURL === 'undefined' || !guildConfig.iconURL || guildConfig.iconURL != guild.iconURL()) {
             guildConfig.iconURL = guild.iconURL();
+            needsSave = true;
+        }
+        // update last used if the last used is before a day ago.
+        if (typeof guildConfig.lastUsed === 'undefined' || !guildConfig.lastUsed || guildConfig.lastUsed < (new Date() - 1)) {
+            guildConfig.lastUsed = new Date();
             needsSave = true;
         }
         if (needsSave) {
