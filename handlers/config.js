@@ -396,12 +396,33 @@ async function handleStats(msg) {
                 { name: 'Uptime', value: getUptime(), inline: true },
                 { name: 'BOT Version', value: vaultVersion, inline: true }
             ], msg);
-            if (msg.guild) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`handleStats: ${error.message}`);
-                }
+            if (msg.deletable) {
+                await msg.delete();
+            }
+        }
+    } catch (error) {
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
+}
+
+/**
+ * remove bot from server (guild)
+ * @param {Message} msg
+ * @param {Array} msgParms
+ */
+async function handleKick(msg, msgParms) {
+    try {
+        if (msg.author.id == Config.adminUser) {
+            let theGuildToKick = await msg.client.guilds.resolve(msgParms[0].value);
+            if (!theGuildToKick) {
+                throw new Error(`Can not locate the guild "${msgParms[0].value}"`);
+            }
+            let kickResult = await theGuildToKick.leave();
+            await utils.sendDirectOrFallbackToChannel([
+                { name: 'Kick from Server', value: `${msgParms[0].value}:${kickResult}` }
+            ], msg);
+            if (msg.deletable) {
+                await msg.delete();
             }
         }
     } catch (error) {
@@ -435,3 +456,4 @@ exports.getGuildConfig = getGuildConfig;
 exports.handleConfigEventChannel = handleConfigEventChannel;
 exports.handleConfigPollChannel = handleConfigPollChannel;
 exports.handleStats = handleStats;
+exports.handleKick = handleKick;
