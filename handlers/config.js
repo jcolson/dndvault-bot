@@ -252,6 +252,7 @@ async function confirmGuildConfig(guild) {
     }
     let guildConfig = GuildCache[guild.id];
     try {
+        // don't really need this, mongoose is smart enough to not update the doc if it's not changed ... may remove someday
         let needsSave = false;
         if (!guildConfig) {
             console.log(`confirmGuildConfig: finding guild: ${guild.name}`);
@@ -290,6 +291,11 @@ async function confirmGuildConfig(guild) {
         }
         if (typeof guildConfig.iconURL === 'undefined' || !guildConfig.iconURL || guildConfig.iconURL != guild.iconURL()) {
             guildConfig.iconURL = guild.iconURL();
+            needsSave = true;
+        }
+        // update last used if the last used is before a day ago.
+        if (typeof guildConfig.lastUsed === 'undefined' || !guildConfig.lastUsed || guildConfig.lastUsed < (new Date() - 1)) {
+            guildConfig.lastUsed = new Date();
             needsSave = true;
         }
         if (needsSave) {
@@ -390,12 +396,33 @@ async function handleStats(msg) {
                 { name: 'Uptime', value: getUptime(), inline: true },
                 { name: 'BOT Version', value: vaultVersion, inline: true }
             ], msg);
-            if (msg.guild) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`handleStats: ${error.message}`);
-                }
+            if (msg.deletable) {
+                await msg.delete();
+            }
+        }
+    } catch (error) {
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
+}
+
+/**
+ * remove bot from server (guild)
+ * @param {Message} msg
+ * @param {Array} msgParms
+ */
+async function handleKick(msg, msgParms) {
+    try {
+        if (msg.author.id == Config.adminUser) {
+            let theGuildToKick = await msg.client.guilds.resolve(msgParms[0].value);
+            if (!theGuildToKick) {
+                throw new Error(`Can not locate the guild "${msgParms[0].value}"`);
+            }
+            let kickResult = await theGuildToKick.leave();
+            await utils.sendDirectOrFallbackToChannel([
+                { name: 'Kick from Server', value: `${msgParms[0].value}:${kickResult}` }
+            ], msg);
+            if (msg.deletable) {
+                await msg.delete();
             }
         }
     } catch (error) {
@@ -429,3 +456,4 @@ exports.getGuildConfig = getGuildConfig;
 exports.handleConfigEventChannel = handleConfigEventChannel;
 exports.handleConfigPollChannel = handleConfigPollChannel;
 exports.handleStats = handleStats;
+exports.handleKick = handleKick;

@@ -33,6 +33,9 @@ const Guild = Schema({
     },
     "channelForEvents": {
         type: "String"
+    },
+    "lastUsed": {
+        type: "Date"
     }
 })
 module.exports = model('Guild', Guild);
