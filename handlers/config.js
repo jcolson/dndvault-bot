@@ -294,7 +294,10 @@ async function confirmGuildConfig(guild) {
             needsSave = true;
         }
         // update last used if the last used is before a day ago.
-        if (typeof guildConfig.lastUsed === 'undefined' || !guildConfig.lastUsed || guildConfig.lastUsed < (new Date() - 1)) {
+        let yesterdayDate = new Date(new Date().setDate(new Date().getDate()-1));
+        // console.debug(`confirmGuildConfig:yesterday: ${yesterdayDate}`);
+        if (typeof guildConfig.lastUsed === 'undefined' || !guildConfig.lastUsed || guildConfig.lastUsed < yesterdayDate) {
+            // console.debug(`confirmGuildConfig:guildConfig.lastUsed: ${guildConfig.lastUsed}`);
             guildConfig.lastUsed = new Date();
             needsSave = true;
         }
