@@ -549,7 +549,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
     eventEmbed.addFields(
         {
             name: '\u200B', value: `
-${signUpInfo}Add this BOT to your server. [Click here](${Config.inviteURL})`
+${signUpInfo}`
         },
     );
     returnEmbeds.push(eventEmbed);
