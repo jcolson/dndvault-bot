@@ -277,7 +277,7 @@ async function confirmGuildConfig(guild) {
         if (typeof guildConfig.prole === 'undefined' || !guildConfig.prole) {
             let theRole = await utils.retrieveRoleForName(guild, Config.defaultPRoleName);
             if (theRole) {
-                guildConfig.arole = theRole.id;
+                guildConfig.prole = theRole.id;
                 needsSave = true;
             }
         }
