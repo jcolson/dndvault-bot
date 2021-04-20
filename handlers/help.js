@@ -27,9 +27,6 @@ We recommend that you use our slash \`/\` commands instead of the old prefix com
 If you would like to see all commands available, [they are on the github website here](https://github.com/jcolson/dndvault-bot#commands).
 `},
         );
-        charEmbed.addFields(
-            { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
-        );
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
         if (msg.deletable) {

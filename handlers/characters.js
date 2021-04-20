@@ -1070,9 +1070,6 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
             );
         }
     });
-    charEmbed.addFields(
-        { name: '\u200B', value: `Add this BOT to your server. [Click here](${Config.inviteURL})` },
-    );
     returnEmbeds.push(charEmbed);
     return returnEmbeds;
 }
