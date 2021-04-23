@@ -50,7 +50,7 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, 
         if (theGuild) {
             let currUser = await UserModel.findOne({ userID: currUserId, guildID: guildID });
             if (!currUser || !currUser.timezone) {
-                throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
+                throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
                 // let eventArray = parseEventString(eventString);
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser);
@@ -130,7 +130,7 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
         if (theGuild) {
             let currUser = await UserModel.findOne({ userID: currUserId, guildID: guildID });
             if (!currUser || !currUser.timezone) {
-                throw new Error('Please set your timezone first using `timezone [YOUR TIMEZONE]`!');
+                throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
                 let existingEvent = await EventModel.findById(eventID);
                 if (!existingEvent) {
