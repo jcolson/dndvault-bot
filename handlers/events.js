@@ -542,17 +542,15 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
             );
         }
     }
-    let signUpInfo = '';
     if (isShow) {
-        signUpInfo = `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy ${utils.EMOJIS.CLOCK}Your TZ and Calendar\n`;
+        eventEmbed.addFields(
+            {
+                name: '\u200B', value: `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy ${utils.EMOJIS.CLOCK}Your TZ and Calendar\n`
+            },
+        );
     }
-    eventEmbed.addFields(
-        {
-            name: '\u200B', value: `
-${signUpInfo}`
-        },
-    );
     returnEmbeds.push(eventEmbed);
+    // console.debug(`embedForEvent:`, returnEmbeds);
     return returnEmbeds;
 }
 
