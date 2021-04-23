@@ -294,7 +294,7 @@ async function confirmGuildConfig(guild) {
             needsSave = true;
         }
         // update last used if the last used is before a day ago.
-        let yesterdayDate = new Date(new Date().setDate(new Date().getDate()-1));
+        let yesterdayDate = new Date(new Date().setDate(new Date().getDate() - 1));
         // console.debug(`confirmGuildConfig:yesterday: ${yesterdayDate}`);
         if (typeof guildConfig.lastUsed === 'undefined' || !guildConfig.lastUsed || guildConfig.lastUsed < yesterdayDate) {
             // console.debug(`confirmGuildConfig:guildConfig.lastUsed: ${guildConfig.lastUsed}`);
@@ -409,21 +409,32 @@ async function handleStats(msg) {
 }
 
 /**
- * remove bot from server (guild)
- * @param {Message} msg
- * @param {Array} msgParms
+ * calls the broadcast aware method via client.shard
+ * @param {*} msg
+ * @param {*} msgParms
  */
 async function handleKick(msg, msgParms) {
     try {
         if (msg.author.id == Config.adminUser) {
-            let theGuildToKick = await msg.client.guilds.resolve(msgParms[0].value);
-            if (!theGuildToKick) {
-                throw new Error(`Can not locate the guild "${msgParms[0].value}"`);
+            let statusArray = await client.shard.broadcastEval(
+                `this.dnd_config.bc_handleKick
+        ('${msgParms[0].value}');`
+            );
+            console.debug('handleKick:', statusArray);
+            const result = statusArray.find(o => {
+                return (typeof (o) !== 'undefined' && o !== null);
+            });
+            if (result) {
+                console.debug(`handleKick: shard responded ${result}`);
+                await utils.sendDirectOrFallbackToChannel([
+                    { name: 'Kick from Server', value: `${msgParms[0].value}:${result}` }
+                ], msg);
+            } else {
+                console.debug('handleKick: nothing in response for this one');
+                await utils.sendDirectOrFallbackToChannel([
+                    { name: 'Kick from Server', value: `Could not kick server ${msgParms[0].value}` }
+                ], msg);
             }
-            let kickResult = await theGuildToKick.leave();
-            await utils.sendDirectOrFallbackToChannel([
-                { name: 'Kick from Server', value: `${msgParms[0].value}:${kickResult}` }
-            ], msg);
             if (msg.deletable) {
                 await msg.delete();
             }
@@ -431,6 +442,26 @@ async function handleKick(msg, msgParms) {
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
+}
+/**
+ * remove bot from server (guild)
+ * @param {String} guildIdToKick
+ * @returns {String} guild.name that was kicked
+ */
+async function bc_handleKick(guildIdToKick) {
+    let kickResult;
+    try {
+        let theGuildToKick = client.guilds.cache.get(guildIdToKick);
+        if (theGuildToKick) {
+            kickResult = (await theGuildToKick.leave())?.name;
+        } else {
+            console.info(`bc_handleKick: unknown guild (${guildIdToKick}) on this shard, ignoring`);
+        }
+    } catch (error) {
+        console.error('config.bc_handleKick:', error.message);
+        throw error;
+    }
+    return kickResult;
 }
 
 function getUptime() {
@@ -460,3 +491,4 @@ exports.handleConfigEventChannel = handleConfigEventChannel;
 exports.handleConfigPollChannel = handleConfigPollChannel;
 exports.handleStats = handleStats;
 exports.handleKick = handleKick;
+exports.bc_handleKick = bc_handleKick;

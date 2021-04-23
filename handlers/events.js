@@ -68,7 +68,7 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, 
                 return true;
             }
         } else {
-            console.log('events.bc_eventCreate: unknown guild on this shard, ignoring');
+            console.info('events.bc_eventCreate: unknown guild on this shard, ignoring');
         }
     } catch (error) {
         console.error('events.bc_eventCreate:', error.message);

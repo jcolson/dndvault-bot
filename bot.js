@@ -22,6 +22,8 @@ const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { 
 let calendarReminderCron;
 
 Client.prototype.dnd_users = users;
+Client.prototype.dnd_events = events;
+Client.prototype.dnd_config = config;
 
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [shrd:${client.shard.ids}] %s` });
 
@@ -791,9 +793,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
     messageContentLowercase = messageContentLowercase.replace(/ /g, '_');
     console.debug('handleCommandExec:', messageContentLowercase);
     let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
-
     let handled = true;
-
     try {
         if (messageContentLowercase.startsWith(COMMANDS.help.name)) {
             msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS.help.name, commandPrefix);
