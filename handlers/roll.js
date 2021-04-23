@@ -19,11 +19,7 @@ async function handleDiceRoll(msg, diceParam) {
         }
         await utils.sendDirectOrFallbackToChannel(embedFields, msg, undefined, true);
         if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`handleDiceRoll: ${error.message}`);
-            }
+            await msg.delete();
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
