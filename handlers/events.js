@@ -670,14 +670,15 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
     let fieldsToSend = [];
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
-            { name: 'Timezone not set', value: `You must set your timezone via \`timezone [YOUR TIMEZONE]\` in order to convert to your own timezone.`, inline: true },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${reaction.message.channel.id}>` }
+            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example.`, inline: true },
+            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id}>` },
+            { name: 'Calendar Subscribe', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
         ];
     } else {
         let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
-            { name: 'Calendar Subscribe', value: `${Config.httpServerURL}/calendar?userID=${user.id}`, inline: true }
+            { name: 'Calendar Subscribe', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
         ];
     }
     await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);
