@@ -388,6 +388,7 @@ async function removeAllDataForGuild(guild) {
     let usersDeleted = await UserModel.deleteMany({ guildID: guild.id });
     let eventsDeleted = await EventModel.deleteMany({ guildID: guild.id });
     let configDeleted = await GuildModel.deleteMany({ guildID: guild.id });
+    GuildCache.del(guild.id);
     console.info(`removeAllDataForGuild: ${guild.id}(${guild.name}): chars: ${charsDeleted.deletedCount} users: ${usersDeleted.deletedCount} events: ${eventsDeleted.deletedCount} config: ${configDeleted.deletedCount}`);
 }
 
