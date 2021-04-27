@@ -1,8 +1,6 @@
 const GuildModel = require('../models/Guild');
 const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
-const { Channel } = require('discord.js');
-const GuildCache = {};
 
 /**
  * Show the configuration for your server
@@ -77,7 +75,7 @@ async function handleConfigCampaign(msg, msgParms, guildConfig) {
             let boolParam = msgParms[0].value;
             guildConfig.requireCharacterForEvent = utils.isTrue(boolParam);
             await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
+            GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Campaign', value: `Require Character for Events now set to: \`${guildConfig.requireCharacterForEvent}\`.` }, msg);
             if (msg.deletable) {
                 await msg.delete();
@@ -109,7 +107,7 @@ async function handleConfigArole(msg, msgParms, guildConfig) {
             if (configArole) {
                 guildConfig.arole = configArole.id;
                 await guildConfig.save();
-                GuildCache[msg.guild.id] = guildConfig;
+                GuildCache.set(msg.guild.id, guildConfig);
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Approver Role', value: `${configArole.name} is now the \`approver role\`.` }, msg);
                 if (msg.deletable) {
                     await msg.delete();
@@ -144,7 +142,7 @@ async function handleConfigProle(msg, msgParms, guildConfig) {
             if (configProle) {
                 guildConfig.prole = configProle.id;
                 await guildConfig.save();
-                GuildCache[msg.guild.id] = guildConfig;
+                GuildCache.set(msg.guild.id, guildConfig);
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Player Role', value: `${configProle.name} is now the \`player role\`.` }, msg);
                 if (msg.deletable) {
                     await msg.delete();
@@ -189,7 +187,7 @@ async function handleConfigPrefix(msg, msgParms, guildConfig) {
                 guildConfig.prefix = configPrefix;
             }
             await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
+            GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Prefix', value: `\`${guildConfig.prefix}\` is now my prefix, don't forget!` }, msg);
             if (msg.deletable) {
                 await msg.delete();
@@ -217,7 +215,7 @@ async function handleConfigApproval(msg, msgParms, guildConfig) {
             let boolParam = msgParms[0].value;
             guildConfig.requireCharacterApproval = utils.isTrue(boolParam);
             await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
+            GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Approval', value: `Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.` }, msg);
             if (msg.deletable) {
                 await msg.delete();
@@ -231,11 +229,11 @@ async function handleConfigApproval(msg, msgParms, guildConfig) {
 }
 
 async function getGuildConfig(guildID) {
-    let guildConfig = GuildCache[guildID];
+    let guildConfig = GuildCache.get(guildID);
     if (!guildConfig) {
         guildConfig = await GuildModel.findOne({ guildID: guildID });
         if (guildConfig) {
-            GuildCache[guildID] = guildConfig;
+            GuildCache.set(guildID, guildConfig);
         }
     }
     return guildConfig;
@@ -250,7 +248,7 @@ async function confirmGuildConfig(guild) {
     if (!guild) {
         return undefined;
     }
-    let guildConfig = GuildCache[guild.id];
+    let guildConfig = GuildCache.get(guild.id);
     try {
         // don't really need this, mongoose is smart enough to not update the doc if it's not changed ... may remove someday
         let needsSave = false;
@@ -304,7 +302,7 @@ async function confirmGuildConfig(guild) {
         if (needsSave) {
             await guildConfig.save();
         }
-        GuildCache[guild.id] = guildConfig;
+        GuildCache.set(guild.id, guildConfig);
     } catch (error) {
         throw new Error('confirmGuildConfig: ' + error.message);
     }
@@ -333,7 +331,7 @@ async function handleConfigEventChannel(msg, msgParms, guildConfig) {
                 guildConfig.channelForEvents = stringParam;
             }
             await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
+            GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Event Channel', value: `Event Channel now set to: \`${guildConfig.channelForEvents ? channelTest.name : guildConfig.channelForEvents}\`.` }, msg);
             if (msg.deletable) {
                 await msg.delete();
@@ -368,7 +366,7 @@ async function handleConfigPollChannel(msg, msgParms, guildConfig) {
                 guildConfig.channelForPolls = stringParam;
             }
             await guildConfig.save();
-            GuildCache[msg.guild.id] = guildConfig;
+            GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Poll Channel', value: `Poll Channel now set to: \`${guildConfig.channelForPolls ? channelTest.name : guildConfig.channelForPolls}\`.` }, msg);
             if (msg.deletable) {
                 await msg.delete();
@@ -451,7 +449,8 @@ async function handleKick(msg, msgParms) {
 async function bc_handleKick(guildIdToKick) {
     let kickResult;
     try {
-        let theGuildToKick = client.guilds.cache.get(guildIdToKick);
+        let theGuildToKick = await client.guilds.resolve(guildIdToKick);
+        // let theGuildToKick = client.guilds.cache.get(guildIdToKick);
         if (theGuildToKick) {
             kickResult = (await theGuildToKick.leave())?.name;
         } else {
