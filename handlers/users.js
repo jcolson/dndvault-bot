@@ -83,7 +83,7 @@ async function handleTimezone(msg, msgParms, guildConfig) {
             ], msg);
         } else if (!timeZoneString) {
             await utils.sendDirectOrFallbackToChannel([
-                { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`${guildConfig.prefix}timezone Europe/Berlin\`, for example.` },
+                { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example.` },
                 { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
             ], msg);
         } else {
