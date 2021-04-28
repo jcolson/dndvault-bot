@@ -5,6 +5,7 @@ const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
 const { connect, disconnect, STATES, connection, Mongoose } = require('mongoose');
+const NodeCache = require("node-cache");
 
 const GuildModel = require('./models/Guild');
 const EventModel = require('./models/Event');
@@ -12,6 +13,7 @@ const UserModel = require('./models/User');
 
 const DEFAULT_CONFIGDIR = __dirname;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
+global.GuildCache = new NodeCache({ stdTTL: 0, checkperiod: 0, maxKeys: 200 });
 
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
@@ -207,7 +209,7 @@ let server = app
                 response.end(responseContent);
             }
         } catch (error) {
-            console.error(error.message);
+            console.error('calendar:', error);
             response.setHeader('Content-Type', 'text/html');
             response.status(500);
             response.end(error.message);
