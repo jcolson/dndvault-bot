@@ -68,6 +68,8 @@ Users have the ability to list events that are deployed or proposed (not yet app
 
 Once a user signs up as an attendee, or creates an event, those events will show up in that user's ICS feed.  The user can subscribe to the ICS feed within Outlook, Google Calendar, iCal, etc.  When a user clicks on the 'Timezone' button, a message is sent to them with their local timezone as well as a link to their personalized ICS calendar link.
 
+[![D&D Vault Bot Event Subscribe Youtube Video](https://i.ytimg.com/vi/CEnUVG9wGwQ/maxresdefault.jpg)](https://www.youtube.com/embed/CEnUVG9wGwQ)
+
 ## Polling
 
 Users can create polls very simply by using the `poll` command.  `!poll "Do you like polling"` will create a default poll that has three options:  👍 (yes) 👎 (no) and 🤷 (I don't know).  A user can also create his own options, which will be automatically numbered by using this syntax: `!poll "Do you like polling" "hell no" "I LOVE polling" "What is polling?"`.
