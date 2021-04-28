@@ -12,6 +12,7 @@ const config = require('./handlers/config.js');
 const utils = require('./utils/utils.js');
 const poll = require('./handlers/poll.js');
 const roll = require('./handlers/roll.js');
+const insult = require('./handlers/insult.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 //https://discord.com/developers/docs/topics/gateway#gateway-intents
@@ -559,6 +560,11 @@ global.COMMANDS = {
         "name": "config",
         "description": "Show the configuration for your server",
         "slash": true
+    },
+    "insult": {
+        "name": "insult",
+        "description": "Generate an Insult for Vicious Mockery!",
+        "slash": true
     }
 };
 
@@ -920,6 +926,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.config.name:
                         config.handleConfig(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.insult.name:
+                        insult.handleInsult(msg, msgParms, guildConfig);
                         break;
                     default:
                         handled = false;
