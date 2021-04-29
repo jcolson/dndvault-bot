@@ -13,6 +13,7 @@ async function handleCalendarRequest(userID, excludeGuild) {
     if (!userID) {
         throw new Error('No userID passed!');
     }
+    const calendarRefreshHours = Config?.calendarICSRefreshHours ? Config?.calendarICSRefreshHours : 12;
     let returnICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN\r\n';
     returnICS += `URL:${Config.httpServerURL}/calendar?userID=${userID}\r\n`;
     returnICS += 'NAME:DND Vault\r\n';
@@ -21,21 +22,19 @@ async function handleCalendarRequest(userID, excludeGuild) {
     returnICS += 'X-WR-CALDESC:DND Vault events from Discord\r\n';
     // returnICS += 'TIMEZONE-ID:Europe/London\r\n';
     // returnICS += 'X-WR-TIMEZONE:Europe/London\r\n';
-    returnICS += 'REFRESH-INTERVAL;VALUE=DURATION:PT12H\r\n';
-    returnICS += 'X-PUBLISHED-TTL:PT12H\r\n';
+    returnICS += `REFRESH-INTERVAL;VALUE=DURATION:PT${calendarRefreshHours}H\r\n`;
+    returnICS += `X-PUBLISHED-TTL:PT${calendarRefreshHours}H\r\n`;
     returnICS += 'COLOR:34:50:105\r\n';
     returnICS += 'CALSCALE:GREGORIAN\r\n';
     let cutOffDate = new Date();
     cutOffDate.setDate(cutOffDate.getDate() - 365);
-    let userEvents = await EventModel.find(
-        {
-            $and: [
-                //@todo at some point we can remove the <@! check here, as of 1.2.5 we're storing just the ID
-                { $or: [{ 'dm': "<@!" + userID + ">" }, { 'dm': userID }, { 'userID': userID }, { "attendees.userID": userID }] },
-                { date_time: { $gt: cutOffDate } }
-            ]
-        }
-    );
+    let userEvents = await EventModel.find({
+        $and: [
+            //@todo at some point we can remove the <@! check here, as of 1.2.5 we're storing just the ID
+            { $or: [{ 'dm': "<@!" + userID + ">" }, { 'dm': userID }, { 'userID': userID }, { "attendees.userID": userID }] },
+            { date_time: { $gt: cutOffDate } }
+        ]
+    });
     // console.log(events);
     for (currEvent of userEvents) {
         if (!excludeGuild.includes(currEvent.guildID)) {
@@ -81,35 +80,29 @@ function getICSdateFormat(theDate) {
 }
 
 /**
- *
- * encodeURI
- *
+ * example ICS output
  *
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//hacksw/handcal//NONSGML v1.0//EN
-URL:http://my.calendar/url
-
-NAME:My Calendar Name
-X-WR-CALNAME:My Calendar Name
-DESCRIPTION:A description of my calendar
-X-WR-CALDESC:A description of my calendar
-TIMEZONE-ID:Europe/London
-X-WR-TIMEZONE:Europe/London
-REFRESH-INTERVAL;VALUE=DURATION:PT12H
-X-PUBLISHED-TTL:PT12H
+PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN
+URL:http://localhost:8080/calendar?userID=xxxxxx
+NAME:DND Vault
+X-WR-CALNAME:DND Vault
+DESCRIPTION:DND Vault events from Discord
+X-WR-CALDESC:DND Vault events from Discord
+REFRESH-INTERVAL;VALUE=DURATION:PT6H
+X-PUBLISHED-TTL:PT6H
 COLOR:34:50:105
-
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
-DTEND:<?= dateToCal($dateend) ?>
-UID:<?= uniqid() ?>
-DTSTAMP:<?= dateToCal(time()) ?>
-LOCATION:<?= escapeString($address) ?>
-DESCRIPTION:<?= escapeString($description) ?>
-URL;VALUE=URI:<?= escapeString($uri) ?>
-SUMMARY:<?= escapeString($summary) ?>
-DTSTART:<?= dateToCal($datestart) ?>
+DTEND:20210411T180000Z
+UID:606f1bd4e7631714c29c8662
+DTSTAMP:20210429T104900Z
+LOCATION:https://discordapp.com/channels/785567026512527390/806981042413109291/829733974255206403
+DESCRIPTION:What to do with the Staff of the Navigator?
+URL;VALUE=URI:https://discordapp.com/channels/785567026512527390/806981042413109291/829733974255206403
+SUMMARY:🗡Shilcom Session #30 [Deployed? ❎] (Test and Support - D&D Vault)
+DTSTART:20210411T140000Z
 END:VEVENT
 END:VCALENDAR
  */

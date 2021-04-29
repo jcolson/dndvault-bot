@@ -19,6 +19,7 @@
     "httpStaticDir": "./http_root",
     "httpPugDir": "./http_views",
     "httpServerURL": "https://dndvault.karma.net",
+    "calendarICSRefreshHours": "12",
     "calendarReminderCron": "0 */10 * * * *",
     "calendarReminderMinutesOut": 50,
     "defaults": {
