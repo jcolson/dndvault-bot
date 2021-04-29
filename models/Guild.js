@@ -36,6 +36,9 @@ const Guild = Schema({
     },
     "lastUsed": {
         type: "Date"
+    },
+    "botID": {
+        type: "String"
     }
 })
 module.exports = model('Guild', Guild);
