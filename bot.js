@@ -618,7 +618,7 @@ async function registerCommands() {
  * listen for emitted events from discordjs
  */
 client.once('ready', async () => {
-    console.info(`D&D Vault Bot - logged in as ${client.user.tag}`);
+    console.info(`D&D Vault Bot - logged in as ${client.user.tag} & ${client.user.id}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type /help', type: 'PLAYING' }, status: 'online' });
     registerCommands();
     calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {

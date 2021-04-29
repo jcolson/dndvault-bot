@@ -111,6 +111,7 @@ let server = app
             } else if (!request.session.guildConfig && request.session.discordMe) {
                 console.log(`HTTP: Retrieving any guild for user, ${request.session.discordMe.id}`);
                 const userConfig = await UserModel.findOne({ userID: request.session.discordMe.id });
+                //@todo this doesn't use the confirmGuildConfig and really should ... however, i need to make it distributed cluster aware first.
                 const guildConfig = userConfig ? await GuildModel.findOne({ guildID: userConfig.guildID }) : undefined;
                 if (guildConfig) {
                     request.session.guildConfig = guildConfig;

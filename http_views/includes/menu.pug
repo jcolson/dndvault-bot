@@ -15,5 +15,9 @@
         a(href= '/events') Events
         //- |&nbsp;|&nbsp;
         a(href= '/calendar?userID='+discordMe.id) Calendar ICS
+    if guildConfig && guildConfig.botID
+        a(href= 'https://top.gg/bot/'+guildConfig.botID+'/vote', target="_blank") Vote For Me on Top.gg!
+        //- |&nbsp;|&nbsp;
+    if discordMe
         //- |&nbsp;|&nbsp;
         a(href= '/logout') Logout
