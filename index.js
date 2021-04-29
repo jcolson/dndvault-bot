@@ -4,7 +4,7 @@ const AutoPoster = require('topgg-autoposter');
 const path = require('path');
 const fetch = require('node-fetch');
 const url = require('url');
-const { connect, disconnect, STATES, connection, Mongoose } = require('mongoose');
+const { connect, disconnect, STATES, connection } = require('mongoose');
 const NodeCache = require("node-cache");
 
 const GuildModel = require('./models/Guild');
@@ -24,6 +24,7 @@ const morgan = require('morgan');
 const Grant = require('grant').express();
 const grant = new Grant(Config);
 
+// am I in the process of shutting down?
 let shutdown = false;
 
 /**
@@ -66,15 +67,15 @@ if (!Config.debugGuild && Config.topggToken) {
 
 manager.spawn();
 
-const ROUTE_ROOT = "/";
-const ROUTE_POSTOAUTH = "/postoauth";
-const ROUTE_CALENDAR = "/calendar";
-const ROUTE_TIMEZONES = "/timezones";
-const ROUTE_TIMEZONESSET = "/timezones/set";
-const ROUTE_EVENTS = "/events";
-const ROUTE_EVENTSSET = "/events/set";
-const ROUTE_HEALTH = "/health";
-const ROUTE_LOGOUT = "/logout";
+const ROUTE_ROOT = '/';
+const ROUTE_POSTOAUTH = '/postoauth';
+const ROUTE_CALENDAR = '/calendar';
+const ROUTE_TIMEZONES = '/timezones';
+const ROUTE_TIMEZONESSET = '/timezones/set';
+const ROUTE_EVENTS = '/events';
+const ROUTE_EVENTSSET = '/events/set';
+const ROUTE_HEALTH = '/health';
+const ROUTE_LOGOUT = '/logout';
 
 let app = express();
 
@@ -132,7 +133,7 @@ let server = app
         }
     })
     .get(ROUTE_ROOT, function (request, response) {
-        response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe });
+        response.render('index', { title: 'Home', Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe });
     })
     .get(ROUTE_LOGOUT, async (request, response) => {
         try {
@@ -188,6 +189,7 @@ let server = app
             console.log('HTTP: serving ' + ROUTE_CALENDAR);
             const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
             let userID = requestUrl.searchParams.get('userID');
+            const interactive = requestUrl.searchParams.get('interactive');
             const excludeGuild = requestUrl.searchParams.get('exclude') ? requestUrl.searchParams.get('exclude').split(',') : [];
             if (!userID && request.session.discordMe) {
                 // console.log(`have discordMe, setting userID`);
@@ -203,8 +205,15 @@ let server = app
             } else {
                 // console.log(`have userid, heading to handleCalendarRequest`);
                 let responseContent = await calendar.handleCalendarRequest(userID, excludeGuild);
-                response.setHeader('Content-Type', 'text/calendar');
-                response.end(responseContent);
+                if (interactive || !request.session.discordMe) {
+                    response.setHeader('Content-Type', 'text/calendar');
+                    response.end(responseContent);
+                }
+                else if (request.session.discordMe) {
+                    response.render('calendar', { title: 'Calendar', Config: Config, guildConfig: request.session.guildConfig, discordMe: request.session.discordMe });
+                } else {
+                    throw new Error('Unkown Request');
+                }
             }
         } catch (error) {
             console.error('calendar:', error);
