@@ -131,13 +131,15 @@ let server = app
             response.end("ERROR PROCESSING");
         }
     })
+    .get(ROUTE_ROOT, function (request, response) {
+        response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe });
+    })
     .get(ROUTE_LOGOUT, async (request, response) => {
         try {
             console.log('HTTP: serving ' + ROUTE_LOGOUT);
             request.session.discordMe = undefined;
-            response.redirect(url.format({
-                pathname: ROUTE_ROOT,
-            }));
+            console.debug('base url: ', request.baseUrl);
+            response.redirect(ROUTE_ROOT);
         }
         catch (error) {
             console.error(error.message);
@@ -148,7 +150,7 @@ let server = app
     })
     .get(ROUTE_POSTOAUTH, async (request, response) => {
         try {
-            console.log('HTTP: serving ' + ROUTE_POSTOAUTH);
+            console.info('HTTP: serving ' + ROUTE_POSTOAUTH);
             // let requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
             if (!request.session.grant || !request.session.grant.response || !request.session.grant.response.raw) {
                 // console.log('grant config', grant.config);
@@ -158,7 +160,7 @@ let server = app
             } else {
                 // console.log(`oauth2 grant response info`, request.session.grant);
                 if (!request.session.discordMe) {
-                    console.log('HTTP: Making discord.com/api/users/@me call');
+                    console.info('HTTP: Making discord.com/api/users/@me call');
                     let discordMeResponse = await fetch('https://discord.com/api/users/@me', {
                         headers: {
                             authorization: `${request.session.grant.response.raw.token_type} ${request.session.grant.response.access_token}`,
@@ -170,11 +172,9 @@ let server = app
                     };
                     request.session.discordMe = discordMe;
                 }
-                console.log(`HTTP: redirect to actual page requested ${request.session.grant.dynamic.destination}`);
-                response.redirect(url.format({
-                    pathname: request.session.grant.dynamic.destination,
-                    query: request.session.grant.dynamic,
-                }));
+                var queryString = Object.keys(request.session.grant.dynamic).map(key => key + '=' + request.session.grant.dynamic[key]).join('&');
+                console.info(`HTTP: redirect to actual page requested ${request.session.grant.dynamic.destination}?${queryString}`);
+                response.redirect(`${request.session.grant.dynamic.destination}?${queryString}`);
             }
         } catch (error) {
             console.error(error.message);
@@ -182,9 +182,6 @@ let server = app
             response.status(500);
             response.end(error.message);
         }
-    })
-    .get(ROUTE_ROOT, function (request, response) {
-        response.render('index', { title: 'Home', Config: Config, discordMe: request.session.discordMe });
     })
     .get(ROUTE_CALENDAR, async (request, response) => {
         try {
