@@ -2,9 +2,11 @@
 extends layout.pug
 
 block content
-    h1 Welcome to the D&amp;D Vault Bot
-    p If you would like to download a static ICS file (maybe for testing or whatnot) you can do so by clicking in this&nbsp;
-        a(href=`/calendar?interactive=true`) download link.
+    h1 Bot iCalendar Events Download Page
+    p If you would like to download a static&nbsp;
+        a(href=`https://en.wikipedia.org/wiki/ICalendar` target='_blank') iCalendar ICS
+        |&nbsp;file (maybe for testing or to see it's contents) you can do so by clicking in this&nbsp;
+        a(href=`/calendar?interactive=true&userID=${discordMe.id}`) download link.
     p If you would like to subscribe to your D&amp;D Vault's calendar, then follow the instructions on this YouTube Tutorial:
     <iframe width="560" height="315" src="https://www.youtube.com/embed/CEnUVG9wGwQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 

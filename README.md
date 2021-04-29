@@ -6,7 +6,7 @@ DND Vault Table of Contents
   - [Current build status](#current-build-status)
   - [Character Vault](#character-vault)
   - [Events](#events)
-    - [Subscribe to the calendar](#subscribe-to-the-calendar)
+    - [Subscribe to the iCalendar ICS](#subscribe-to-the-icalendar-ics)
   - [Polling](#polling)
   - [Rolling dice](#rolling-dice)
     - [Die quantity](#die-quantity)
@@ -64,9 +64,9 @@ Event campaign enforcement is configured off ('false') by default.  Turning it o
 
 Users have the ability to list events that are deployed or proposed (not yet approved/deployed).
 
-### Subscribe to the calendar
+### Subscribe to the iCalendar ICS
 
-Once a user signs up as an attendee, or creates an event, those events will show up in that user's ICS feed.  The user can subscribe to the ICS feed within Outlook, Google Calendar, iCal, etc.  When a user clicks on the 'Timezone' button, a message is sent to them with their local timezone as well as a link to their personalized ICS calendar link.
+Once a user signs up as an attendee, or creates an event, those events will show up in that user's iCalendar ICS feed.  The user can subscribe to the iCalendar ICS feed within Outlook, Google Calendar, iCal, etc.  When a user clicks on the 'Timezone' button, a message is sent to them with their local timezone as well as a link to their personalized iCalendar ICS link.
 
 [![D&D Vault Bot Event Subscribe Youtube Video](https://i.ytimg.com/vi/CEnUVG9wGwQ/maxresdefault.jpg)](https://www.youtube.com/embed/CEnUVG9wGwQ)
 
