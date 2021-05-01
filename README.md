@@ -193,7 +193,9 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] {no args} - view your timezone
   - [x] [TIMEZONE] - set your timezone (required for interacting with events)
 - [x] poll ["Poll Question"] {"Response 0"} {"Response 1"} {"Response 2"} {"Response 3"} ...
-- [x] roll {notation} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
+- [x] roll
+  - [x] {notation} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
+  - [x] stats - roll for D&D 5E stat block
 - [x] insult - generates a random insult for Vicious Mockery
 - [ ] event
   - [x] attendance - produces a report of players signup attendance for events
