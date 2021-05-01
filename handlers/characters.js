@@ -1,4 +1,3 @@
-
 const { MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 const CharModel = require('../models/Character');

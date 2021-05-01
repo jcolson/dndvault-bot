@@ -56,6 +56,11 @@ global.COMMANDS = {
             "type": 3
         }]
     },
+    "rollStats": {
+        "name": "roll_stats",
+        "description": "Rolls for D&D 5E stats.",
+        "slash": true
+    },
     "roll": {
         "name": "roll",
         "description": "Rolls dice, using notation reference",
@@ -844,6 +849,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
             if (findCommand && userHasSufficientRole) {
                 msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS[findCommand].name, commandPrefix);
                 switch (COMMANDS[findCommand].name) {
+                    case COMMANDS.rollStats.name:
+                        roll.handleDiceRollStats(msg, msgParms);
+                        break;
                     case COMMANDS.roll.name:
                         roll.handleDiceRoll(msg, msgParms);
                         break;
