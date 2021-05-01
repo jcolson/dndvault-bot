@@ -32,6 +32,7 @@ const EMOJIS = {
     DAGGER: `\uD83D\uDDE1`,
     SHIELD: `\uD83D\uDEE1`,
     ASTERISK: `\u2733`,
+    DICE: `\uD83C\uDFB2`,
 };
 
 /**
