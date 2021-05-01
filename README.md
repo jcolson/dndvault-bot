@@ -196,6 +196,7 @@ Not all commands are implemented, this is a list of commands that will **hopeful
 - [x] roll {notation} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
 - [x] insult - generates a random insult for Vicious Mockery
 - [ ] event
+  - [x] attendance - produces a report of players signup attendance for events
   - [x] create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] {!campaign [CAMPAIGN]} !desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
   - [x] edit [MISSION_ID] !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [MISSION_DESC_REGION_PLAYSTYLE] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
   - [x] show [MISSION_ID] - replace the posting for an event (for instance if it got deleted by accident)
