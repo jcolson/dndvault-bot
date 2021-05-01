@@ -531,7 +531,7 @@ global.COMMANDS = {
             "name": "arole",
             "description": "Role to set as approver role.  set to @everyone by leaving by not setting this value",
             "required": false,
-            "type": 8 // role
+            "type": 8 // 8 role, 9 mentionable
         }]
     },
     "configProle": {
@@ -542,7 +542,7 @@ global.COMMANDS = {
             "name": "prole",
             "description": "Role to set as player role.  set to @everyone by leaving by not setting this value",
             "required": false,
-            "type": 8 // role
+            "type": 8 // 8 role, 9 mentionable
         }]
     },
     "configCampaign": {
@@ -565,6 +565,22 @@ global.COMMANDS = {
         "name": "insult",
         "description": "Generate an Insult for Vicious Mockery!",
         "slash": true
+    },
+    "eventAttendance": {
+        "name": "event_attendance",
+        "description": "Report event attendance.",
+        "slash": true,
+        "options": [{
+            "name": "from_date",
+            "description": "The date FROM which to generate report.",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "end_date",
+            "description": "The END date which to generate report.",
+            "required": false,
+            "type": 3
+        }]
     }
 };
 
@@ -896,6 +912,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.eventList.name:
                         events.handleEventList(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventAttendance.name:
+                        events.handleEventAttendance(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.default.name:
                         users.handleDefault(msg, msgParms, guildConfig);

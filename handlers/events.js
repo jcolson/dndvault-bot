@@ -2,7 +2,7 @@ const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
 const { MessageEmbed, Message, User, Guild, TextChannel, GuildMember } = require('discord.js');
-const { parse, OUTPUT_TYPES } = require('@holistics/date-parser');
+const { parse } = require('@holistics/date-parser');
 const { DateTime } = require('luxon');
 const users = require('../handlers/users.js');
 const characters = require('../handlers/characters.js');
@@ -567,7 +567,6 @@ async function getStringForAttendees(event) {
         if (attendee.characterID) {
             let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
             // console.log('attendee char',char.name);
-
             if (char) {
                 charString = ` w/${characters.stringForCharacterShort(char)}`;
             }
@@ -608,6 +607,11 @@ function formatDate(theDate, includeGMTstring) {
         */
 }
 
+/**
+ *
+ * @param {Date} theDate
+ * @returns {String}
+ */
 function formatJustDate(theDate) {
     let returnString = `${theDate.getMonth() + 1}/${theDate.getDate()}/${theDate.getFullYear()}`;
     return returnString;
@@ -665,6 +669,96 @@ async function handleReactionAdd(reaction, user, guildConfig) {
     }
 }
 
+/**
+ * list DEPLOYED events that are in the future or n days old
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleEventAttendance(msg, msgParms, guildConfig) {
+    try {
+        const refDate = new Date();
+        let fromDate = msgParms.find(p => p.name == 'from_date');
+        // console.debug(`fromdate:`, fromDate);
+        if (fromDate) {
+            fromDate = parse(fromDate.value, refDate).start.date();
+        } else {
+            fromDate = new Date('1 Jan 1970 00:00:00 GMT');
+        }
+        let endDate = msgParms.find(p => p.name == 'end_date');
+        // console.debug(`endDate:`, endDate);
+        if (endDate) {
+            endDate = parse(endDate.value, refDate).start.date();
+        } else {
+            endDate = new Date();
+        }
+        // console.debug(`fromdate: ${fromDate} endDate: ${endDate}`);
+        const attendanceRows = await EventModel.aggregate([
+            {
+                '$match': {
+                    '$and': [
+                        {
+                            'guildID': msg.guild.id
+                        }, {
+                            'date_time': {
+                                '$gt': fromDate
+                            }
+                        }, {
+                            'date_time': {
+                                '$lt': endDate
+                            }
+                        }
+                    ]
+                }
+            }, {
+                '$unwind': '$attendees'
+            }, {
+                '$project': {
+                    'attendees': 1
+                }
+            }, {
+                '$group': {
+                    '_id': '$attendees.userID',
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$sort': {
+                    'count': -1
+                }
+            }
+        ]);
+        for (row of attendanceRows) {
+            row.character = await retrieveCharacterToUse(msg.guild.id, row._id);
+        }
+        let eventAttendanceEmbed = embedForEventAttendance(attendanceRows, `${utils.EMOJIS.DAGGER}Event Attendance from ${formatJustDate(fromDate)} to ${formatJustDate(endDate)}${utils.EMOJIS.SHIELD}`, guildConfig.guildIconURL);
+        await utils.sendDirectOrFallbackToChannelEmbeds(eventAttendanceEmbed, msg);
+        if (msg.deletable) {
+            msg.delete();
+        }
+    } catch (error) {
+        console.error('handleEventAttendance', error);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
+}
+
+function embedForEventAttendance(attendanceRows, title, guildIconURL) {
+    let eventAttendanceEmbed = new MessageEmbed()
+        .setColor(utils.COLORS.BLUE)
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}`)
+        .setThumbnail(guildIconURL);
+    const fieldLength = 21;
+    const separator = '|';
+    let reportArray = [utils.appendStringsForEmbed(['SESSION COUNT', 'CHARACTER', 'PLAYER'], fieldLength, separator)];
+    for (row of attendanceRows) {
+        reportArray.push(utils.appendStringsForEmbed([row.count + '', characters.stringForCharacterShort(row.character), '<@' + row._id + '>'], fieldLength, separator));
+        // console.debug(`${row._id} - ${row.count}`);
+    }
+    eventAttendanceEmbed.addFields({ name: title, value: utils.trimAndElipsiseStringArray(reportArray, 1024) });
+    return eventAttendanceEmbed;
+}
+
 async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
     let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
     let fieldsToSend = [];
@@ -715,12 +809,19 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
     await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
 }
 
-async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
-    let vaultUser = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
-    let characterArray = await CharModel.find({ guildID: reaction.message.guild.id, guildUser: user.id, approvalStatus: true }).sort([["campaignOverride", "desc"], ["campaign.id", "desc"]]);
+/**
+ *
+ * @param {String} guildID
+ * @param {String} userID
+ * @param {String} campaign - optional
+ * @returns {CharModel}
+ */
+async function retrieveCharacterToUse(guildID, userID, campaign, requireCampaignCharacterForEvent) {
+    let vaultUser = await UserModel.findOne({ guildID: guildID, userID: userID });
+    let characterArray = await CharModel.find({ guildID: guildID, guildUser: userID, approvalStatus: true }).sort([["campaignOverride", "desc"], ["campaign.id", "desc"]]);
     let character;
     // check array for characters that will work for no campaign
-    if (!eventForMessage.campaign) {
+    if (!campaign) {
         for (let charCheck of characterArray) {
             if (vaultUser?.defaultCharacter) {
                 if (charCheck.id == vaultUser.defaultCharacter) {
@@ -737,12 +838,17 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
                 character = charCheck;
             } else if (charCheck.id == vaultUser?.defaultCharacter) {
                 characterDefault = charCheck;
-            } else if (!guildConfig.requireCharacterForEvent && !character && !characterBackup) { //if characters aren't required for a campaign and a character hasn't been found yet, use the first one
+            } else if (!requireCampaignCharacterForEvent && !character && !characterBackup) { //if characters aren't required for a campaign and a character hasn't been found yet, use the first one
                 characterBackup = charCheck;
             }
         }
-        character = character ? character : (characterDefault && !guildConfig.requireCharacterForEvent ? characterDefault : (characterBackup && !guildConfig.requireCharacterForEvent ? characterBackup : undefined));
+        character = character ? character : (characterDefault && !requireCampaignCharacterForEvent ? characterDefault : (characterBackup && !requireCampaignCharacterForEvent ? characterBackup : undefined));
     }
+    return character;
+}
+
+async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
+    let character = await retrieveCharacterToUse(reaction.message.guild.id, user.id, eventForMessage.campaign, guildConfig.requireCampaignCharacterForEvent);
     if (!character) {
         if (eventForMessage.campaign && guildConfig.requireCharacterForEvent) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have an approved character and that it's campaign is set to ${eventForMessage.campaign}.`);
@@ -770,8 +876,6 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
             throw new Error(`Could not add another attendee, there are only ${eventForMessage.number_player_slots} total slots available, and they're all taken.`);
         }
     }
-    // console.log('Character will be playing: ' + character.name);
-    // console.log('attendees: ', eventForMessage.attendees);
     await eventForMessage.save();
     await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
 }
@@ -838,6 +942,7 @@ exports.handleEventList = handleEventList;
 exports.handleReactionAdd = handleReactionAdd;
 exports.handleEventListProposed = handleEventListProposed;
 exports.handleEventListDeployed = handleEventListDeployed;
+exports.handleEventAttendance = handleEventAttendance;
 exports.getLinkForEvent = getLinkForEvent;
 exports.sendReminders = sendReminders;
 exports.bc_eventCreate = bc_eventCreate;

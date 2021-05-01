@@ -602,69 +602,49 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     change = stringForRaceChange(approvedChar, updatedChar);
     if (change) changes.push(change);
     changes = changes.concat(arrayForClassChange(approvedChar, updatedChar));
-    changesEmbed.addFields({ name: 'Core Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+    changesEmbed.addFields({ name: 'Core Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     changes = arrayForAbilitiesChange(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Abilities Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Abilities Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForBackgroundModifiersChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Background Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Background Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForClassModifiersChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Class Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Class Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForConditionModifiersChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Condition Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Condition Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForFeatModifiersChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Feat Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Feat Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForItemModifiersChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Item Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Item Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForRaceModifiersChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Race Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Race Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForTraitsChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Traits Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Traits Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForInventoryChanges(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Inventory Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Inventory Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     changes = arrayForCurrenciesChange(approvedChar, updatedChar);
     if (changes?.length > 0) {
-        changesEmbed.addFields({ name: 'Currency Changes', value: trimAndElipsiseStringArray(changes, 1024) });
+        changesEmbed.addFields({ name: 'Currency Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
     return changesEmbed;
 }
-
-function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
-    let elipses = '\n...';
-    let buffer = elipses.length;
-    totalFinalLength = totalFinalLength - buffer;
-    let stringToReturn = strArrayToTrim.join('\n');
-    while (stringToReturn.length >= totalFinalLength) {
-        let lastIndex = stringToReturn.lastIndexOf('\n');
-        if (lastIndex == -1) {
-            stringToReturn = stringToReturn.substring(0, totalFinalLength - buffer) + elipses;
-        } else {
-            stringToReturn = stringToReturn.substring(0, lastIndex);
-            if (stringToReturn.length <= totalFinalLength - buffer) {
-                stringToReturn += elipses;
-            }
-        }
-    }
-    return stringToReturn;
-}
-
 
 /**
  * returns an array of currency changes between characters
@@ -1083,6 +1063,9 @@ function stringForCharacter(char) {
 }
 
 function stringForCharacterShort(char) {
+    if (!char) {
+        return '';
+    }
     let classes = '';
     char.classes.forEach((theClass) => {
         classes += stringForClassShort(theClass);
