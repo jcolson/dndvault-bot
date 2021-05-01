@@ -291,7 +291,7 @@ async function confirmGuildConfig(guild) {
             guildConfig.iconURL = guild.iconURL();
             needsSave = true;
         }
-        console.debug(`botID: ${guild.client.user.id}`);
+        // console.debug(`confirmGuildConfig:botID: ${guild.client.user.id}`);
         if (typeof guildConfig.botID === 'undefined' || !guildConfig.botID || guildConfig.botID != guild.client.user.id) {
             guildConfig.botID = guild.client.user.id;
             needsSave = true;
