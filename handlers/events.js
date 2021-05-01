@@ -744,6 +744,7 @@ async function handleEventAttendance(msg, msgParms, guildConfig) {
 }
 
 function embedForEventAttendance(attendanceRows, title, guildIconURL) {
+    const rowsPerField = 12;
     let eventAttendanceEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
         .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}`)
@@ -751,11 +752,20 @@ function embedForEventAttendance(attendanceRows, title, guildIconURL) {
     const fieldLength = 21;
     const separator = '|';
     let reportArray = [utils.appendStringsForEmbed(['SESSION COUNT', 'CHARACTER', 'PLAYER'], fieldLength, separator)];
+    let rowCount = 0;
     for (row of attendanceRows) {
         reportArray.push(utils.appendStringsForEmbed([row.count + '', characters.stringForCharacterShort(row.character), '<@' + row._id + '>'], fieldLength, separator));
+        if (++rowCount > rowsPerField) {
+            rowCount = 0;
+            eventAttendanceEmbed.addFields({ name: title, value: utils.trimAndElipsiseStringArray(reportArray, 1024) });
+            title = `\u200B`;
+            reportArray = [];
+        }
         // console.debug(`${row._id} - ${row.count}`);
     }
-    eventAttendanceEmbed.addFields({ name: title, value: utils.trimAndElipsiseStringArray(reportArray, 1024) });
+    if (reportArray.length > 0) {
+        eventAttendanceEmbed.addFields({ name: title, value: utils.trimAndElipsiseStringArray(reportArray, 1024) });
+    }
     return eventAttendanceEmbed;
 }
 
