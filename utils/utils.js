@@ -104,7 +104,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 if (urlToLinkBank) {
                     let goBackMessage = '[Go Back To Message]';
                     // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
-                    let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
+                    let lastFieldValue = embedsArray.length > 1 ? (embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value) : '';
                     if (!lastFieldValue.startsWith(goBackMessage)) {
                         embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
                     }
@@ -214,6 +214,11 @@ async function retrieveRoleForName(guild, roleName) {
     return roleForName;
 }
 
+/**
+ *
+ * @param {Array} stringArray
+ * @returns {String}
+ */
 function appendStringsForEmbedChanges(stringArray) {
     let fieldSize = 16;
     let separator = ' | ';
@@ -227,7 +232,12 @@ function appendStringsForEmbed(stringArray, fieldSize, separator, dontQuote, pad
         quote = '';
     }
     stringArray.forEach((value) => {
-        returnValue = returnValue + quote + stringOfSize(value, fieldSize, padChar) + quote + separator;
+        // if field is a mentionable, lets not wrap it in quote
+        if (value.startsWith('<')) {
+            returnValue = returnValue + stringOfSize(value, fieldSize, padChar) + separator;
+        } else {
+            returnValue = returnValue + quote + stringOfSize(value, fieldSize, padChar) + quote + separator;
+        }
     })
     return returnValue.substring(0, returnValue.length - separator.length);
 }
@@ -245,6 +255,25 @@ function stringOfSize(value, size, padChar, padBefore) {
         }
     }
     return value;
+}
+
+function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
+    let elipses = '\n...';
+    let buffer = elipses.length;
+    totalFinalLength = totalFinalLength - buffer;
+    let stringToReturn = strArrayToTrim.join('\n');
+    while (stringToReturn.length >= totalFinalLength) {
+        let lastIndex = stringToReturn.lastIndexOf('\n');
+        if (lastIndex == -1) {
+            stringToReturn = stringToReturn.substring(0, totalFinalLength - buffer) + elipses;
+        } else {
+            stringToReturn = stringToReturn.substring(0, lastIndex);
+            if (stringToReturn.length <= totalFinalLength - buffer) {
+                stringToReturn += elipses;
+            }
+        }
+    }
+    return stringToReturn;
 }
 
 /**
@@ -455,6 +484,7 @@ exports.retrieveRoleForID = retrieveRoleForID;
 exports.retrieveRoleForName = retrieveRoleForName;
 exports.appendStringsForEmbed = appendStringsForEmbed;
 exports.appendStringsForEmbedChanges = appendStringsForEmbedChanges;
+exports.trimAndElipsiseStringArray = trimAndElipsiseStringArray;
 exports.checkChannelPermissions = checkChannelPermissions;
 exports.isTrue = isTrue;
 exports.getDiscordUrl = getDiscordUrl;
