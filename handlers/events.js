@@ -132,8 +132,13 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
-                let existingEvent = await EventModel.findById(eventID);
-                if (!existingEvent) {
+                let existingEvent;
+                try {
+                    existingEvent = await EventModel.findById(eventID);
+                    if (!existingEvent) {
+                        throw new Error();
+                    }
+                } catch (error) {
                     throw new Error(`Unknown event id (${eventID})`);
                 }
                 let guildMember = await theGuild.members.fetch(currUserId);
