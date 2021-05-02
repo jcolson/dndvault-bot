@@ -132,8 +132,13 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
-                let existingEvent = await EventModel.findById(eventID);
-                if (!existingEvent) {
+                let existingEvent;
+                try {
+                    existingEvent = await EventModel.findById(eventID);
+                    if (!existingEvent) {
+                        throw new Error();
+                    }
+                } catch (error) {
                     throw new Error(`Unknown event id (${eventID})`);
                 }
                 let guildMember = await theGuild.members.fetch(currUserId);
@@ -176,6 +181,82 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
         throw error;
     }
     return false;
+}
+
+/**
+ * Allows approver to add a player to an event
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+ async function handleEventSignup(msg, msgParms, guildConfig) {
+    try {
+        const eventIDparam = msgParms.find(p => p.name == 'event_id');
+        if (!eventIDparam) {
+            throw new Error(`Please ensure to pass the event id that you wish to have signed up to.`);
+        }
+        const eventUserIDparam = msgParms.find(p => p.name == 'user_id');
+        if (!eventUserIDparam) {
+            throw new Error(`Please ensure to pass the player's user id that you wish to signup.`);
+        }
+        const eventToAlter = await EventModel.findById(eventIDparam.value);
+        if (!eventToAlter) {
+            throw new Error(`Could not locate event ${eventIDparam.value}`);
+        }
+        const eventMessage = await (
+            await msg.guild.channels.resolve(eventToAlter.channelID)
+        ).messages.fetch(eventToAlter.messageID);
+        const userToSignup = await client.users.resolve(eventUserIDparam.value);
+        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole) && msg.member.id != eventToAlter?.userID) {
+            throw new Error(`Please have <@${eventToAlter?.userID}> signup this player, or ask an \`approver role\` to do so.`);
+        }
+        await attendeeAdd(eventMessage, userToSignup, eventToAlter, guildConfig);
+        await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Signup ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Signed Up To Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
+        if (msg.deletable) {
+            await msg.delete();
+        }
+    } catch (error) {
+        console.error('handleEventSignup:', error);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
+}
+
+/**
+ * Allows approver to withdraw a player from an event
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
+    try {
+        const eventIDparam = msgParms.find(p => p.name == 'event_id');
+        if (!eventIDparam) {
+            throw new Error(`Please ensure to pass the event id that you wish to have signed up to.`);
+        }
+        const eventUserIDparam = msgParms.find(p => p.name == 'user_id');
+        if (!eventUserIDparam) {
+            throw new Error(`Please ensure to pass the player's user id that you wish to signup.`);
+        }
+        const eventToAlter = await EventModel.findById(eventIDparam.value);
+        if (!eventToAlter) {
+            throw new Error(`Could not locate event ${eventIDparam.value}`);
+        }
+        const eventMessage = await (
+            await msg.guild.channels.resolve(eventToAlter.channelID)
+        ).messages.fetch(eventToAlter.messageID);
+        const userToSignup = await client.users.resolve(eventUserIDparam.value);
+        if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole) && msg.member.id != eventToAlter?.userID) {
+            throw new Error(`Please have <@${eventToAlter?.userID}> withdraw this player, or ask an \`approver role\` to do so.`);
+        }
+        await attendeeRemove(eventMessage, userToSignup, eventToAlter, guildConfig);
+        await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Withdrawal ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Withdrawn From Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
+        if (msg.deletable) {
+            await msg.delete();
+        }
+    } catch (error) {
+        console.error('handleEventWithdrawal:', error);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
 }
 
 /**
@@ -641,11 +722,11 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         }
         if (reaction.emoji?.name == utils.EMOJIS.CHECK && eventForMessage) {
             // console.debug(eventForMessage);
-            await attendeeAdd(reaction, user, eventForMessage, guildConfig);
+            await attendeeAdd(reaction.message, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.X && eventForMessage) {
             // console.debug(eventForMessage);
-            await attendeeRemove(reaction, user, eventForMessage);
+            await attendeeRemove(reaction.message, user, eventForMessage);
             await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.PLAY && eventForMessage) {
             // console.debug(eventForMessage);
@@ -857,8 +938,15 @@ async function retrieveCharacterToUse(guildID, userID, campaign, requireCampaign
     return character;
 }
 
-async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
-    let character = await retrieveCharacterToUse(reaction.message.guild.id, user.id, eventForMessage.campaign, guildConfig.requireCampaignCharacterForEvent);
+/**
+ *
+ * @param {Message} message
+ * @param {User} user
+ * @param {EventModel} eventForMessage
+ * @param {GuildModel} guildConfig
+ */
+async function attendeeAdd(message, user, eventForMessage, guildConfig) {
+    let character = await retrieveCharacterToUse(message.guild.id, user.id, eventForMessage.campaign, guildConfig.requireCampaignCharacterForEvent);
     if (!character) {
         if (eventForMessage.campaign && guildConfig.requireCharacterForEvent) {
             throw new Error(`Could not locate an eligible character to join the mission <${getLinkForEvent(eventForMessage)}>.  Make sure you have an approved character and that it's campaign is set to ${eventForMessage.campaign}.`);
@@ -887,10 +975,16 @@ async function attendeeAdd(reaction, user, eventForMessage, guildConfig) {
         }
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
+    await message.edit(await embedForEvent(message.guild.iconURL(), [eventForMessage], undefined, true));
 }
 
-async function attendeeRemove(reaction, user, eventForMessage) {
+/**
+ *
+ * @param {Message} message
+ * @param {User} user
+ * @param {EventModel} eventForMessage
+ */
+async function attendeeRemove(message, user, eventForMessage) {
     // console.log('attendees: ', eventForMessage.attendees);
 
     if (!eventForMessage.attendees) {
@@ -903,7 +997,7 @@ async function attendeeRemove(reaction, user, eventForMessage) {
     });
     // console.log(eventForMessage);
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
+    await message.edit(await embedForEvent(message.guild.iconURL(), [eventForMessage], undefined, true));
 }
 
 async function sendReminders(client) {
@@ -953,6 +1047,8 @@ exports.handleReactionAdd = handleReactionAdd;
 exports.handleEventListProposed = handleEventListProposed;
 exports.handleEventListDeployed = handleEventListDeployed;
 exports.handleEventAttendance = handleEventAttendance;
+exports.handleEventSignup = handleEventSignup;
+exports.handleEventWithdrawal = handleEventWithdrawal;
 exports.getLinkForEvent = getLinkForEvent;
 exports.sendReminders = sendReminders;
 exports.bc_eventCreate = bc_eventCreate;
