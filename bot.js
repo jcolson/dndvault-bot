@@ -401,6 +401,38 @@ global.COMMANDS = {
         "description": "list all future events (and events from the past few days) (PROPOSed and DEPLOYed)",
         "slash": true,
     },
+    "eventSignup": {
+        "name": "event_signup",
+        "description": "Sign up a player to an event.",
+        "slash": true,
+        "options": [{
+            "name": "event_id",
+            "description": "The event that you wish to show's ID",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "user_id",
+            "description": "The user for which you'd like to see characters",
+            "required": true,
+            "type": 6 // discord user
+        }]
+    },
+    "eventWithdrawal": {
+        "name": "event_withdrawal",
+        "description": "Withdrawal a player from an event.",
+        "slash": true,
+        "options": [{
+            "name": "event_id",
+            "description": "The event that you wish to show's ID",
+            "required": true,
+            "type": 3
+        }, {
+            "name": "user_id",
+            "description": "The user for which you'd like to see characters",
+            "required": true,
+            "type": 6 // discord user
+        }]
+    },
     "poll": {
         "name": "poll",
         "description": "Create a Poll to get input from the server users",
@@ -923,6 +955,12 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.eventAttendance.name:
                         events.handleEventAttendance(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventSignup.name:
+                        events.handleEventSignup(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.eventWithdrawal.name:
+                        events.handleEventWithdrawal(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.default.name:
                         users.handleDefault(msg, msgParms, guildConfig);
