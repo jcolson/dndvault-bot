@@ -959,6 +959,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                     case COMMANDS.eventSignup.name:
                         events.handleEventSignup(msg, msgParms, guildConfig);
                         break;
+                    case COMMANDS.eventWithdrawal.name:
+                        events.handleEventWithdrawal(msg, msgParms, guildConfig);
+                        break;
                     case COMMANDS.default.name:
                         users.handleDefault(msg, msgParms, guildConfig);
                         break;
