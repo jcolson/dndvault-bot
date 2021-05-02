@@ -189,7 +189,7 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
  * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
- async function handleEventSignup(msg, msgParms, guildConfig) {
+async function handleEventSignup(msg, msgParms, guildConfig) {
     try {
         const eventIDparam = msgParms.find(p => p.name == 'event_id');
         if (!eventIDparam) {
@@ -206,7 +206,10 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
         const eventMessage = await (
             await msg.guild.channels.resolve(eventToAlter.channelID)
         ).messages.fetch(eventToAlter.messageID);
-        const userToSignup = await client.users.resolve(eventUserIDparam.value);
+        const userToSignup = await client.users.fetch(eventUserIDparam.value);
+        if (!userToSignup) {
+            throw new Error(`Could not locate player/user ${eventUserIDparam.value}`);
+        }
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole) && msg.member.id != eventToAlter?.userID) {
             throw new Error(`Please have <@${eventToAlter?.userID}> signup this player, or ask an \`approver role\` to do so.`);
         }
@@ -227,7 +230,7 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
  * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
- async function handleEventWithdrawal(msg, msgParms, guildConfig) {
+async function handleEventWithdrawal(msg, msgParms, guildConfig) {
     try {
         const eventIDparam = msgParms.find(p => p.name == 'event_id');
         if (!eventIDparam) {
@@ -244,7 +247,10 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
         const eventMessage = await (
             await msg.guild.channels.resolve(eventToAlter.channelID)
         ).messages.fetch(eventToAlter.messageID);
-        const userToSignup = await client.users.resolve(eventUserIDparam.value);
+        const userToSignup = await client.users.fetch(eventUserIDparam.value);
+        if (!userToSignup) {
+            throw new Error(`Could not locate player/user ${eventUserIDparam.value}`);
+        }
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole) && msg.member.id != eventToAlter?.userID) {
             throw new Error(`Please have <@${eventToAlter?.userID}> withdraw this player, or ask an \`approver role\` to do so.`);
         }
