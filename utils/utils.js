@@ -226,19 +226,34 @@ function appendStringsForEmbedChanges(stringArray) {
     return appendStringsForEmbed(stringArray, fieldSize, separator);
 }
 
+/**
+ *
+ * @param {Array} stringArray
+ * @param {Integer or Array<Integers>} fieldSize
+ * @param {String} separator
+ * @param {Boolean} dontQuote
+ * @param {String} padChar
+ * @returns
+ */
 function appendStringsForEmbed(stringArray, fieldSize, separator, dontQuote, padChar) {
+    if (!Array.isArray(fieldSize)) {
+        fieldSize = [fieldSize];
+    }
     let returnValue = '';
     let quote = '`';
     if (dontQuote) {
         quote = '';
     }
+    let i = 0;
     stringArray.forEach((value) => {
+        let fieldSizeForField = fieldSize.length > i ? fieldSize[i] : fieldSize[fieldSize.length - 1];
         // if field is a mentionable, lets not wrap it in quote
         if (value.startsWith('<')) {
-            returnValue = returnValue + stringOfSize(value, fieldSize, padChar) + separator;
+            returnValue = returnValue + stringOfSize(value, fieldSizeForField, padChar) + separator;
         } else {
-            returnValue = returnValue + quote + stringOfSize(value, fieldSize, padChar) + quote + separator;
+            returnValue = returnValue + quote + stringOfSize(value, fieldSizeForField, padChar) + quote + separator;
         }
+        i++;
     })
     return returnValue.substring(0, returnValue.length - separator.length);
 }
@@ -476,6 +491,13 @@ function transformCommandsToDiscordFormat(commandsToTransform) {
     return commandsToRegister;
 }
 
+function strikeThrough(text) {
+    return text
+        .split('')
+        .map(char => char + '\u0336')
+        .join('')
+}
+
 exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
@@ -496,3 +518,4 @@ exports.removeAllDataForGuild = removeAllDataForGuild;
 exports.trimTagsFromId = trimTagsFromId;
 exports.checkIfCommandsChanged = checkIfCommandsChanged;
 exports.transformCommandsToDiscordFormat = transformCommandsToDiscordFormat;
+exports.strikeThrough = strikeThrough;
