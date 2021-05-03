@@ -476,6 +476,13 @@ function transformCommandsToDiscordFormat(commandsToTransform) {
     return commandsToRegister;
 }
 
+function strikeThrough(text) {
+    return text
+        .split('')
+        .map(char => char + '\u0336')
+        .join('')
+}
+
 exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
@@ -496,3 +503,4 @@ exports.removeAllDataForGuild = removeAllDataForGuild;
 exports.trimTagsFromId = trimTagsFromId;
 exports.checkIfCommandsChanged = checkIfCommandsChanged;
 exports.transformCommandsToDiscordFormat = transformCommandsToDiscordFormat;
+exports.strikeThrough = strikeThrough;

@@ -303,18 +303,22 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
         }
         if (existingEvent) {
             await existingEvent.delete();
+            let channelId = existingEvent?.channelID ? existingEvent.channelID : existingEventMessage?.channel?.id;
+            let messageId = existingEvent?.messageID ? existingEvent.messageID : existingEventMessage?.id;
+            const eventMessage = await (
+                await guild.channels.resolve(channelId)
+            ).messages.fetch(messageId);
+            if (eventMessage) {
+                await eventMessage.edit(await embedForEvent(guild.iconURL(), [existingEvent], undefined, true, memberUser.id));
+                await eventMessage.reactions.removeAll();
+            }
         }
         returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
-        let channelId = existingEvent?.channelID ? existingEvent.channelID : existingEventMessage?.channel?.id;
-        let messageId = existingEvent?.messageID ? existingEvent.messageID : existingEventMessage?.id;
-        const eventMessage = await (
-            await guild.channels.resolve(channelId)
-        ).messages.fetch(messageId);
-        if (eventMessage.deletable) {
-            await eventMessage.delete();
-        }
+        // if (eventMessage?.deletable) {
+        //     await eventMessage.delete();
+        // }
     } catch (error) {
-        console.error(`removeEvent: couldn't delete old event message on edit: ${error.message}`);
+        console.error(`removeEvent: couldn't delete old event message on edit:`, error);
     }
     return returnMessage;
 }
@@ -577,11 +581,13 @@ function nextValidIndex(startindex, sepIndexArray) {
  *
  * @returns {MessageEmbed[]}
  */
-async function embedForEvent(guildIconURL, eventArray, title, isShow) {
+async function embedForEvent(guildIconURL, eventArray, title, isShow, removedBy) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 1 : 4;
-    if (!title && eventArray.length > 0) {
+    if (removedBy) {
+        title = utils.strikeThrough(eventArray[0].title);
+    } else if (!title && eventArray.length > 0) {
         title = eventArray[0].title;
     } else if (!title) {
         title = 'Event';
@@ -607,6 +613,10 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow) {
         let messageTitleAndUrl = isShow
             ? `${theEvent._id}`
             : `${getEmbedLinkForEvent(theEvent)}`;
+        if (removedBy) {
+            eventEmbed.setColor(utils.COLORS.RED);
+            eventEmbed.addFields({ name: `${utils.EMOJIS.TRASH}EVENT REMOVED by${utils.EMOJIS.TRASH}`, value: `<@${removedBy}>`, inline: false });
+        }
         eventEmbed.addFields(
             { name: `${isShow ? '' : utils.EMOJIS.DAGGER}ID`, value: messageTitleAndUrl, inline: isShow },
             { name: 'DMGM', value: `${dmgmString}`, inline: true },
@@ -742,11 +752,11 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             // console.debug(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
-        } else if (reaction.emoji?.name == utils.EMOJIS.TRASH) {
-            await reaction.users.remove(user.id);
+        } else if (reaction.emoji?.name == utils.EMOJIS.TRASH && eventForMessage) {
             let memberUser = await reaction.message.guild.members.resolve(user.id);
             let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage?._id, guildConfig, reaction.message);
             await utils.sendDirectOrFallbackToChannel(deleteMessage, reaction.message, user);
+            await reaction.users.remove(user.id);
         } else {
             console.log(`handleReactionAdd: EventFromDb: ${eventForMessage ? true : false} Reaction: ${reaction.emoji?.name}`);
         }
