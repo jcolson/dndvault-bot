@@ -527,7 +527,11 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         let refDate = usersOriginalEventDate ? usersOriginalEventDate : getDateInDifferentTimezone(new Date(), currUser.timezone);
         //new Date(new Date().toLocaleString("en-US", { timeZone: currUser.timezone }));
         // console.log('refDate %s then - on %s at %s', refDate, onDate, atTime);
-        let eventDate = parse(dateTimeStringToParse, refDate, { timezoneOffset: timezoneOffset }).start.date();
+        let eventDateParsed = parse(dateTimeStringToParse, refDate, { timezoneOffset: timezoneOffset });
+        if (!eventDateParsed) {
+            throw new Error(`Could not determine date and time from arguments passed in (date: ${onDate}, time: ${atTime})`);
+        }
+        let eventDate = eventDateParsed.start.date();
         // console.log('parsed date %s', eventDate);
         validatedEvent.date_time = eventDate;
     }
@@ -767,7 +771,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
 }
 
 /**
- * list DEPLOYED events that are in the future or n days old
+ * report to show event attendance
  * @param {Message} msg
  * @param {Array} msgParms
  * @param {GuildModel} guildConfig
