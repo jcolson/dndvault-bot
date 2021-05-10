@@ -128,9 +128,9 @@ I'm looking for feedback, so please feel free to open bugs, feature requests, et
 
 All commands that are implemented have a `[x]` next to them.  This is a list of commands that are already implemented as well as commands that will be implemented in time.
 
-The brackets below (such as in `create manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}`) are to show you 'placeholders' for arguments that needs to be passed to the command.  `[]` brackets mean that arguments are **required** and `{}` brackets mean that the content is **optional**.
+The brackets below (such as in `register manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}`) are to show you 'placeholders' for arguments that needs to be passed to the command.  `[]` brackets mean that arguments are **required** and `{}` brackets mean that the content is **optional**.
 
-All the below commands have been implemented as slash (ex: `/create_manual`) commands, and are recommended to be used over the 'old style' prefix (ex: `!create manual`) commands.
+All the below commands have been implemented as slash (ex: `/register_manual`) commands, and are recommended to be used over the 'old style' prefix (ex: `!register manual`) commands.
 
 **Roll initiative!**
 
