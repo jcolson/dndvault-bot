@@ -14,6 +14,8 @@ DND Vault Table of Contents
   - [Feedback and Support Discord](#feedback-and-support-discord)
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Commands](#commands)
+    - [Functionality Documentation](#functionality-documentation)
+    - [Command Descriptions](#command-descriptions)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
   - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
   - [Screenshots](#screenshots)
@@ -126,13 +128,22 @@ I'm looking for feedback, so please feel free to open bugs, feature requests, et
 
 ## Commands
 
-All commands that are implemented have a `[x]` next to them.  This is a list of commands that are already implemented as well as commands that will be implemented in time.
+### Functionality Documentation
+
+- [Character Vault](#character-vault)
+- [Events](#events)
+- [Polling](#polling)
+- [Rolling dice](#rolling-dice)
+
+All the below commands have been implemented as **slash** (ex: `/register_manual`) commands, and are recommended to be used over the 'old style' prefix (ex: `!register manual`) commands.
+
+All commands that are implemented have a `[x]` next to them.  This is a list of commands that are already implemented as well as commands that are planned.
 
 The brackets below (such as in `register manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}`) are to show you 'placeholders' for arguments that needs to be passed to the command.  `[]` brackets mean that arguments are **required** and `{}` brackets mean that the content is **optional**.
 
-All the below commands have been implemented as slash (ex: `/register_manual`) commands, and are recommended to be used over the 'old style' prefix (ex: `!register manual`) commands.
-
 **Roll initiative!**
+
+### Command Descriptions
 
 ```fix
 - [x] help
