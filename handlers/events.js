@@ -801,6 +801,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             console.log(`handleReactionAdd: EventFromDb: ${eventForMessage ? true : false} Reaction: ${reaction.emoji?.name}`);
         }
     } catch (error) {
+        console.error('handleReactionAdd:', error);
         await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
         await reaction.users.remove(user.id);
     }
