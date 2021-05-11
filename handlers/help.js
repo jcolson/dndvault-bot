@@ -30,7 +30,11 @@ If you would like to see all commands available, [they are on the github website
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);

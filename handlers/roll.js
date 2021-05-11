@@ -19,7 +19,11 @@ async function handleDiceRoll(msg, diceParam) {
         }
         await utils.sendDirectOrFallbackToChannel(embedFields, msg, undefined, true);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         console.error('handleDiceRoll:', error);
@@ -46,7 +50,11 @@ async function handleDiceRollStats(msg, diceParam) {
         }
         await utils.sendDirectOrFallbackToChannelEmbeds(statsEmbed, msg, undefined, true);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         console.error('handleDiceRollStats:', error);

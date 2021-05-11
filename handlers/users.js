@@ -30,7 +30,11 @@ async function handleDefault(msg, msgParms, guildConfig) {
             await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character was successfully set to: \`${character.name}\`` }], msg);
         }
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -95,7 +99,11 @@ async function handleTimezone(msg, msgParms, guildConfig) {
             }
         }
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         console.log('users.handleTimezone:', error);
