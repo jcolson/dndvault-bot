@@ -21,7 +21,11 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
         let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, msgParms, msg);
         if (eventCreateResult) {
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error("Could not create event.");
@@ -99,7 +103,11 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error("Could not edit event.");
@@ -216,7 +224,11 @@ async function handleEventSignup(msg, msgParms, guildConfig) {
         await attendeeAdd(eventMessage, userToSignup, eventToAlter, guildConfig);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Signup ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Signed Up To Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         console.error('handleEventSignup:', error);
@@ -257,7 +269,11 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
         await attendeeRemove(eventMessage, userToSignup, eventToAlter, guildConfig);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Withdrawal ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Withdrawn From Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         console.error('handleEventWithdrawal:', error);
@@ -278,7 +294,11 @@ async function handleEventRemove(msg, msgParms, guildConfig) {
         let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
         await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -351,7 +371,11 @@ async function handleEventShow(msg, msgParms, guildConfig) {
         }
         const sentMessage = await eventChannel.send(embedEvent);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
         try {
             // remove old event message
@@ -393,7 +417,11 @@ async function handleEventList(msg, msgParms, guildConfig) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`I don't see any events yet.  Create one with \`event create\`!`);
@@ -418,7 +446,11 @@ async function handleEventListProposed(msg, msgParms, guildConfig) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`I don't see any PROPOSED events yet.  Create one with \`event create\`!`);
@@ -443,7 +475,11 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`I don't see any DEPLOYED events yet.  Create one with \`event create\`!`);

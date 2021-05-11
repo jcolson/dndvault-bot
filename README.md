@@ -13,9 +13,11 @@ DND Vault Table of Contents
     - [Example usages](#example-usages)
   - [Feedback and Support Discord](#feedback-and-support-discord)
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
+  - [Commands](#commands)
+    - [Functionality Documentation](#functionality-documentation)
+    - [Command Descriptions](#command-descriptions)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
   - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
-  - [Commands](#commands)
   - [Screenshots](#screenshots)
     - [event list](#event-list)
     - [event](#event)
@@ -124,44 +126,24 @@ I'm looking for feedback, so please feel free to open bugs, feature requests, et
 
 [Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot%20applications.commands)
 
-## Example character workflow with the BOT
-
-Workflow would work something like this.
-
-- Discord users join a server and decide to have a campaign.
-- Server owner invites BOT
-- Each user creates a character for campaign on [DND Beyond](https://dndbeyond.com/my-characters)
-- Each user 'registers' character with BOT
-- DM 'approves' each character
-- Mission occurs
-- Users update characters on [DND Beyond](https://dndbeyond.com/my-characters)
-- Users request 'update' of character with BOT
-- DM 'lists queued' character approvals
-- DM reviews 'changes' of character
-- DM 'approves' character changes
-
-all the while anyone on the server can 'view' any user's character ...
-
-## Example character workflow usage with approvals 'true'
-
-```diff
-#player types
-!register https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
-#approver role user types
-!list queued
-!changes 41867999
-!approve 41867999
-#player types, to update character
-!update https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
-#approver role user types
-!list queued
-!changes 41867999
-!approve 41867999
-```
-
 ## Commands
 
-Not all commands are implemented, this is a list of commands that will **hopefully** be implemented in short order. IGNORE the brackets in the usage help below.
+### Functionality Documentation
+
+- [Character Vault](#character-vault)
+- [Events](#events)
+- [Polling](#polling)
+- [Rolling dice](#rolling-dice)
+
+All the below commands have been implemented as **slash** (ex: `/register_manual`) commands, and are recommended to be used over the 'old style' prefix (ex: `!register manual`) commands.
+
+All commands that are implemented have a `[x]` next to them.  This is a list of commands that are already implemented as well as commands that are planned.
+
+The brackets below (such as in `register manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN}`) are to show you 'placeholders' for arguments that needs to be passed to the command.  `[]` brackets mean that arguments are **required** and `{}` brackets mean that the content is **optional**.
+
+**Roll initiative!**
+
+### Command Descriptions
 
 ```fix
 - [x] help
@@ -220,6 +202,41 @@ Not all commands are implemented, this is a list of commands that will **hopeful
   - [x] campaign [BOOLEAN] - require that a user have matching character for event's campaigns
   - [x] pollchannel [#CHANNEL] - send all polls to this channel
   - [x] eventchannel [#CHANNEL] - send all events to this channel
+```
+
+## Example character workflow with the BOT
+
+Workflow would work something like this.
+
+- Discord users join a server and decide to have a campaign.
+- Server owner invites BOT
+- Each user creates a character for campaign on [DND Beyond](https://dndbeyond.com/my-characters)
+- Each user 'registers' character with BOT
+- DM 'approves' each character
+- Mission occurs
+- Users update characters on [DND Beyond](https://dndbeyond.com/my-characters)
+- Users request 'update' of character with BOT
+- DM 'lists queued' character approvals
+- DM reviews 'changes' of character
+- DM 'approves' character changes
+
+all the while anyone on the server can 'view' any user's character ...
+
+## Example character workflow usage with approvals 'true'
+
+```diff
+#player types
+!register https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
+#approver role user types
+!list queued
+!changes 41867999
+!approve 41867999
+#player types, to update character
+!update https://www.dndbeyond.com/profile/BlacknTan/characters/41867999
+#approver role user types
+!list queued
+!changes 41867999
+!approve 41867999
 ```
 
 ## Screenshots

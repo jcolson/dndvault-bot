@@ -51,9 +51,13 @@ async function handleConfig(msg, msgParms, guildConfig) {
             { name: 'Poll Channel', value: channelForPolls.name, inline: true }
             ],
             msg);
-        if (msg.deletable) {
-            await msg.delete();
-        }
+            if (msg.deletable) {
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
+            }
     } catch (error) {
         console.error("handleConfig:", error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -78,7 +82,11 @@ async function handleConfigCampaign(msg, msgParms, guildConfig) {
             GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Campaign', value: `Require Character for Events now set to: \`${guildConfig.requireCharacterForEvent}\`.` }, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`Please ask an \`approver role\` to configure.`);
@@ -110,7 +118,11 @@ async function handleConfigArole(msg, msgParms, guildConfig) {
                 GuildCache.set(msg.guild.id, guildConfig);
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Approver Role', value: `${configArole.name} is now the \`approver role\`.` }, msg);
                 if (msg.deletable) {
-                    await msg.delete();
+                    try {
+                        await msg.delete();
+                    } catch (error) {
+                        console.error(`Could not delete ${msg.id}`, error);
+                    }
                 }
             } else {
                 throw new Error(`could not locate the role for: ${configAroleIdCheck}`);
@@ -145,7 +157,11 @@ async function handleConfigProle(msg, msgParms, guildConfig) {
                 GuildCache.set(msg.guild.id, guildConfig);
                 await utils.sendDirectOrFallbackToChannel({ name: 'Config Player Role', value: `${configProle.name} is now the \`player role\`.` }, msg);
                 if (msg.deletable) {
-                    await msg.delete();
+                    try {
+                        await msg.delete();
+                    } catch (error) {
+                        console.error(`Could not delete ${msg.id}`, error);
+                    }
                 }
             } else {
                 throw new Error(`could not locate the role for: ${configProleIdCheck}`);
@@ -190,7 +206,11 @@ async function handleConfigPrefix(msg, msgParms, guildConfig) {
             GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Prefix', value: `\`${guildConfig.prefix}\` is now my prefix, don't forget!` }, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
@@ -218,7 +238,11 @@ async function handleConfigApproval(msg, msgParms, guildConfig) {
             GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Approval', value: `Require Approval now set to: \`${guildConfig.requireCharacterApproval}\`.` }, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
@@ -339,7 +363,11 @@ async function handleConfigEventChannel(msg, msgParms, guildConfig) {
             GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Event Channel', value: `Event Channel now set to: \`${guildConfig.channelForEvents ? channelTest.name : guildConfig.channelForEvents}\`.` }, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
@@ -374,7 +402,11 @@ async function handleConfigPollChannel(msg, msgParms, guildConfig) {
             GuildCache.set(msg.guild.id, guildConfig);
             await utils.sendDirectOrFallbackToChannel({ name: 'Config Poll Channel', value: `Poll Channel now set to: \`${guildConfig.channelForPolls ? channelTest.name : guildConfig.channelForPolls}\`.` }, msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
@@ -403,7 +435,11 @@ async function handleStats(msg) {
                 { name: 'BOT Version', value: vaultVersion, inline: true }
             ], msg);
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         }
     } catch (error) {
@@ -439,7 +475,11 @@ async function handleKick(msg, msgParms) {
                 ], msg);
             }
             if (msg.deletable) {
-                await msg.delete();
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
             }
         }
     } catch (error) {
