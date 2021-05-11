@@ -1011,6 +1011,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         }
     } catch (error) {
         console.error('handleCommandExec:', error);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Error Encountered', value: error.message }, msg);
     }
     return handled;
 }

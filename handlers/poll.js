@@ -25,7 +25,11 @@ async function handlePoll(msg, msgParms, guildConfig) {
         sentMessage.react(utils.EMOJIS.TRASH);
         await utils.sendDirectOrFallbackToChannel({ name: `${utils.EMOJIS.DAGGER} Poll Create ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
         if (msg.deletable) {
-            await msg.delete();
+            try {
+                await msg.delete();
+            } catch (error) {
+                console.error(`Could not delete ${msg.id}`, error);
+            }
         }
     } catch (error) {
         error.message += ` For Channel: ${pollChannel.name}`;

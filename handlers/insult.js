@@ -178,9 +178,13 @@ async function handleInsult(msg, msgParms, guildConfig) {
         await utils.sendDirectOrFallbackToChannel(
             [{ name: 'Vicious Mockery Suggestion', value: `${insult}` }],
             msg);
-        if (msg.deletable) {
-            await msg.delete();
-        }
+            if (msg.deletable) {
+                try {
+                    await msg.delete();
+                } catch (error) {
+                    console.error(`Could not delete ${msg.id}`, error);
+                }
+            }
     } catch (error) {
         console.error("handleConfig:", error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
