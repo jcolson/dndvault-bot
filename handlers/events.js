@@ -982,7 +982,7 @@ async function retrieveCharacterToUse(guildID, userID, campaign, requireCampaign
     } else { // check array for characters that will work for a campaign
         let characterBackup, characterDefault;
         for (let charCheck of characterArray) {
-            if (charCheck.campaignOverride == eventForMessage.campaign || charCheck.campaign.id == eventForMessage.campaign) {
+            if (charCheck.campaignOverride == campaign || charCheck.campaign.id == campaign) {
                 character = charCheck;
             } else if (charCheck.id == vaultUser?.defaultCharacter) {
                 characterDefault = charCheck;
