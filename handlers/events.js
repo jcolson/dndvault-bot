@@ -67,6 +67,7 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, 
                 sentMessage.react(utils.EMOJIS.X);
                 sentMessage.react(utils.EMOJIS.PLAY);
                 sentMessage.react(utils.EMOJIS.CLOCK);
+                sentMessage.react(utils.EMOJIS.EDIT);
                 sentMessage.react(utils.EMOJIS.TRASH);
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Create ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
                 return true;
@@ -174,6 +175,7 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                     eventMessage.react(utils.EMOJIS.X);
                     eventMessage.react(utils.EMOJIS.PLAY);
                     eventMessage.react(utils.EMOJIS.CLOCK);
+                    eventMessage.react(utils.EMOJIS.EDIT);
                     eventMessage.react(utils.EMOJIS.TRASH);
                 }
                 await validatedEvent.save();
@@ -393,6 +395,7 @@ async function handleEventShow(msg, msgParms, guildConfig) {
         sentMessage.react(utils.EMOJIS.X);
         sentMessage.react(utils.EMOJIS.PLAY);
         sentMessage.react(utils.EMOJIS.CLOCK);
+        sentMessage.react(utils.EMOJIS.EDIT);
         sentMessage.react(utils.EMOJIS.TRASH);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Show ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
@@ -599,19 +602,6 @@ function getTimeZoneOffset(timezone) {
 }
 
 /**
- * for the indexes passed, starting at startindex, find the next index value that isn't a -1
- * @param {Number} startindex
- * @param {Array} sepIndexArray
- */
-function nextValidIndex(startindex, sepIndexArray) {
-    for (let i = startindex; i < sepIndexArray.length; i++) {
-        if (sepIndexArray[i] != -1) {
-            return sepIndexArray[i];
-        }
-    }
-}
-
-/**
  * returns the MessageEmbed(s) for an array of events passed
  *
  * @param {String} guildIconURL
@@ -682,7 +672,7 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow, removedBy)
     if (isShow) {
         eventEmbed.addFields(
             {
-                name: '\u200B', value: `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy ${utils.EMOJIS.CLOCK}Your TZ and Calendar\n`
+                name: '\u200B', value: `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy\n${utils.EMOJIS.CLOCK}Your TZ and Calendar ${utils.EMOJIS.EDIT}DC edit command ${utils.EMOJIS.TRASH}Remove\n`
             },
         );
     }
@@ -791,6 +781,11 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         } else if (reaction.emoji?.name == utils.EMOJIS.CLOCK && eventForMessage) {
             // console.debug(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
+            await reaction.users.remove(user.id);
+        } else if (reaction.emoji?.name == utils.EMOJIS.EDIT && eventForMessage) {
+            // console.debug(eventForMessage);
+            await utils.sendDirectOrFallbackToChannel({ name: `Edit Event Helper`, value: `Copy/Paste the following message into the appropriate channel on your server to start the event edit command.` }, reaction.message, user);
+            await utils.sendSimpleDirectOrFallbackToChannel(`\`/event_edit event_id:${eventForMessage.id}\``, reaction.message, user);
             await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.TRASH && eventForMessage) {
             let memberUser = await reaction.message.guild.members.resolve(user.id);
