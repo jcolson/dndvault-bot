@@ -11,6 +11,7 @@ const COLORS = {
 };
 
 const EMOJIS = {
+    EDIT: `\uD83D\uDCDD`,
     TRASH: `\u{1F5D1}`,
     ONE: `\u0031\uFE0F\u20E3`,
     TWO: `\u0032\uFE0F\u20E3`,
@@ -153,10 +154,30 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
             clientWsReply(msg.interaction, interactionEmbed);
         }
         if (!messageSent) {
-            throw new Error('No channel or DM method to send messaeg');
+            throw new Error('No channel or DM method to send message.');
         }
     } catch (error) {
         console.error('sendDirectOrFallbackToChannelEmbeds: - %s', error.message);
+    }
+}
+
+/**
+ * function to send simple text content
+ * @param {String} content
+ * @param {Message} msg
+ * @param {User} user
+ */
+async function sendSimpleDirectOrFallbackToChannel(content, msg, user) {
+    let sentMessage;
+    try {
+        sentMessage = await user.send(content);
+    } catch (error) {
+        console.error('could not send via DC; trying channel', error);
+        try {
+            sentMessage = await msg.channel.send(content);
+        } catch (error) {
+            console.error('could not send via DC or channel', error);
+        }
     }
 }
 
@@ -502,6 +523,7 @@ exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
 exports.sendDirectOrFallbackToChannelError = sendDirectOrFallbackToChannelError;
+exports.sendSimpleDirectOrFallbackToChannel = sendSimpleDirectOrFallbackToChannel;
 exports.lengthOfEmbed = lengthOfEmbed;
 exports.retrieveRoleForID = retrieveRoleForID;
 exports.retrieveRoleForName = retrieveRoleForName;
