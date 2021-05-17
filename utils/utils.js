@@ -439,9 +439,15 @@ async function clientWsReply(interaction, replyMessage) {
  * @returns
  */
 async function createAPIMessage(interaction, content) {
-    const channel = await client.channels.resolve(interaction.channel_id);
-    const { data, files } = await APIMessage.create(channel, content).resolveData().resolveFiles();
-    return { ...data, files };
+    const channel = await client.channels.fetch(interaction.channel_id);
+    if (channel) {
+        const { data, files } = await APIMessage.create(channel, content).resolveData().resolveFiles();
+        return { ...data, files };
+    } else {
+        console.error(`interaction`, interaction);
+        throw new Error(`channel did not resolve for interaction.channel_id: ${interaction.channel_id}`);
+    }
+
 }
 
 /**
