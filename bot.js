@@ -367,6 +367,11 @@ global.COMMANDS = {
             "description": "Campaign associated to event",
             "required": false,
             "type": 3
+        }, {
+            "name": "recur_every",
+            "description": "Recur this event every so many days (ex: 7)",
+            "required": false,
+            "type": 4 //integer
         }]
     },
     "eventRemove": {

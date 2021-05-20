@@ -19,7 +19,6 @@ const config = require('../handlers/config.js');
 async function handleEventCreate(msg, msgParms, guildConfig) {
     let eventChannelID = guildConfig.channelForEvents ? guildConfig.channelForEvents : msg.channel.id;
     try {
-        // let eventString = msg.content.substring((guildConfig.prefix + 'event create').length);
         let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, msgParms, msg);
         if (eventCreateResult) {
             if (msg.deletable) {
@@ -58,23 +57,10 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, 
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
-                // let eventArray = parseEventString(eventString);
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser);
                 await validatedEvent.save();
                 let eventChannel = await theGuild.channels.resolve(channelIDForEvent);
-                // let channelForEvent = new TextChannel(guild, { id: channelIDForEvent });
                 let sentMessage = eventShow(theGuild, eventChannel, validatedEvent._id);
-
-                // let sentMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
-                // validatedEvent.channelID = sentMessage.channel.id;
-                // validatedEvent.messageID = sentMessage.id;
-
-                // sentMessage.react(utils.EMOJIS.CHECK);
-                // sentMessage.react(utils.EMOJIS.X);
-                // sentMessage.react(utils.EMOJIS.PLAY);
-                // sentMessage.react(utils.EMOJIS.CLOCK);
-                // sentMessage.react(utils.EMOJIS.EDIT);
-                // sentMessage.react(utils.EMOJIS.TRASH);
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Create ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
                 return true;
             }
@@ -147,13 +133,8 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
-                let existingEvent;
-                try {
-                    existingEvent = await EventModel.findById(eventID);
-                    if (!existingEvent) {
-                        throw new Error();
-                    }
-                } catch (error) {
+                let existingEvent = await EventModel.findById(eventID);
+                if (!existingEvent) {
                     throw new Error(`Unknown event id (${eventID})`);
                 }
                 let guildMember = await theGuild.members.fetch(currUserId);
@@ -161,7 +142,6 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                 if (!await users.hasRoleOrIsAdmin(guildMember, guildApprovalRole) && currUserId != existingEvent.userID) {
                     throw new Error(`Please have <@${existingEvent.userID}> edit, or ask an <@&${guildApprovalRole}> to edit.`);
                 }
-                // let eventArray = parseEventString(eventString, existingEvent);
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser, existingEvent);
                 //since we're editing the event, we'll re-remind users
                 validatedEvent.reminderSent = undefined;
@@ -171,20 +151,12 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                         theGuild.channels.resolve(validatedEvent.channelID)
                     ).messages.fetch(validatedEvent.messageID);
                     await eventMessage.edit(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
+                    await validatedEvent.save();
                 } catch (error) {
                     console.log(`couldn't edit old event message on edit: ${error.message}`);
                     let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
-                    eventMessage = await eventChannel.send(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
-                    validatedEvent.channelID = eventMessage.channel.id;
-                    validatedEvent.messageID = eventMessage.id;
-                    eventMessage.react(utils.EMOJIS.CHECK);
-                    eventMessage.react(utils.EMOJIS.X);
-                    eventMessage.react(utils.EMOJIS.PLAY);
-                    eventMessage.react(utils.EMOJIS.CLOCK);
-                    eventMessage.react(utils.EMOJIS.EDIT);
-                    eventMessage.react(utils.EMOJIS.TRASH);
+                    eventMessage = eventShow(guild, eventChannel, validatedEvent._id);
                 }
-                await validatedEvent.save();
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Edit ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
                 return true;
             }
@@ -192,7 +164,6 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
             console.log('events.bc_eventEdit: unknown guild on this shard, ignoring');
         }
     } catch (error) {
-        // console.error('events.bc_eventEdit:', error.message);
         error.message += ` For Channel: ${channelIDForEvent}`;
         throw error;
     }
@@ -342,11 +313,8 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
             }
         }
         returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
-        // if (eventMessage?.deletable) {
-        //     await eventMessage.delete();
-        // }
     } catch (error) {
-        console.error(`removeEvent: couldn't delete old event message on edit:`, error);
+        console.error(`removeEvent: couldn't remove event`, error);
     }
     return returnMessage;
 }
@@ -358,27 +326,12 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
  * @param {GuildModel} guildConfig
  */
 async function handleEventShow(msg, msgParms, guildConfig) {
-    // let eventChannel = msg.channel;
     try {
         const eventID = msgParms[0].value;
-        // let showEvent;
-        // try {
-        //     showEvent = await EventModel.findById(eventID);
-        //     if (!showEvent) {
-        //         throw new Error();
-        //     }
-        // } catch (error) {
-        //     throw new Error('Event not found.');
-        // }
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
         }
         let sentMessage = await eventShow(msg.guild, msg.channel, eventID);
-        // const embedEvent = await embedForEvent(msg.guild.iconURL(), [showEvent], undefined, true);
-        // if (guildConfig.channelForEvents) {
-        //     eventChannel = await msg.guild.channels.resolve(guildConfig.channelForEvents);
-        // }
-        // const sentMessage = await eventChannel.send(embedEvent);
         if (msg.deletable) {
             try {
                 await msg.delete();
@@ -386,24 +339,6 @@ async function handleEventShow(msg, msgParms, guildConfig) {
                 console.error(`Could not delete ${msg.id}`, error);
             }
         }
-        // try {
-        //     // remove old event message
-        //     const eventMessage = await (
-        //         msg.guild.channels.resolve(showEvent.channelID)
-        //     ).messages.fetch(showEvent.messageID);
-        //     await eventMessage.delete();
-        // } catch (error) {
-        //     console.error(`couldn't delete old event message on edit: ${error.message}`);
-        // }
-        // showEvent.channelID = sentMessage.channel.id;
-        // showEvent.messageID = sentMessage.id;
-        // await showEvent.save();
-        // sentMessage.react(utils.EMOJIS.CHECK);
-        // sentMessage.react(utils.EMOJIS.X);
-        // sentMessage.react(utils.EMOJIS.PLAY);
-        // sentMessage.react(utils.EMOJIS.CLOCK);
-        // sentMessage.react(utils.EMOJIS.EDIT);
-        // sentMessage.react(utils.EMOJIS.TRASH);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Show ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('handleEventShow:', error.message);
@@ -427,10 +362,6 @@ async function eventShow(guild, msgChannel, eventID) {
         if (!showEvent) {
             throw new Error('Event not found.');
         }
-
-        // if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-        //     throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
-        // }
         const embedEvent = await embedForEvent(guild.iconURL(), [showEvent], undefined, true);
         let guildConfig = await config.confirmGuildConfig(guild);
         if (guildConfig?.channelForEvents) {
@@ -439,13 +370,6 @@ async function eventShow(guild, msgChannel, eventID) {
             // eventChannel = await guild.channels.resolve(guildConfig.channelForEvents);
         }
         sentMessage = await eventChannel.send(embedEvent);
-        // if (msg.deletable) {
-        //     try {
-        //         await msg.delete();
-        //     } catch (error) {
-        //         console.error(`Could not delete ${msg.id}`, error);
-        //     }
-        // }
         if (showEvent.channelID && showEvent.messageID) {
             try {
                 // remove old event message
@@ -467,12 +391,10 @@ async function eventShow(guild, msgChannel, eventID) {
         sentMessage.react(utils.EMOJIS.CLOCK);
         sentMessage.react(utils.EMOJIS.EDIT);
         sentMessage.react(utils.EMOJIS.TRASH);
-        // await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Show ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('eventShow:', error.message);
         error.message += ` For Channel: ${eventChannel?.name}`;
         throw error;
-        // await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
     return sentMessage;
 }
@@ -653,7 +575,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     validatedEvent.number_player_slots = ewith === null ? undefined : (ewith ? ewith : validatedEvent.number_player_slots);
     validatedEvent.campaign = ecampaign === null ? undefined : (ecampaign ? ecampaign : validatedEvent.campaign);
     validatedEvent.description = edesc === null ? undefined : (edesc ? edesc : validatedEvent.description);
-    validatedEvent.recurEvery = erecurEvery === null ? undefined : (erecurEvery ? erecurEvery : validatedEvent.recurEvery);
+    validatedEvent.recurEvery = erecurEvery === null || 0 ? undefined : (erecurEvery ? erecurEvery : validatedEvent.recurEvery);
     return validatedEvent;
 }
 
