@@ -21,7 +21,7 @@ const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { 
 /**
  * scheduled cron for calendar reminders
  */
-let calendarReminderCron;
+let calendarReminderCron, calendarRecurCron;
 
 Client.prototype.dnd_users = users;
 Client.prototype.dnd_events = events;
@@ -311,6 +311,11 @@ global.COMMANDS = {
             "description": "Campaign associated to event",
             "required": false,
             "type": 3
+        }, {
+            "name": "recur_every",
+            "description": "Recur this event every so many days (ex: 7)",
+            "required": false,
+            "type": 4 //integer
         }]
     },
     "eventEdit": {
@@ -676,6 +681,9 @@ client.once('ready', async () => {
     registerCommands();
     calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
         events.sendReminders(client);
+    });
+    calendarRecurCron = cron.schedule(Config.calendarReminderCron, () => {
+        events.recurEvents(client);
     });
 });
 

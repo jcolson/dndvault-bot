@@ -29,6 +29,7 @@ const EMOJIS = {
     CHECK: `\u2705`,
     X: `\u274E`,
     PLAY: `\u25B6\uFE0F`,
+    REPEAT: `\uD83D\uDD01`,
     CLOCK: `\uD83D\uDD5F`,
     DAGGER: `\uD83D\uDDE1`,
     SHIELD: `\uD83D\uDEE1`,

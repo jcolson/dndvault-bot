@@ -1,3 +1,4 @@
+process.env.TZ = 'GMT';
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [mngr] %s` });
 const { ShardingManager } = require('discord.js');
 const AutoPoster = require('topgg-autoposter');
