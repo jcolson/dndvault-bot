@@ -70,7 +70,7 @@ Users have the ability to list events that are deployed or proposed (not yet app
 
 Once a user signs up as an attendee, or creates an event, those events will show up in that user's iCalendar ICS feed.  The user can subscribe to the iCalendar ICS feed within Outlook, Google Calendar, iCal, etc.  When a user clicks on the 'Timezone' button, a message is sent to them with their local timezone as well as a link to their personalized iCalendar ICS link.
 
-[![D&D Vault Bot Event Subscribe Youtube Video](https://i.ytimg.com/vi/CEnUVG9wGwQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=CEnUVG9wGwQ)
+[![D&D Vault Bot Event Subscribe Youtube Video](https://i.ytimg.com/vi/CEnUVG9wGwQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=CEnUVG9wGwQ){:target="_blank"}
 
 ## Polling
 
@@ -78,7 +78,7 @@ Users can create polls very simply by using the `poll` command.  `!poll "Do you 
 
 ## Rolling dice
 
-Users can roll dice by using the `roll` command.  The dice roller uses [notation](https://greenimp.github.io/rpg-dice-roller/guide/notation/).
+Users can roll dice by using the `roll` command.  The dice roller uses [notation](https://greenimp.github.io/rpg-dice-roller/guide/notation/){:target="_blank"}.
 
 ### Die quantity
 
