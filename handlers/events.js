@@ -1093,8 +1093,8 @@ async function sendReminders(client) {
 
 async function recurEvents(client) {
     try {
-        // assume '4' hours after the event start time is a comfortable time to schedule a recurrent
-        let toDate = new Date(new Date().getTime() + (4 * 1000 * 60 * 60));
+        // assume '1' hours after the event start time is a comfortable time to schedule a recurrent
+        let toDate = new Date(new Date().getTime() - (1 * 1000 * 60 * 60));
         let guildsToRecur = client.guilds.cache.keyArray();
         let eventsToRecur = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, date_time: { $lt: toDate }, guildID: { $in: guildsToRecur } });
         console.log("recurEvents: for %d events until %s for %d guilds", eventsToRecur.length, toDate, guildsToRecur.length);
