@@ -60,6 +60,14 @@ const Event = Schema({
     "reminderSent": {
         type: Date,
         index: true
+    },
+    "recurEvery": {
+        type: Number,
+        index: true
+    },
+    "recurComplete": {
+        type: Date,
+        index: true
     }
-})
+}, { optimisticConcurrency: true });
 module.exports = model('Event', Event);

@@ -29,6 +29,7 @@ const EMOJIS = {
     CHECK: `\u2705`,
     X: `\u274E`,
     PLAY: `\u25B6\uFE0F`,
+    REPEAT: `\uD83D\uDD01`,
     CLOCK: `\uD83D\uDD5F`,
     DAGGER: `\uD83D\uDDE1`,
     SHIELD: `\uD83D\uDEE1`,
@@ -472,6 +473,7 @@ async function removeAllDataForGuild(guild) {
  * @returns {Boolean} true if changed; false if no change
  */
 function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfterThis) {
+    console.info(`checkIfCommandsChanged: ---START COMMAND CHECK---`);
     let registerCommands = false;
     for (const command of registeredCommands) {
         // console.debug("registerCommands: checkForRemove", command.name);
@@ -480,27 +482,40 @@ function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfte
             if (c.name == command.name) {
                 // console.debug('command options', command.options);
                 if (!c.options && !command.options) {
+                    //no options for either, it's a match
+                    console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:NO OPTIONS`);
                     return true;
                 } else {
                     for (const regOpt of command.options) {
-                        // console.debug('c options', c.options);
+                        let optMatched = false;
                         for (const toRegOpt of c.options) {
-                            console.info(`checkIfCommandsChanged: checking ${regOpt.name}:${toRegOpt.name} and ${regOpt.required}:${toRegOpt.required}`);
                             if (regOpt.name.toLowerCase() == toRegOpt.name.toLowerCase() && isTrue(regOpt.required) == isTrue(toRegOpt.required)) {
-                                return true;
+                                console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:${regOpt.name}:${toRegOpt.name} and req:${regOpt.required}:${toRegOpt.required}`);
+                                optMatched = true;
+                                break;
                             }
+                        }
+                        if (!optMatched) {
+                            //option could not be found, not a match
+                            console.info(`checkIfCommandsChanged: *NO* MATCH ${c.name} -> option:${regOpt.name} and req:${regOpt.required}`);
+                            return false;
                         }
                     }
                 }
+                //didn't fail to find any options, it's a match
+                return true;
             }
+            // failed to find command name match, it's not a match
             return false;
         })) {
+            //couldn't find a complete command and options that matched, register all again
             registerCommands = true;
             break;
         }
     }
     // recursively call the other way around
     if (!registerCommands && !stopAfterThis) {
+        console.info(`checkIfCommandsChanged: ---START RECURSE---`);
         registerCommands = checkIfCommandsChanged(commandsToRegister, registeredCommands, !stopAfterThis);
     }
     return registerCommands;
