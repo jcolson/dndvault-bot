@@ -283,7 +283,7 @@ global.COMMANDS = {
             "type": 3
         }, {
             "name": "for",
-            "description": "The number of hours that this event will run for",
+            "description": "The number of hours that this event will run for (ex: 3.5)",
             "required": true,
             "type": 3
         }, {
