@@ -41,6 +41,9 @@ The most complete Dungeons and Dragons Character Vault, Event Management, Pollin
 
 ## Current build status
 
+- ChangeLog
+[ChangeLog](CHANGELOG.md)
+
 - Develop Branch
 [![ci](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml/badge.svg?branch=develop)](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml)
 
