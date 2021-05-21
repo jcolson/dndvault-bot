@@ -11,13 +11,8 @@ async function handleDiceRoll(msg, diceParam) {
     try {
         const rollit = new DiceRoll(diceParam.map(element => element.value).join(' '));
         let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
-        let embedFields = [];
-        // ensure that if the result is larger than 1000 chars we split it up in different discord embed fields
-        for (let i = 0; i < rollitValut.length; i += 1000) {
-            const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + 1000));
-            embedFields.push({ name: `${utils.EMOJIS.DICE}${rollit.notation}${utils.EMOJIS.DICE}`, value: `${cont}` });
-        }
-        await utils.sendDirectOrFallbackToChannel(embedFields, msg, undefined, true);
+        let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut);
+        await utils.sendDirectOrFallbackToChannelEmbeds(diceRollEmbedArray, msg, undefined, true);
         if (msg.deletable) {
             try {
                 await msg.delete();
@@ -29,6 +24,33 @@ async function handleDiceRoll(msg, diceParam) {
         console.error('handleDiceRoll:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
+}
+
+/**
+ *
+ * @param {String} notation
+ * @param {String} rollitValut
+ * @returns {MessageEmbed[]}
+ */
+function embedsForDiceRoll(notation, rollitValut) {
+    const EMBED_FIELD_MAX = 1000;
+    const FIELDS_PER_EMBED = 2;
+    let diceRollEmbedArray = [];
+    let embedFields = [];
+    // ensure that if the result is larger than 1000 chars we split it up in different discord embed fields
+    for (let i = 0; i < rollitValut.length; i += EMBED_FIELD_MAX) {
+        const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + EMBED_FIELD_MAX));
+        embedFields.push({ name: `${utils.EMOJIS.DICE}${notation}${utils.EMOJIS.DICE}`, value: `${cont}` });
+        // console.debug(`embedsForDiceRoll: i: ${i} length: ${rollitValut.length}`);
+        if (embedFields.length >= FIELDS_PER_EMBED || i+EMBED_FIELD_MAX > rollitValut.length) {
+            diceRollEmbedArray.push(new MessageEmbed()
+                .setColor(utils.COLORS.GREEN)
+                .addFields(embedFields)
+            );
+            embedFields = [];
+        }
+    }
+    return diceRollEmbedArray;
 }
 
 /**
