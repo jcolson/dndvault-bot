@@ -108,9 +108,9 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     let goBackMessage = '[Go Back To Message]';
                     // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
                     let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
-                    console.debug('sendDirectOrFallbackToChannelEmbeds: ', embedsArray[embedsArray.length - 1].fields);
+                    // console.debug('sendDirectOrFallbackToChannelEmbeds: ', embedsArray[embedsArray.length - 1].fields);
                     if (!lastFieldValue.startsWith(goBackMessage)) {
-                        console.debug(`last field did not start with ${goBackMessage}`, embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1]);
+                        // console.debug(`last field did not start with ${goBackMessage}`, embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1]);
                         embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
                     }
                 }
