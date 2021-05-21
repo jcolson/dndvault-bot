@@ -1052,12 +1052,12 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         }
         // console.log('vaultuser', vaultUser);
         let defCharString = vaultUser?.defaultCharacter == char.id ? ` ${utils.EMOJIS.ASTERISK}` : '';
-        let charNameString = isShow ? `[${char.name}](${char.readonlyUrl})${defCharString}` : stringForCharacter(char);
+        let charNameString = isShow ? `[${char.name}](${char.readonlyUrl})${defCharString}` : `[${stringForCharacter(char)}](${char.readonlyUrl})`;
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
-                name: `\:dagger: Name | ID | Status | Campaign \:shield:`,
-                value: `${charNameString} | ${char.id} | ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
+                name: `\:dagger: User | Char | ID | Status | Campaign \:shield:`,
+                value: `<@${char.guildUser}> | ${charNameString} | ${char.id} | ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
         // let campaignString = stringForCampaign(char);
@@ -1066,7 +1066,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         // }
         if (isShow) {
             charEmbed.addFields(
-                { name: 'User', value: `<@${char.guildUser}>`, inline: true },
+                // { name: 'User', value: `<@${char.guildUser}>`, inline: true },
                 { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
                 {
                     name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :

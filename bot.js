@@ -649,6 +649,9 @@ global.COMMANDS = {
 function getClientApp() {
     const app = client.api.applications(client.user.id)
     if (Config.debugGuild) {
+        console.info(`Running in debug mode, returning guild only discord client-app`);
+        // uncomment this line to remove all bot-wide commands (while in debugGuild mode)
+        // client.api.applications(client.user.id).commands.put({ data: [] });
         app.guilds(Config.debugGuild);
     }
     return app;
@@ -658,6 +661,7 @@ async function registerCommands() {
     console.info('registerCommands: BEGIN');
     try {
         // console.debug('shard ids:', client.shard.ids);
+        // only register commands if I'm shard id '0'
         if (client.shard.ids.includes(0)) {
             console.info('registerCommands: ShardId:0, registering commands ...');
             let commandsToRegister = utils.transformCommandsToDiscordFormat(COMMANDS);
