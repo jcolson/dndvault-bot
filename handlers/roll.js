@@ -34,7 +34,7 @@ async function handleDiceRoll(msg, diceParam) {
  */
 function embedsForDiceRoll(notation, rollitValut) {
     const EMBED_FIELD_MAX = 1000;
-    const FIELDS_PER_EMBED = 2;
+    const FIELDS_PER_EMBED = 5;
     let diceRollEmbedArray = [];
     let embedFields = [];
     // ensure that if the result is larger than 1000 chars we split it up in different discord embed fields
