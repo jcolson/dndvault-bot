@@ -4,6 +4,9 @@ const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
 const GuildModel = require('../models/Guild');
 
+const MAX_EMBED_SIZE = 5950;
+const MESSAGE_TOO_LARGE_RESPONSE = `Resulting message is too large for discord.`;
+
 const COLORS = {
     BLUE: '0099ff',
     GREEN: '#57f542',
@@ -122,7 +125,12 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
                 } else {
                     for (let embed of embedsArray) {
-                        sentMessage = await user.send(embed);
+                        if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
+                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${MESSAGE_TOO_LARGE_RESPONSE}`);
+                            sentMessage = await user.send(MESSAGE_TOO_LARGE_RESPONSE);
+                        } else {
+                            sentMessage = await user.send(embed);
+                        }
                     }
                 }
                 messageSent = true;
@@ -140,7 +148,12 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 } else {
                     for (let embed of embedsArray) {
                         embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
-                        sentMessage = await msg.channel.send(embed);
+                        if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
+                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${MESSAGE_TOO_LARGE_RESPONSE}`);
+                            sentMessage = await msg.channel.send(MESSAGE_TOO_LARGE_RESPONSE);
+                        } else {
+                            sentMessage = await msg.channel.send(embed);
+                        }
                     }
                 }
                 messageSent = true;
@@ -153,7 +166,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
             let interactionEmbed = new MessageEmbed()
                 .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
-                .addField('Response', `[Check your DMs here](${sentMessage.url}) for response.`);
+                .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
             clientWsReply(msg.interaction, interactionEmbed);
         }
         if (!messageSent) {
@@ -199,7 +212,7 @@ function lengthOfEmbed(embed) {
         // embed.fields.forEach((field) => {
         embedLength += field.name.length + field.value.length;
     }
-    console.log('EmbedLengthCheck: %d', embedLength);
+    // console.log('lengthOfEmbed: %d', embedLength);
     return embedLength;
 }
 
@@ -417,12 +430,19 @@ function trimTagsFromId(idToTrim) {
  */
 async function clientWsReply(interaction, replyMessage) {
     try {
-        let data = {
+        letdata = {
             content: replyMessage,
         }
         //check for embeds
         if (typeof replyMessage === 'object') {
-            data = await createAPIMessage(interaction, replyMessage);
+            if (lengthOfEmbed(replyMessage) > MAX_EMBED_SIZE) {
+                console.error(`clientWsReply: ${MESSAGE_TOO_LARGE_RESPONSE}`);
+                data = {
+                    content: MESSAGE_TOO_LARGE_RESPONSE
+                }
+            } else {
+                data = await createAPIMessage(interaction, replyMessage);
+            }
         }
         await client.api.interactions(interaction.id, interaction.token).callback.post({
             data: {
