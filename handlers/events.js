@@ -60,7 +60,7 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, 
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser);
                 await validatedEvent.save();
                 let eventChannel = await theGuild.channels.resolve(channelIDForEvent);
-                let sentMessage = eventShow(theGuild, eventChannel, validatedEvent._id);
+                let sentMessage = await eventShow(theGuild, eventChannel, validatedEvent._id);
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Create ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
                 return true;
             }
@@ -155,7 +155,7 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                 } catch (error) {
                     console.log(`couldn't edit old event message on edit: ${error.message}`);
                     let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
-                    eventMessage = eventShow(guild, eventChannel, validatedEvent._id);
+                    eventMessage = await eventShow(guild, eventChannel, validatedEvent._id);
                 }
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Edit ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
                 return true;
@@ -365,7 +365,7 @@ async function eventShow(guild, msgChannel, eventID) {
         const embedEvent = await embedForEvent(guild.iconURL(), [showEvent], undefined, true);
         let guildConfig = await config.confirmGuildConfig(guild);
         if (guildConfig?.channelForEvents) {
-            console.debug(`eventShow: channelForEvents: ${guildConfig.channelForEvents}`);
+            // console.debug(`eventShow: channelForEvents: ${guildConfig.channelForEvents}`);
             eventChannel = new TextChannel(guild, { id: guildConfig.channelForEvents });
             // eventChannel = await guild.channels.resolve(guildConfig.channelForEvents);
         }
@@ -568,6 +568,9 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         let eventDate = eventDateParsed.start.date();
         // console.log('parsed date %s', eventDate);
         validatedEvent.date_time = eventDate;
+    }
+    if (validatedEvent.date_time < new Date()) {
+        throw new Error(`Date for any event being created or edited, must be in the future.`);
     }
     validatedEvent.title = etitle === null ? undefined : (etitle ? etitle : validatedEvent.title);
     validatedEvent.dm = edmgm === null ? undefined : (edmgm ? edmgm : validatedEvent.dm);
@@ -1093,8 +1096,8 @@ async function sendReminders(client) {
 
 async function recurEvents(client) {
     try {
-        // assume '4' hours after the event start time is a comfortable time to schedule a recurrent
-        let toDate = new Date(new Date().getTime() + (4 * 1000 * 60 * 60));
+        // assume '1' hours after the event start time is a comfortable time to schedule a recurrent
+        let toDate = new Date(new Date().getTime() - (1 * 1000 * 60 * 60));
         let guildsToRecur = client.guilds.cache.keyArray();
         let eventsToRecur = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, date_time: { $lt: toDate }, guildID: { $in: guildsToRecur } });
         console.log("recurEvents: for %d events until %s for %d guilds", eventsToRecur.length, toDate, guildsToRecur.length);
