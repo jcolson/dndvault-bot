@@ -21,7 +21,7 @@ async function handleDiceRoll(msg, diceParam) {
             }
         }
     } catch (error) {
-        console.error('handleDiceRoll:', error);
+        console.error(`handleDiceRoll: ${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -42,7 +42,7 @@ function embedsForDiceRoll(notation, rollitValut) {
         const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + EMBED_FIELD_MAX));
         embedFields.push({ name: `${utils.EMOJIS.DICE}${notation}${utils.EMOJIS.DICE}`, value: `${cont}` });
         // console.debug(`embedsForDiceRoll: i: ${i} length: ${rollitValut.length}`);
-        if (embedFields.length >= FIELDS_PER_EMBED || i+EMBED_FIELD_MAX > rollitValut.length) {
+        if (embedFields.length >= FIELDS_PER_EMBED || i + EMBED_FIELD_MAX > rollitValut.length) {
             diceRollEmbedArray.push(new MessageEmbed()
                 .setColor(utils.COLORS.GREEN)
                 .addFields(embedFields)
