@@ -9,7 +9,11 @@ const utils = require('../utils/utils.js');
  */
 async function handleDiceRoll(msg, diceParam) {
     try {
-        const rollit = new DiceRoll(diceParam.map(element => element.value).join(' '));
+        let notation = diceParam.map(element => element.value).join(' ').trim();
+        if (notation == '') {
+            notation = '1d20';
+        }
+        const rollit = new DiceRoll(notation);
         let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
         let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut);
         await utils.sendDirectOrFallbackToChannelEmbeds(diceRollEmbedArray, msg, undefined, true);
