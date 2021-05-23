@@ -1,9 +1,9 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
-  - [Unreleased](#unreleased)
+  - [1.3.15 (2021-05-23)](#1315-2021-05-23)
   - [1.3.14 (2021-05-21)](#1314-2021-05-21)
   - [1.3.13 (2021-05-21)](#1313-2021-05-21)
   - [1.3.12 (2021-05-20)](#1312-2021-05-20)
@@ -69,12 +69,18 @@
 
 # Changelog
 
-## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+## [1.3.15](https://github.com/jcolson/dndvault-bot/tree/1.3.15) (2021-05-23)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.3.14...HEAD)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.3.14...1.3.15)
+
+**Implemented enhancements:**
+
+- feature: if roll command is sent with no notation, default to 1d20 [\#254](https://github.com/jcolson/dndvault-bot/issues/254)
+- Add an option to polling to allow more than one answer [\#211](https://github.com/jcolson/dndvault-bot/issues/211)
 
 **Closed issues:**
 
+- replace code blocks for message deletion try/catch with a function [\#253](https://github.com/jcolson/dndvault-bot/issues/253)
 - Research ways to create a message on discord from a webpage [\#67](https://github.com/jcolson/dndvault-bot/issues/67)
 
 ## [1.3.14](https://github.com/jcolson/dndvault-bot/tree/1.3.14) (2021-05-21)

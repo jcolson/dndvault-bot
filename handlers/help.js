@@ -13,7 +13,7 @@ async function handleHelp(msg, msgParms, prefix) {
         let charEmbed = new MessageEmbed()
             .setColor(utils.COLORS.BLUE)
             .setTitle('Help for D&D Vault BOT')
-            .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+            .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
             .setDescription(`Current Command Prefix is "${prefix}"
             [If you have any issues or ideas, please let us know here.](https://github.com/jcolson/dndvault-bot/issues/new)`);
         if (msg.guild) {
@@ -29,13 +29,7 @@ If you would like to see all commands available, [they are on the github website
         );
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
         console.error(`handleHelp: ${error.message}`);

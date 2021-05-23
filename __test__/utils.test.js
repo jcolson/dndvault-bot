@@ -49,7 +49,7 @@ test('lengthOfEmbed', () => {
         .setColor(utils.COLORS.BLUE)
         .setTitle(`Review Changes for Character:`)
         .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault')
+        .setAuthor('D&D Vault')
         .setDescription('Some Description');
     expect(utils.lengthOfEmbed(embed)).toBe(77);
 });
