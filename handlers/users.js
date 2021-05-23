@@ -29,13 +29,7 @@ async function handleDefault(msg, msgParms, guildConfig) {
             await currUser.save();
             await utils.sendDirectOrFallbackToChannel([{ name: 'Default Character', value: `<@${msg.member.id}>, your default character was successfully set to: \`${character.name}\`` }], msg);
         }
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -98,13 +92,7 @@ async function handleTimezone(msg, msgParms, guildConfig) {
                 throw new Error(`Could not set timezone: ${timeZoneString}`);
             }
         }
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         console.log('users.handleTimezone:', error);
         error.message += `\nexample timezones: \`Europe/Berlin\` or \`America/New_York\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;

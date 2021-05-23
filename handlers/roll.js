@@ -13,13 +13,7 @@ async function handleDiceRoll(msg, diceParam) {
         let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
         let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut);
         await utils.sendDirectOrFallbackToChannelEmbeds(diceRollEmbedArray, msg, undefined, true);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         console.error(`handleDiceRoll: ${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -63,7 +57,7 @@ async function handleDiceRollStats(msg, diceParam) {
         const statsEmbed = new MessageEmbed()
             .setColor(utils.COLORS.BLUE)
             .setTitle(`${utils.EMOJIS.DICE}D&D 5E Stats Roll${utils.EMOJIS.DICE}`)
-            .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+            .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
             .setThumbnail(msg.guild.iconURL());
         for (let j = 0; j < 6; j++) {
             const rollit = new DiceRoll('4d6dl1sd');
@@ -71,13 +65,7 @@ async function handleDiceRollStats(msg, diceParam) {
             statsEmbed.addFields({ name: `Stat ${j + 1}`, value: `${rollitValut}` });
         }
         await utils.sendDirectOrFallbackToChannelEmbeds(statsEmbed, msg, undefined, true);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleDiceRollStats:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);

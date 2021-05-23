@@ -49,7 +49,7 @@ const EMOJIS = {
  */
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank) {
     let embed = new MessageEmbed()
-        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.RED);
     embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
@@ -67,7 +67,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
         fields = [fields];
     }
     let embed = new MessageEmbed()
-        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.BLUE);
     for (let field of fields) {
         field.name = typeof field.name !== 'undefined' && '' + field.name != '' ? field.name : 'UNSET';
@@ -164,7 +164,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (messageSent && sentMessage && msg.interaction) {
             let interactionEmbed = new MessageEmbed()
-                .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+                .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                 .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
             clientWsReply(msg.interaction, interactionEmbed);
@@ -562,6 +562,17 @@ function strikeThrough(text) {
         .join('')
 }
 
+async function deleteMessage(msg) {
+    if (msg.deletable) {
+        try {
+            await msg.delete();
+        } catch (error) {
+            console.error(`Could not delete ${msg.id}`, error);
+        }
+    }
+}
+
+exports.deleteMessage = deleteMessage;
 exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
