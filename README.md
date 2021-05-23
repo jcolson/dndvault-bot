@@ -2,7 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 DND Vault Table of Contents
 
-- [DND Vault Discord BOT](#dnd-vault-discord-bot)
+- [D&D Vault Discord BOT](#dd-vault-discord-bot)
   - [Current build status](#current-build-status)
   - [Character Vault](#character-vault)
   - [Events](#events)
@@ -35,11 +35,14 @@ DND Vault Table of Contents
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# DND Vault Discord BOT
+# D&D Vault Discord BOT
 
 The most complete Dungeons and Dragons Character Vault, Event Management, Polling and Dice Roller for your Discord server!
 
 ## Current build status
+
+- ChangeLog
+[ChangeLog](CHANGELOG.md)
 
 - Develop Branch
 [![ci](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml/badge.svg?branch=develop)](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml)

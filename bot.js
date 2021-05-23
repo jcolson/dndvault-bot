@@ -68,7 +68,7 @@ global.COMMANDS = {
         "options": [{
             "name": "notation",
             "description": "Dice notation, such as `2d8 + 1d4` or `8d20dl2` (8 d20, drop lowest 2)",
-            "required": true,
+            "required": false,
             "type": 3
         }]
     },
@@ -453,6 +453,11 @@ global.COMMANDS = {
             "required": true,
             "type": 3
         }, {
+            "name": "allow_multiple",
+            "description": "Allow multiple votes in poll (default: false)",
+            "required": false,
+            "type": 5 // boolean
+        }, {
             "name": "option_1",
             "description": "Option to choose",
             "required": false,
@@ -763,7 +768,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
                 // Now the message has been cached and is fully available
                 await utils.checkChannelPermissions(reaction.message);
                 let guildConfig = await config.confirmGuildConfig(reaction.message.guild);
-                if (reaction.message.embeds[0]?.author?.name == 'Pollster') {
+                if (reaction.message.embeds[0]?.author?.name.startsWith(poll.POLLSTER_AUTHOR)) {
                     console.debug(`messageReactionAdd:POLL:${reaction.message.author}'s"${reaction.message.id}" gained a reaction!`);
                     await poll.handleReactionAdd(reaction, user, guildConfig);
                 } else {

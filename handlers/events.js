@@ -21,13 +21,7 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
     try {
         let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, msgParms, msg);
         if (eventCreateResult) {
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error("Could not create event.");
         }
@@ -95,13 +89,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         // console.log(eventID);
         let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error("Could not edit event.");
         }
@@ -202,13 +190,7 @@ async function handleEventSignup(msg, msgParms, guildConfig) {
         }
         await attendeeAdd(eventMessage, userToSignup, eventToAlter, guildConfig);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Signup ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Signed Up To Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleEventSignup:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -247,13 +229,7 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
         }
         await attendeeRemove(eventMessage, userToSignup, eventToAlter, guildConfig);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Withdrawal ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Withdrawn From Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleEventWithdrawal:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -272,13 +248,7 @@ async function handleEventRemove(msg, msgParms, guildConfig) {
         // console.log(eventID);
         let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
         await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -332,13 +302,7 @@ async function handleEventShow(msg, msgParms, guildConfig) {
             throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
         }
         let sentMessage = await eventShow(msg.guild, msg.channel, eventID);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Show ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('handleEventShow:', error.message);
@@ -413,13 +377,7 @@ async function handleEventList(msg, msgParms, guildConfig) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any events yet.  Create one with \`event create\`!`);
         }
@@ -442,13 +400,7 @@ async function handleEventListProposed(msg, msgParms, guildConfig) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any PROPOSED events yet.  Create one with \`event create\`!`);
         }
@@ -471,13 +423,7 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any DEPLOYED events yet.  Create one with \`event create\`!`);
         }

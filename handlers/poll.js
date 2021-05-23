@@ -2,6 +2,9 @@ const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
 const { MessageEmbed, User } = require('discord.js');
 
+const POLLSTER_AUTHOR = 'Pollster';
+const POLLSTER_MULTIPLE_ALLOWED = ' (Multiple answers allowed)';
+
 /**
  *
  * @param {Message} msg
@@ -11,26 +14,23 @@ const { MessageEmbed, User } = require('discord.js');
 async function handlePoll(msg, msgParms, guildConfig) {
     let pollChannel = msg.channel;
     try {
-        // let params = msg.content.substring((guildConfig.prefix + 'poll').length + 1);
+        let allowMultiple = msgParms.find(p => p.name == 'allow_multiple');
+        if (allowMultiple) {
+            // second element removed (allow_multiple), so that this works with the old ! commands
+            msgParms.splice(1, 1);
+        }
+        allowMultiple = utils.isTrue(allowMultiple?.value);
         let thePoll = parseMessageForPoll(msgParms);
         if (guildConfig.channelForPolls) {
             pollChannel = await msg.guild.channels.resolve(guildConfig.channelForPolls);
         }
-        // console.debug('thePoll', thePoll);
-        let sentMessage = await pollChannel.send(embedForPoll(msg, thePoll));
-        // console.debug("sentMessage", sentMessage);
+        let sentMessage = await pollChannel.send(embedForPoll(msg, thePoll, allowMultiple));
         for (let i = 0; i < thePoll.choices.length; i++) {
             sentMessage.react(thePoll.emojis[i]);
         }
         sentMessage.react(utils.EMOJIS.TRASH);
         await utils.sendDirectOrFallbackToChannel({ name: `${utils.EMOJIS.DAGGER} Poll Create ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         error.message += ` For Channel: ${pollChannel.name}`;
         console.error('handlePoll:', error.message);
@@ -38,26 +38,22 @@ async function handlePoll(msg, msgParms, guildConfig) {
     }
 }
 
-function embedForPoll(msg, thePoll) {
+function embedForPoll(msg, thePoll, allowMultiple) {
     let pollEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setTitle(`${thePoll.question}`)
-        // .setURL('https://discord.js.org/')
-        .setAuthor('Pollster', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
-        // .setDescription(description)
+        .setTitle(`${thePoll.question}${allowMultiple ? POLLSTER_MULTIPLE_ALLOWED : ''}`)
+        .setAuthor(POLLSTER_AUTHOR, Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setThumbnail(msg.guild.iconURL());
     pollEmbed.addFields({ name: 'Author', value: `<@${msg.author.id}>` });
     let description = '';
     for (let i = 0; i < thePoll.choices.length; i++) {
         description += `${thePoll.emojis[i]} - ${thePoll.choices[i]}\n`;
-        // pollEmbed.addFields({ name: thePoll.emojis[i], value: thePoll.choices[i] });
     }
     pollEmbed.setDescription(description);
     return pollEmbed;
 }
 
 function parseMessageForPoll(pollParams) {
-    // console.debug("poll params:", pollParams);
     if (pollParams.length > 11) {
         throw new Error('Too many choices, please reduce to 10 or fewer');
     }
@@ -82,7 +78,6 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         console.log('handleReactionAdd...' + reaction.emoji.name);
         let pollAuthor = reaction.message.embeds[0].fields[0].value;
         pollAuthor = pollAuthor.substring(2, pollAuthor.length - 1);
-        // console.log('user info %s and %s', user.id, pollAuthor);
         let memberUser = await reaction.message.guild.members.resolve(user.id);
         // handle trashbin (delete poll)
         if (reaction.emoji.name == utils.EMOJIS.TRASH) {
@@ -114,19 +109,18 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                 throw new Error(`Please have <@${pollAuthor}> remove, or ask an \`approver role\` to remove.`);
             }
         } else {
-            for (aReaction of reaction.message.reactions.cache.values()) {
-                // console.log('reaction name ' + aReaction.emoji.name);
-                if (aReaction.emoji.name != reaction.emoji.name) {
-                    // console.log('reaction didnot match areaction ' + aReaction.emoji.name);
-                    // console.log('cache', aReaction.users.cache.array().length);
-                    if (aReaction.users.cache.array().length == 0) {
-                        await aReaction.users.fetch();
-                    }
-                    for (aUser of aReaction.users.cache.array()) {
-                        // console.log('user: ', aUser.id, user.id);
-                        if (aUser.id == user.id) {
-                            // console.log("removing ... ", user.id);
-                            aReaction.users.remove(user.id);
+            console.debug(`handleReactionAdd: ${reaction.message.embeds[0].title}`);
+            // if this is a multiple answer allowed poll, don't remove previous reactions
+            if (reaction.message.embeds.length > 0 && !reaction.message.embeds[0].title.endsWith(POLLSTER_MULTIPLE_ALLOWED)) {
+                for (aReaction of reaction.message.reactions.cache.values()) {
+                    if (aReaction.emoji.name != reaction.emoji.name) {
+                        if (aReaction.users.cache.array().length == 0) {
+                            await aReaction.users.fetch();
+                        }
+                        for (aUser of aReaction.users.cache.array()) {
+                            if (aUser.id == user.id) {
+                                aReaction.users.remove(user.id);
+                            }
                         }
                     }
                 }
@@ -139,3 +133,4 @@ async function handleReactionAdd(reaction, user, guildConfig) {
 
 exports.handlePoll = handlePoll;
 exports.handleReactionAdd = handleReactionAdd;
+exports.POLLSTER_AUTHOR = POLLSTER_AUTHOR;

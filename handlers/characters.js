@@ -343,13 +343,7 @@ async function handleRegister(msg, paramArray, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Register', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -390,13 +384,7 @@ async function handleRegisterManual(msg, paramArray, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Register Manual', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -479,13 +467,7 @@ async function handleUpdate(msg, paramArray, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -557,13 +539,7 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         char.campaignOverride = checkRegisterStatus.campaignOverride;
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -587,13 +563,7 @@ async function handleChanges(msg, msgParms, guildConfig) {
             // console.log(changesEmbed);
             await utils.sendDirectOrFallbackToChannelEmbeds(changesEmbed, msg);
         }
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -611,7 +581,7 @@ function embedForChanges(msg, approvedChar, updatedChar) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(`Review Changes for Character: ${approvedChar.name}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let changes = [];
@@ -962,13 +932,7 @@ async function handleListCampaign(msg, msgParms, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`There are no registered characters for that campaign, \`register\` one!`);
         }
@@ -1005,13 +969,7 @@ async function handleListUser(msg, msgParms, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${memberToList.displayName} in the Vault`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any registered characters for ${userToList}`);
         }
@@ -1039,7 +997,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         .setColor(utils.COLORS.BLUE)
         .setTitle(title)
         // .setURL('https://discord.js.org/')
-        .setAuthor('DND Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
@@ -1166,13 +1124,7 @@ async function handleListAll(msg, msgParms, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault', false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any registered characters \`register\` one!`);
         }
@@ -1193,13 +1145,7 @@ async function handleListQueued(msg, msgParms, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
         }
@@ -1225,13 +1171,7 @@ async function handleList(msg, msgParms, guildConfig) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`, false, vaultUser);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            if (msg.deletable) {
-                try {
-                    await msg.delete();
-                } catch (error) {
-                    console.error(`Could not delete ${msg.id}`, error);
-                }
-            }
+            utils.deleteMessage(msg);
         } else {
             throw new Error(`There are no registered characters for you, \`register\` one`);
         }
@@ -1269,13 +1209,7 @@ async function handleRemove(msg, msgParms, guildConfig) {
             }
         }
         await utils.sendDirectOrFallbackToChannel({ name: 'Remove', value: `<@${msg.member.id}>, ${charIdToDelete} (${typeOfRemoval}) was removed (${deleteResponse.deletedCount} records) from vault.` }, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -1309,13 +1243,7 @@ async function handleApprove(msg, msgParms, guildConfig) {
                 }
                 await charToApprove.save();
                 await utils.sendDirectOrFallbackToChannel({ name: 'Approve', value: `<@${msg.member.id}>, ${stringForCharacter(charToApprove)} was approved.` }, msg);
-                if (msg.deletable) {
-                    try {
-                        await msg.delete();
-                    } catch (error) {
-                        console.error(`Could not delete ${msg.id}`, error);
-                    }
-                }
+                utils.deleteMessage(msg);
             }
         } else {
             throw new Error(`please ask an \`approver role\` to approve.`);
@@ -1341,13 +1269,7 @@ async function handleShow(msg, msgParms, guildConfig) {
         }
         const embedsChar = embedForCharacter(msg, [showUser], 'Show Character', true);
         await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -1375,13 +1297,7 @@ async function handleCampaign(msg, msgParms, guildConfig) {
         charToEdit.campaignOverride = campaignID;
         await charToEdit.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Campaign', value: `Character ${charID} campaign changed to \`${campaignID ? campaignID : 'No Campaign Override'}\`` }, msg);
-        if (msg.deletable) {
-            try {
-                await msg.delete();
-            } catch (error) {
-                console.error(`Could not delete ${msg.id}`, error);
-            }
-        }
+        utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
