@@ -442,19 +442,22 @@ async function handleUpdate(msg, paramArray, guildConfig) {
         } else if (checkRegisterStatus.approvalStatus == false) {
             throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charData.id + '` and then re-register if you would like to replace the `register` request');
         }
-        // charData.id = charData.id + '_update';
         const req = await CharModel.findOne({ id: charData.id, guildUser: msg.member.id, isUpdate: true, guildID: msg.guild.id });
-        if (req) {
-            throw new Error('Sorry, this character has already has an update pending.  `remove ' + charData.id + '` if you would like to replace the update request');
-        }
         let char = checkRegisterStatus;
         if (guildConfig.requireCharacterApproval) {
-            char = new CharModel(charData);
+            if (req) {
+                char = req;
+                char.overwrite(charData);
+            } else {
+                char = new CharModel(charData);
+            }
             char.approvalStatus = false;
             char.isUpdate = true;
             char.guildUser = msg.member.id;
             char.guildID = msg.guild.id;
             char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.luckPoints = checkRegisterStatus.luckPoints;
+            char.treasurePoints = checkRegisterStatus.treasurePoints;
             char.approvedBy = checkRegisterStatus.approvedBy;
         } else {
             char.overwrite(charData);
@@ -463,6 +466,8 @@ async function handleUpdate(msg, paramArray, guildConfig) {
             char.guildUser = msg.member.id;
             char.guildID = msg.guild.id;
             char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.luckPoints = checkRegisterStatus.luckPoints;
+            char.treasurePoints = checkRegisterStatus.treasurePoints;
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
