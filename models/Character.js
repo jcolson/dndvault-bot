@@ -30,6 +30,12 @@ const Character = Schema({
     "approvedBy": {
         "type": "String"
     },
+    "luckPoints": {
+        "type": "Number"
+    },
+    "treasurePoints": {
+        "type": "Number"
+    },
     "readonlyUrl": {
         "type": "String"
     },

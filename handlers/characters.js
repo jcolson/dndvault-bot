@@ -481,68 +481,135 @@ async function handleUpdate(msg, paramArray, guildConfig) {
  */
 async function handleUpdateManual(msg, paramArray, guildConfig) {
     try {
-        // const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
-        // const paramArray = parameters.split(' ');
-        //        if (paramArray.length < 5) {
-
-        if (paramArray.length < 5) {
-            //@todo allow updates to not require all fields
-            //       && !paramArray.find(p => {
-            //     returnValue = (p.name == COMMANDS.updateManual.options[0].name);
-            //     console.debug(`${p.name} ?? ${COMMANDS.updateManual.options[0].name} = ${returnValue}`);
-            //     return returnValue;
-            // }))
+        //we need at least the char_id and one other parameter to make any updates
+        if (paramArray.length < 2) {
             throw new Error('Not enough parameters passed.');
         }
-        console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, paramArray[0].value);
-        let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: paramArray[0].value, isUpdate: false });
+
+        let charId = paramArray.find(p => p.name == 'character_id')?.value;
+        let charName = paramArray.find(p => p.name == 'char_name')?.value;
+        let charClass = paramArray.find(p => p.name == 'char_class')?.value;
+        let charLevel = paramArray.find(p => p.name == 'char_level')?.value;
+        let raceFullName = paramArray.find(p => p.name == 'char_race')?.value;
+        let campaignName = paramArray.find(p => p.name == 'campaign_name')?.value;
+
+        let gp = paramArray.find(p => p.name == 'gp')?.value;
+        let sp = paramArray.find(p => p.name == 'sp')?.value;
+        let cp = paramArray.find(p => p.name == 'cp')?.value;
+        let pp = paramArray.find(p => p.name == 'pp')?.value;
+        let ep = paramArray.find(p => p.name == 'ep')?.value;
+        let xp = paramArray.find(p => p.name == 'xp')?.value;
+        let inspiration = paramArray.find(p => p.name == 'inspiration')?.value;
+        let baseHp = paramArray.find(p => p.name == 'base_hp')?.value;
+        let luckPoints = paramArray.find(p => p.name == 'luck_points')?.value;
+        let treasurePoints = paramArray.find(p => p.name == 'treasure_points')?.value;
+
+        console.debug(`handleUpdateManual:`, paramArray);
+
+        console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, charId);
+        let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: charId, isUpdate: false });
         if (!checkRegisterStatus) {
             throw new Error('Sorry, this character has not been registered and approved yet.  `register` and `approve` it first.');
         } else if (checkRegisterStatus.approvalStatus == false) {
-            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + paramArray[0].value + '` and then re-register if you would like to replace the `register` request');
-        }
-        const req = await CharModel.findOne({ id: paramArray[0].value, isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
-        if (req) {
-            throw new Error('Sorry, this character has already has an update pending.  `remove ' + paramArray[0].value + '` if you would like to replace the update request');
-        }
-        let char = checkRegisterStatus;
-        if (guildConfig.requireCharacterApproval) {
-            char = new CharModel({
-                id: paramArray[0].value,
-                name: paramArray[1].value,
-                classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
-                "race.fullName": paramArray[4].value,
-                approvalStatus: false,
-                isUpdate: true,
-                approvedBy: checkRegisterStatus.approvedBy,
-            });
-        } else {
-            char.overwrite({
-                id: paramArray[0].value,
-                name: paramArray[1].value,
-                classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
-                "race.fullName": paramArray[4].value,
-                approvalStatus: true,
-                isUpdate: false,
-                approvedBy: msg.guild.me.id,
-            });
-        }
-        if (paramArray.length > 5) {
-            char.campaignOverride = '';
-            for (let i = 5; i < paramArray.length; i++) {
-                char.campaignOverride += paramArray[i].value + ' ';
+            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charId + '` and then re-register if you would like to replace the `register` request');
+        } else if (checkRegisterStatus.readonlyUrl) {
+            if (charName || charClass || charLevel || raceFullName || gp || sp || cp || pp || ep || xp || inspiration || baseHp) {
+                throw new Error(`This is a dndbeyond character, please make changes (other than \`luck points\` and \`treasure points\`) in dndbeyond and use the \`update\` command.`);
             }
-            char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
         }
-        char.guildUser = msg.member.id;
-        char.guildID = msg.guild.id;
-        char.campaignOverride = checkRegisterStatus.campaignOverride;
+        const req = await CharModel.findOne({ id: charId, isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
+        // if (req) {
+        //     throw new Error('Sorry, this character has already has an update pending.  `remove ' + charId + '` if you would like to replace the update request');
+        // }
+        if (guildConfig.requireCharacterApproval) {
+            checkRegisterStatus._id = Types.ObjectId();
+            checkRegisterStatus.isNew = true;
+            checkRegisterStatus.approvedBy = undefined;
+        }
+        let char = req ? req : checkRegisterStatus;
+        if (charName) {
+            char.name = charName;
+        }
+        if (charClass) {
+            char.classes = [{ definition: { name: charClass }, level: char.classes[0].definition.level }];
+        }
+        if (charLevel) {
+            char.classes = [{ definition: { name: char.classes[0].definition.name }, level: charLevel }];
+        }
+        if (raceFullName) {
+            char.race.fullName = raceFullName;
+        }
+        if (campaignName) {
+            char.campaignOverride = campaignName;
+        }
+        char.currencies.gp = addSubtractSetValue(gp, char.currencies?.gp);
+        char.currencies.sp = addSubtractSetValue(sp, char.currencies?.sp);
+        char.currencies.cp = addSubtractSetValue(cp, char.currencies?.cp);
+        char.currencies.pp = addSubtractSetValue(pp, char.currencies?.pp);
+        char.currencies.ep = addSubtractSetValue(ep, char.currencies?.ep);
+        char.currentXp = addSubtractSetValue(xp, char.currentXp);
+        char.inspiration = inspiration ? utils.isTrue(inspiration) : char.inspiration;
+        char.baseHitPoints = addSubtractSetValue(baseHp, char.baseHitPoints);
+        char.luckPoints = addSubtractSetValue(luckPoints, char.luckPoints);
+        char.treasurePoints = addSubtractSetValue(treasurePoints, char.treasurePoints);
+
+        // let char = checkRegisterStatus;
+        if (guildConfig.requireCharacterApproval) {
+            char.approvalStatus = false;
+            char.isUpdate = true;
+            // char = new CharModel({
+            //     id: charId,
+            //     name: charName,
+            //     classes: [{ definition: { name: charClass }, level: charLevel }],
+            //     "race.fullName": raceFullName,
+            //     approvalStatus: false,
+            //     isUpdate: true
+            //     // approvedBy: checkRegisterStatus.approvedBy,
+            // });
+        } else {
+            char.approvalStatus = true;
+            char.isUpdate = false;
+            char.approvedBy = msg.guild.me.id;
+            // char.overwrite({
+            //     id: charId,
+            //     name: paramArray[1].value,
+            //     classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
+            //     "race.fullName": paramArray[4].value,
+            //     approvalStatus: true,
+            //     isUpdate: false,
+            //     approvedBy: msg.guild.me.id,
+            // });
+        }
+        // if (paramArray.length > 5) {
+        //     char.campaignOverride = '';
+        //     for (let i = 5; i < paramArray.length; i++) {
+        //         char.campaignOverride += paramArray[i].value + ' ';
+        //     }
+        //     char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
+        // }
+        // char.guildUser = msg.member.id;
+        // char.guildID = msg.guild.id;
+        // char.campaignOverride = checkRegisterStatus.campaignOverride;
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
         utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
+}
+
+function addSubtractSetValue(newValue, oldValue) {
+    let returnValue;
+    if (newValue) {
+        if ((newValue.startsWith('+') || newValue.startsWith('-'))) {
+            returnValue = utils.parseIntOrMakeZero(oldValue) + utils.parseIntOrMakeZero(newValue);
+        } else {
+            returnValue = utils.parseIntOrMakeZero(newValue);
+        }
+    } else {
+        returnValue = oldValue;
+    }
+    return returnValue;
 }
 
 /**

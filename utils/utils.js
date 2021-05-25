@@ -572,6 +572,11 @@ async function deleteMessage(msg) {
     }
 }
 
+function parseIntOrMakeZero(intToParse) {
+    return parseInt(intToParse?intToParse:0);
+}
+
+exports.parseIntOrMakeZero = parseIntOrMakeZero;
 exports.deleteMessage = deleteMessage;
 exports.stringOfSize = stringOfSize;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
