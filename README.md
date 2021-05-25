@@ -27,7 +27,9 @@ DND Vault Table of Contents
     - [changes in character updates](#changes-in-character-updates)
     - [config of server for guild](#config-of-server-for-guild)
     - [permissions required for bot](#permissions-required-for-bot)
-  - [Notes (can be safely ignored)](#notes-can-be-safely-ignored)
+  - [Notes](#notes)
+    - [create change log for release](#create-change-log-for-release)
+    - [Test via docker container](#test-via-docker-container)
     - [Mongodb queries](#mongodb-queries)
     - [discordjs](#discordjs)
     - [Bot Commands for testing](#bot-commands-for-testing)
@@ -278,7 +280,21 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 
 ![bot_permissions](docs/images/bot_permissions.png)
 
-## Notes (can be safely ignored)
+## Notes
+
+**_This section can be safely ignored, it's my scratchpad ..._**
+
+### create change log for release
+
+```sh
+npm run changelog
+```
+
+### Test via docker container
+
+```sh
+docker build --target test ./
+```
 
 ### Mongodb queries
 
