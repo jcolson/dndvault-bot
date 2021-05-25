@@ -285,7 +285,7 @@ function appendStringsForEmbed(stringArray, fieldSize, separator, dontQuote, pad
     stringArray.forEach((value) => {
         let fieldSizeForField = fieldSize.length > i ? fieldSize[i] : fieldSize[fieldSize.length - 1];
         // if field is a mentionable, lets not wrap it in quote
-        if (value.startsWith('<')) {
+        if ((value + '').startsWith('<')) {
             returnValue = returnValue + stringOfSize(value, fieldSizeForField, padChar) + separator;
         } else {
             returnValue = returnValue + quote + stringOfSize(value, fieldSizeForField, padChar) + quote + separator;
@@ -299,7 +299,7 @@ function stringOfSize(value, size, padChar, padBefore) {
     if (!padChar) {
         padChar = ' ';
     }
-    value = value.substring(0, size);
+    value = (value + '').substring(0, size);
     if (value.length < size) {
         if (padBefore) {
             value = padChar.repeat(size - value.length) + value;
@@ -573,7 +573,7 @@ async function deleteMessage(msg) {
 }
 
 function parseIntOrMakeZero(intToParse) {
-    return parseInt(intToParse?intToParse:0);
+    return parseInt(intToParse ? intToParse : 0);
 }
 
 exports.parseIntOrMakeZero = parseIntOrMakeZero;

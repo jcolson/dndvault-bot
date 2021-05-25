@@ -591,7 +591,7 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         // char.guildID = msg.guild.id;
         // char.campaignOverride = checkRegisterStatus.campaignOverride;
         await char.save();
-        await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} ${char.approvalStatus ? 'has been updated.' : 'update is pending approval.'}` }, msg);
         utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -632,6 +632,7 @@ async function handleChanges(msg, msgParms, guildConfig) {
         }
         utils.deleteMessage(msg);
     } catch (error) {
+        console.error(`handleChanges:`, error)
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -699,7 +700,38 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Currency Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
+    changes = arrayForMiscChanges(approvedChar, updatedChar);
+    if (changes?.length > 0) {
+        changesEmbed.addFields({ name: 'Misc Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
+    }
     return changesEmbed;
+}
+
+/**
+ * returns an array of misc changes between characters
+ * Inspiration(/inspiration: boolean)
+ * Base HP: (baseHitPoints: integer)
+ * Luck Points (not in dndbeyond)
+ * Treasure Points (not in dndbeyond)
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
+ * @returns {Array}
+ */
+function arrayForMiscChanges(approvedChar, updatedChar) {
+    let miscChanges = [];
+    if (approvedChar.inspiration != updatedChar.inspiration) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Inspiration', utils.isTrue(approvedChar.inspiration), utils.isTrue(updatedChar.inspiration)]));
+    }
+    if (approvedChar.baseHitPoints != updatedChar.baseHitPoints) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Base Hit Points', utils.parseIntOrMakeZero(approvedChar.baseHitPoints), utils.parseIntOrMakeZero(updatedChar.baseHitPoints)]));
+    }
+    if (approvedChar.luckPoints != updatedChar.luckPoints) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Luck Points', utils.parseIntOrMakeZero(approvedChar.luckPoints), utils.parseIntOrMakeZero(updatedChar.luckPoints)]));
+    }
+    if (approvedChar.treasurePoints != updatedChar.treasurePoints) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Treasure Points', utils.parseIntOrMakeZero(approvedChar.treasurePoints), utils.parseIntOrMakeZero(updatedChar.treasurePoints)]));
+    }
+    return miscChanges;
 }
 
 /**
