@@ -17,6 +17,25 @@ test('trimTagsFromId with OUT a tag', () => {
     expect(utils.trimTagsFromId('227562842591723521')).toBe('227562842591723521');
 });
 
+test('parseAllTagsFromString with multiple tags', () => {
+    expect(utils.parseAllTagsFromString(`I think we should add <@16890631690977280> to the <@&234362454976102401> role.
+    I think we should add <@!36890631690977280> to the <@&434362454976102401> role.
+    I think we should add <@&56890631690977280> to the <@&634362454976102401> role.`)).toStrictEqual([
+        '<@16890631690977280>',
+        '<@&234362454976102401>',
+        '<@!36890631690977280>',
+        '<@&434362454976102401>',
+        '<@&56890631690977280>',
+        '<@&634362454976102401>'
+    ]);
+});
+
+test('parseAllTagsFromString with no tags', () => {
+    expect(utils.parseAllTagsFromString(`I think we should add 16890631690977280> to the <@&234362454976102401 role.
+    I think we should add <@!36890631690977280 to the 434362454976102401> role.
+    I think we should add &56890631690977280> to the &634362454976102401> role.`)).toBe(null);
+});
+
 test(`appendStringsForEmbed don't quote`, () => {
     //stringArray, fieldSize, separator, dontQuote, padChar
     expect(utils.appendStringsForEmbed(['one', 'tw', 'three', 'four'], 3, '|', true, ' ')).toBe('one|tw |thr|fou');

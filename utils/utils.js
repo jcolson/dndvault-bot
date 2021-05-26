@@ -426,6 +426,19 @@ function trimTagsFromId(idToTrim) {
 }
 
 /**
+ * parse all the user / role tags from a string and return as an array
+ * @param {String} mentions
+ * @returns {Array} of tag Strings
+ */
+function parseAllTagsFromString(mentions) {
+    const tagRegex = /<@[!&]?([0-9]*)>/gm;
+    let matches = mentions.match(tagRegex);
+    console.debug('matches', matches);
+    return matches;
+}
+
+
+/**
  * sending messages for websockets
  */
 async function clientWsReply(interaction, replyMessage) {
@@ -597,6 +610,7 @@ exports.COLORS = COLORS;
 exports.EMOJIS = EMOJIS;
 exports.removeAllDataForGuild = removeAllDataForGuild;
 exports.trimTagsFromId = trimTagsFromId;
+exports.parseAllTagsFromString = parseAllTagsFromString;
 exports.checkIfCommandsChanged = checkIfCommandsChanged;
 exports.transformCommandsToDiscordFormat = transformCommandsToDiscordFormat;
 exports.strikeThrough = strikeThrough;

@@ -333,7 +333,8 @@ async function eventShow(guild, msgChannel, eventID) {
             eventChannel = new TextChannel(guild, { id: guildConfig.channelForEvents });
             // eventChannel = await guild.channels.resolve(guildConfig.channelForEvents);
         }
-        sentMessage = await eventChannel.send(embedEvent);
+        let rolesToPing = utils.parseAllTagsFromString(showEvent.description);
+        sentMessage = await eventChannel.send(`${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`, embedEvent);
         if (showEvent.channelID && showEvent.messageID) {
             try {
                 // remove old event message
