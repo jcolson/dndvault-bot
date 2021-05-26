@@ -154,32 +154,32 @@ global.COMMANDS = {
             "type": 3
         }, {
             "name": "gp",
-            "description": "Gold Pieces",
+            "description": "Gold Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
             "name": "sp",
-            "description": "Silver Pieces",
+            "description": "Silver Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
             "name": "cp",
-            "description": "Copper Pieces",
+            "description": "Copper Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
             "name": "pp",
-            "description": "Platinum Pieces",
+            "description": "Platinum Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
             "name": "ep",
-            "description": "Electrum Pieces",
+            "description": "Electrum Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
             "name": "xp",
-            "description": "Experience Points",
+            "description": "Experience Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
@@ -188,18 +188,28 @@ global.COMMANDS = {
             "required": false,
             "type": 5 // boolean
         }, {
-            "name": "base_hp",
-            "description": "Base Hit Points",
+            "name": "hp",
+            "description": "Base Hit Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
-            "name": "luck_points",
-            "description": "Luck Points",
+            "name": "lp",
+            "description": "Luck Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
             "required": false,
             "type": 3,
         }, {
-            "name": "treasure_points",
-            "description": "Treasure Points",
+            "name": "tp",
+            "description": "Treasure Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "inv_add",
+            "description": "Add an inventory item",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "inv_remove",
+            "description": "Remove an inventory item",
             "required": false,
             "type": 3,
         }]

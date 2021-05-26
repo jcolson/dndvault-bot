@@ -504,9 +504,11 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         let ep = paramArray.find(p => p.name == 'ep')?.value;
         let xp = paramArray.find(p => p.name == 'xp')?.value;
         let inspiration = paramArray.find(p => p.name == 'inspiration')?.value;
-        let baseHp = paramArray.find(p => p.name == 'base_hp')?.value;
-        let luckPoints = paramArray.find(p => p.name == 'luck_points')?.value;
-        let treasurePoints = paramArray.find(p => p.name == 'treasure_points')?.value;
+        let baseHp = paramArray.find(p => p.name == 'hp')?.value;
+        let luckPoints = paramArray.find(p => p.name == 'lp')?.value;
+        let treasurePoints = paramArray.find(p => p.name == 'tp')?.value;
+        let invAdd = paramArray.find(p => p.name == 'inv_add')?.value;
+        let invRemove = paramArray.find(p => p.name == 'inv_remove')?.value;
         // console.debug(`handleUpdateManual:`, paramArray);
         console.log('handleUpdateManual: guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, charId);
         let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: charId, isUpdate: false });
@@ -515,7 +517,7 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         } else if (checkRegisterStatus.approvalStatus == false) {
             throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charId + '` and then re-register if you would like to replace the `register` request');
         } else if (checkRegisterStatus.readonlyUrl) {
-            if (charName || charClass || charLevel || raceFullName || gp || sp || cp || pp || ep || xp || inspiration || baseHp) {
+            if (charName || charClass || charLevel || raceFullName || gp || sp || cp || pp || ep || xp || inspiration || baseHp || invAdd || invRemove) {
                 throw new Error(`This is a dndbeyond character, please make changes (other than \`luck points\` and \`treasure points\`) in dndbeyond and use the \`update\` command.`);
             }
         }
@@ -540,6 +542,24 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         }
         if (campaignName) {
             char.campaignOverride = campaignName;
+        }
+        if (invAdd) {
+            //appInv.quantity
+            //appInv.definition.name
+            char.inventory.push({ quantity: 1, definition: { name: invAdd } });
+        }
+        if (invRemove) {
+            let success = false;
+            for (let index = 0; index < char.inventory.length; index++) {
+                if (char.inventory[index].definition.name == invRemove) {
+                    char.inventory.splice(index, 1);
+                    success = true;
+                    break;
+                }
+            }
+            if (!success) {
+                throw new Error(`Could not locate ${invRemove} to remove.`);
+            }
         }
         char.currencies.gp = addSubtractSetValue(gp, char.currencies?.gp);
         char.currencies.sp = addSubtractSetValue(sp, char.currencies?.sp);
@@ -1018,9 +1038,9 @@ function stringForInventory(char) {
     let inventoryString = '';
     char.inventory.forEach((appInv) => {
         const rarity = appInv.definition.rarity && appInv.definition.rarity != 'Common' ? ` (${appInv.definition.rarity})` : ``;
-        const type = appInv.definition.grantedModifiers[0]?.friendlyTypeName ? ` ${appInv.definition.grantedModifiers[0]?.friendlyTypeName}` : '';
-        const subtype = appInv.definition.grantedModifiers[0]?.friendlySubtypeName ? `(${appInv.definition.grantedModifiers[0]?.friendlySubtypeName})` : '';
-        const bonusValue = appInv.definition.grantedModifiers[0]?.value ? ` +${appInv.definition.grantedModifiers[0]?.value}` : '';
+        const type = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.friendlyTypeName ? ` ${appInv.definition.grantedModifiers[0]?.friendlyTypeName}` : '';
+        const subtype = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.friendlySubtypeName ? `(${appInv.definition.grantedModifiers[0]?.friendlySubtypeName})` : '';
+        const bonusValue = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.value ? ` +${appInv.definition.grantedModifiers[0]?.value}` : '';
         inventoryString += `\`${appInv.quantity}\` ${appInv.definition.name}${rarity}${bonusValue}${type}${subtype}\n`;
     });
     return inventoryString;
@@ -1395,6 +1415,7 @@ async function handleShow(msg, msgParms, guildConfig) {
         await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
         utils.deleteMessage(msg);
     } catch (error) {
+        console.error(`handleShow:`, error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
