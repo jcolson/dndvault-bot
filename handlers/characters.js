@@ -508,10 +508,8 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         let baseHp = paramArray.find(p => p.name == 'base_hp')?.value;
         let luckPoints = paramArray.find(p => p.name == 'luck_points')?.value;
         let treasurePoints = paramArray.find(p => p.name == 'treasure_points')?.value;
-
-        console.debug(`handleUpdateManual:`, paramArray);
-
-        console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, charId);
+        // console.debug(`handleUpdateManual:`, paramArray);
+        console.log('handleUpdateManual: guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, charId);
         let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: charId, isUpdate: false });
         if (!checkRegisterStatus) {
             throw new Error('Sorry, this character has not been registered and approved yet.  `register` and `approve` it first.');
@@ -599,6 +597,7 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} ${char.approvalStatus ? 'has been updated.' : 'update is pending approval.'}` }, msg);
         utils.deleteMessage(msg);
     } catch (error) {
+        console.error('handleUpdateManual:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -1150,8 +1149,9 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         if (isShow) {
             charEmbed.addFields(
                 // { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: \`${char.classes.length > 0 ? stringForClass(char.classes[0]) : '?'}\``, inline: true },
-                { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}`, inline: true },
-                { name: 'Misc', value: `Base HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\`\nInspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
+                { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nBase HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\``, inline: true },
+                { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
+                { name: 'Currency', value: `GP: \`${utils.parseIntOrMakeZero(char.currencies.gp)}\`\nSP: \`${utils.parseIntOrMakeZero(char.currencies.sp)}\`\nCP: \`${utils.parseIntOrMakeZero(char.currencies.cp)}\`\nPP: \`${utils.parseIntOrMakeZero(char.currencies.pp)}\`\nEP: \`${utils.parseIntOrMakeZero(char.currencies.ep)}\`\n`, inline: true },
                 { name: 'Attributes*', value: stringForStats(char), inline: true }
             );
         }
