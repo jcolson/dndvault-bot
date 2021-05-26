@@ -490,7 +490,6 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         if (paramArray.length < 2) {
             throw new Error('Not enough parameters passed.');
         }
-
         let charId = paramArray.find(p => p.name == 'character_id')?.value;
         let charName = paramArray.find(p => p.name == 'char_name')?.value;
         let charClass = paramArray.find(p => p.name == 'char_class')?.value;
@@ -521,9 +520,6 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
             }
         }
         const req = await CharModel.findOne({ id: charId, isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
-        // if (req) {
-        //     throw new Error('Sorry, this character has already has an update pending.  `remove ' + charId + '` if you would like to replace the update request');
-        // }
         if (guildConfig.requireCharacterApproval) {
             checkRegisterStatus._id = Types.ObjectId();
             checkRegisterStatus.isNew = true;
@@ -556,43 +552,14 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         char.luckPoints = addSubtractSetValue(luckPoints, char.luckPoints);
         char.treasurePoints = addSubtractSetValue(treasurePoints, char.treasurePoints);
 
-        // let char = checkRegisterStatus;
         if (guildConfig.requireCharacterApproval) {
             char.approvalStatus = false;
             char.isUpdate = true;
-            // char = new CharModel({
-            //     id: charId,
-            //     name: charName,
-            //     classes: [{ definition: { name: charClass }, level: charLevel }],
-            //     "race.fullName": raceFullName,
-            //     approvalStatus: false,
-            //     isUpdate: true
-            //     // approvedBy: checkRegisterStatus.approvedBy,
-            // });
         } else {
             char.approvalStatus = true;
             char.isUpdate = false;
             char.approvedBy = msg.guild.me.id;
-            // char.overwrite({
-            //     id: charId,
-            //     name: paramArray[1].value,
-            //     classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
-            //     "race.fullName": paramArray[4].value,
-            //     approvalStatus: true,
-            //     isUpdate: false,
-            //     approvedBy: msg.guild.me.id,
-            // });
         }
-        // if (paramArray.length > 5) {
-        //     char.campaignOverride = '';
-        //     for (let i = 5; i < paramArray.length; i++) {
-        //         char.campaignOverride += paramArray[i].value + ' ';
-        //     }
-        //     char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
-        // }
-        // char.guildUser = msg.member.id;
-        // char.guildID = msg.guild.id;
-        // char.campaignOverride = checkRegisterStatus.campaignOverride;
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} ${char.approvalStatus ? 'has been updated.' : 'update is pending approval.'}` }, msg);
         utils.deleteMessage(msg);
