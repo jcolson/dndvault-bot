@@ -907,7 +907,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
             }
         });
         if (!foundItem) {
-            // console.log('did not find: ' + updInv.definition.name);
+            console.log('did not find: ', updInv.definition.grantedModifiers);
             inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
         }
     });
@@ -922,7 +922,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
             }
         });
         if (!foundItem) {
-            // console.log('did not find: ' + appInv.definition.name);
+            console.log('did not find: ', appInv.definition.grantedModifiers);
             inventoryChanges.push(utils.appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
         }
     });
@@ -956,19 +956,11 @@ function arrayForClassChange(approvedChar, updatedChar) {
     return classChanges;
 }
 
-function stringForClassWithUrl(urlBase, charClass) {
-    if (typeof charClass !== 'undefined' && charClass?.definition) {
-        return `[${stringForClass(charClass)}](${urlBase + charClass.definition.moreDetailsUrl})`;
+function stringForRaceWithUrl(urlBase, charRace) {
+    if (charRace.moreDetailsUrl) {
+        return `[${charRace.fullName}](${urlBase}${charRace.moreDetailsUrl})`;
     } else {
-        return '';
-    }
-}
-
-function stringForClass(charClass) {
-    if (typeof charClass !== 'undefined' && charClass?.definition) {
-        return `${charClass.definition.name}(${charClass.level})` + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : '');
-    } else {
-        return '';
+        return charRace.fullName;
     }
 }
 
@@ -985,6 +977,22 @@ function stringForClassesWithUrls(urlBase, charClasses) {
     return returnClassesString.trim();
 }
 
+function stringForClassWithUrl(urlBase, charClass) {
+    if (charClass?.definition?.moreDetailsUrl) {
+        return `[${stringForClass(charClass)}](${urlBase + charClass.definition.moreDetailsUrl})`;
+    } else {
+        return stringForClass(charClass);
+    }
+}
+
+function stringForClass(charClass) {
+    if (charClass?.definition) {
+        return `${charClass.definition.name}(${charClass.level})` + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : '');
+    } else {
+        return 'UNK';
+    }
+}
+
 function stringForClassShort(charClass) {
     if (typeof charClass !== 'undefined' && charClass?.definition) {
         return `${charClass.definition.name}(${charClass.level})`;
@@ -997,6 +1005,25 @@ function stringForRaceChange(approvedChar, updatedChar) {
     if (approvedChar.race.fullName != updatedChar.race.fullName) {
         return utils.appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
     }
+}
+
+/**
+ *
+ * @param {CharacterModel} char
+ */
+function stringForInventory(char) {
+    if (char.inventory.length < 1) {
+        return "N/A";
+    }
+    let inventoryString = '';
+    char.inventory.forEach((appInv) => {
+        const rarity = appInv.definition.rarity && appInv.definition.rarity != 'Common' ? ` (${appInv.definition.rarity})` : ``;
+        const type = appInv.definition.grantedModifiers[0]?.friendlyTypeName ? ` ${appInv.definition.grantedModifiers[0]?.friendlyTypeName}` : '';
+        const subtype = appInv.definition.grantedModifiers[0]?.friendlySubtypeName ? `(${appInv.definition.grantedModifiers[0]?.friendlySubtypeName})` : '';
+        const bonusValue = appInv.definition.grantedModifiers[0]?.value ? ` +${appInv.definition.grantedModifiers[0]?.value}` : '';
+        inventoryString += `\`${appInv.quantity}\` ${appInv.definition.name}${rarity}${bonusValue}${type}${subtype}\n`;
+    });
+    return inventoryString;
 }
 
 function stringForNameChange(approvedChar, updatedChar) {
@@ -1124,10 +1151,11 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         if (isShow) {
             charEmbed.addFields(
                 // { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: \`${char.classes.length > 0 ? stringForClass(char.classes[0]) : '?'}\``, inline: true },
-                { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nBase HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\``, inline: true },
+                { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nBase HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\``, inline: true },
                 { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
                 { name: 'Currency', value: `GP: \`${utils.parseIntOrMakeZero(char.currencies.gp)}\`\nSP: \`${utils.parseIntOrMakeZero(char.currencies.sp)}\`\nCP: \`${utils.parseIntOrMakeZero(char.currencies.cp)}\`\nPP: \`${utils.parseIntOrMakeZero(char.currencies.pp)}\`\nEP: \`${utils.parseIntOrMakeZero(char.currencies.ep)}\`\n`, inline: true },
-                { name: 'Attributes*', value: stringForStats(char), inline: true }
+                { name: 'Inventory', value: stringForInventory(char), inline: true },
+                { name: 'Attributes*', value: stringForStats(char), inline: true },
             );
         }
     });
