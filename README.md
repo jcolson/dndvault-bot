@@ -15,7 +15,8 @@ DND Vault Table of Contents
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Commands](#commands)
     - [Functionality Documentation](#functionality-documentation)
-    - [Command Descriptions](#command-descriptions)
+    - [Slash Command Descriptions](#slash-command-descriptions)
+    - [Old Command Descriptions](#old-command-descriptions)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
   - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
   - [Screenshots](#screenshots)
@@ -27,7 +28,9 @@ DND Vault Table of Contents
     - [changes in character updates](#changes-in-character-updates)
     - [config of server for guild](#config-of-server-for-guild)
     - [permissions required for bot](#permissions-required-for-bot)
-  - [Notes (can be safely ignored)](#notes-can-be-safely-ignored)
+  - [Notes](#notes)
+    - [create change log for release](#create-change-log-for-release)
+    - [Test via docker container](#test-via-docker-container)
     - [Mongodb queries](#mongodb-queries)
     - [discordjs](#discordjs)
     - [Bot Commands for testing](#bot-commands-for-testing)
@@ -146,7 +149,13 @@ The brackets below (such as in `register manual [CHARACTER_NAME] [CHARACTER_CLAS
 
 **Roll initiative!**
 
-### Command Descriptions
+### Slash Command Descriptions
+
+In order to see the new slash commands and their accompanying options and descriptions, just start a slash command by typing `/` and click on `D&D Vault` and you'll see a list of all the available commands.
+
+![slash](docs/images/slash.png)
+
+### Old Command Descriptions
 
 ```fix
 - [x] help
@@ -278,7 +287,21 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 
 ![bot_permissions](docs/images/bot_permissions.png)
 
-## Notes (can be safely ignored)
+## Notes
+
+**_This section can be safely ignored, it's my scratchpad ..._**
+
+### create change log for release
+
+```sh
+npm run changelog
+```
+
+### Test via docker container
+
+```sh
+docker build --target test ./
+```
 
 ### Mongodb queries
 

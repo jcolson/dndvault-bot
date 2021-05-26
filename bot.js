@@ -128,23 +128,23 @@ global.COMMANDS = {
         }, {
             "name": "char_name",
             "description": "Your Character's Name",
-            "required": true,
+            "required": false,
             "type": 3
         }, {
             "name": "char_class",
             "description": "Your Character's Class",
-            "required": true,
+            "required": false,
             "type": 3,
             "choices": characters.ClassLookup
         }, {
             "name": "char_level",
             "description": "Your Character's Level",
-            "required": true,
+            "required": false,
             "type": 4 //integer
         }, {
             "name": "char_race",
             "description": "Your Character's Race",
-            "required": true,
+            "required": false,
             "type": 3,
             "choices": characters.RaceLookup
         }, {
@@ -152,6 +152,66 @@ global.COMMANDS = {
             "description": "The Campaign to associate your character with",
             "required": false,
             "type": 3
+        }, {
+            "name": "gp",
+            "description": "Gold Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "sp",
+            "description": "Silver Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "cp",
+            "description": "Copper Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "pp",
+            "description": "Platinum Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "ep",
+            "description": "Electrum Pieces (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "xp",
+            "description": "Experience Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "inspiration",
+            "description": "Character Inspiration",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "hp",
+            "description": "Base Hit Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "lp",
+            "description": "Luck Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "tp",
+            "description": "Treasure Points (ex: `+10` to add, or `-10` to subtract, or `10` to overwrite current value)",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "inv_add",
+            "description": "Add an inventory item",
+            "required": false,
+            "type": 3,
+        }, {
+            "name": "inv_remove",
+            "description": "Remove an inventory item",
+            "required": false,
+            "type": 3,
         }]
     },
     "update": {
@@ -916,6 +976,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         characters.handleRegister(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.updateManual.name:
+                        xformArrayToMsgParms(COMMANDS.updateManual, msgParms);
                         characters.handleUpdateManual(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.update.name:
@@ -1036,6 +1097,21 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
     return handled;
+}
+
+/**
+ * if paramArray didn't come from a slash command, it won't have the 'name's of each of the params
+ * this function names the parameters so that they can be used by name in the update function
+ * @param {Object} globalCommand (ex: COMMANDS.updateManual)
+ * @param {Array} msgParms
+ */
+ function xformArrayToMsgParms(globalCommand, msgParms) {
+    for (let i = 0; i < msgParms.length; i++) {
+        if (!msgParms[i].name) {
+            msgParms[i].name = globalCommand.options[i].name;
+        }
+    }
+    console.debug(`xformArrayToMsgParms:`, msgParms);
 }
 
 /**
