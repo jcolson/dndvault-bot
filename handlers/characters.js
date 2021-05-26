@@ -442,19 +442,22 @@ async function handleUpdate(msg, paramArray, guildConfig) {
         } else if (checkRegisterStatus.approvalStatus == false) {
             throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charData.id + '` and then re-register if you would like to replace the `register` request');
         }
-        // charData.id = charData.id + '_update';
         const req = await CharModel.findOne({ id: charData.id, guildUser: msg.member.id, isUpdate: true, guildID: msg.guild.id });
-        if (req) {
-            throw new Error('Sorry, this character has already has an update pending.  `remove ' + charData.id + '` if you would like to replace the update request');
-        }
         let char = checkRegisterStatus;
         if (guildConfig.requireCharacterApproval) {
-            char = new CharModel(charData);
+            if (req) {
+                char = req;
+                char.overwrite(charData);
+            } else {
+                char = new CharModel(charData);
+            }
             char.approvalStatus = false;
             char.isUpdate = true;
             char.guildUser = msg.member.id;
             char.guildID = msg.guild.id;
             char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.luckPoints = checkRegisterStatus.luckPoints;
+            char.treasurePoints = checkRegisterStatus.treasurePoints;
             char.approvedBy = checkRegisterStatus.approvedBy;
         } else {
             char.overwrite(charData);
@@ -463,6 +466,8 @@ async function handleUpdate(msg, paramArray, guildConfig) {
             char.guildUser = msg.member.id;
             char.guildID = msg.guild.id;
             char.campaignOverride = checkRegisterStatus.campaignOverride;
+            char.luckPoints = checkRegisterStatus.luckPoints;
+            char.treasurePoints = checkRegisterStatus.treasurePoints;
             char.approvedBy = msg.guild.me.id;
         }
         await char.save();
@@ -481,68 +486,129 @@ async function handleUpdate(msg, paramArray, guildConfig) {
  */
 async function handleUpdateManual(msg, paramArray, guildConfig) {
     try {
-        // const parameters = msg.content.substring((guildConfig.prefix + 'update manual').length + 1);
-        // const paramArray = parameters.split(' ');
-        //        if (paramArray.length < 5) {
-
-        if (paramArray.length < 5) {
-            //@todo allow updates to not require all fields
-            //       && !paramArray.find(p => {
-            //     returnValue = (p.name == COMMANDS.updateManual.options[0].name);
-            //     console.debug(`${p.name} ?? ${COMMANDS.updateManual.options[0].name} = ${returnValue}`);
-            //     return returnValue;
-            // }))
+        //we need at least the char_id and one other parameter to make any updates
+        if (paramArray.length < 2) {
             throw new Error('Not enough parameters passed.');
         }
-        console.log('guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, paramArray[0].value);
-        let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: paramArray[0].value, isUpdate: false });
+        let charId = paramArray.find(p => p.name == 'character_id')?.value;
+        let charName = paramArray.find(p => p.name == 'char_name')?.value;
+        let charClass = paramArray.find(p => p.name == 'char_class')?.value;
+        let charLevel = paramArray.find(p => p.name == 'char_level')?.value;
+        let raceFullName = paramArray.find(p => p.name == 'char_race')?.value;
+        let campaignName = paramArray.find(p => p.name == 'campaign_name')?.value;
+
+        let gp = paramArray.find(p => p.name == 'gp')?.value;
+        let sp = paramArray.find(p => p.name == 'sp')?.value;
+        let cp = paramArray.find(p => p.name == 'cp')?.value;
+        let pp = paramArray.find(p => p.name == 'pp')?.value;
+        let ep = paramArray.find(p => p.name == 'ep')?.value;
+        let xp = paramArray.find(p => p.name == 'xp')?.value;
+        let inspiration = paramArray.find(p => p.name == 'inspiration')?.value;
+        let baseHp = paramArray.find(p => p.name == 'hp')?.value;
+        let luckPoints = paramArray.find(p => p.name == 'lp')?.value;
+        let treasurePoints = paramArray.find(p => p.name == 'tp')?.value;
+        let invAdd = paramArray.find(p => p.name == 'inv_add')?.value;
+        let invRemove = paramArray.find(p => p.name == 'inv_remove')?.value;
+        // console.debug(`handleUpdateManual:`, paramArray);
+        console.log('handleUpdateManual: guildid %s, userid %s, id %s, isUpdate false', msg.guild.id, msg.member.id, charId);
+        let checkRegisterStatus = await CharModel.findOne({ guildID: msg.guild.id, guildUser: msg.member.id, id: charId, isUpdate: false });
         if (!checkRegisterStatus) {
             throw new Error('Sorry, this character has not been registered and approved yet.  `register` and `approve` it first.');
         } else if (checkRegisterStatus.approvalStatus == false) {
-            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + paramArray[0].value + '` and then re-register if you would like to replace the `register` request');
-        }
-        const req = await CharModel.findOne({ id: paramArray[0].value, isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
-        if (req) {
-            throw new Error('Sorry, this character has already has an update pending.  `remove ' + paramArray[0].value + '` if you would like to replace the update request');
-        }
-        let char = checkRegisterStatus;
-        if (guildConfig.requireCharacterApproval) {
-            char = new CharModel({
-                id: paramArray[0].value,
-                name: paramArray[1].value,
-                classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
-                "race.fullName": paramArray[4].value,
-                approvalStatus: false,
-                isUpdate: true,
-                approvedBy: checkRegisterStatus.approvedBy,
-            });
-        } else {
-            char.overwrite({
-                id: paramArray[0].value,
-                name: paramArray[1].value,
-                classes: [{ definition: { name: paramArray[2].value }, level: paramArray[3].value }],
-                "race.fullName": paramArray[4].value,
-                approvalStatus: true,
-                isUpdate: false,
-                approvedBy: msg.guild.me.id,
-            });
-        }
-        if (paramArray.length > 5) {
-            char.campaignOverride = '';
-            for (let i = 5; i < paramArray.length; i++) {
-                char.campaignOverride += paramArray[i].value + ' ';
+            throw new Error('Sorry, this character is currently pending register approval.  `remove ' + charId + '` and then re-register if you would like to replace the `register` request');
+        } else if (checkRegisterStatus.readonlyUrl) {
+            if (charName || charClass || charLevel || raceFullName || gp || sp || cp || pp || ep || xp || inspiration || baseHp || invAdd || invRemove) {
+                throw new Error(`This is a dndbeyond character, please make changes (other than \`luck points\` and \`treasure points\`) in dndbeyond and use the \`update\` command.`);
             }
-            char.campaignOverride = char.campaignOverride.substring(0, char.campaignOverride.length - 1);
         }
-        char.guildUser = msg.member.id;
-        char.guildID = msg.guild.id;
-        char.campaignOverride = checkRegisterStatus.campaignOverride;
+        const req = await CharModel.findOne({ id: charId, isUpdate: true, guildID: msg.guild.id, guildUser: msg.member.id });
+        if (guildConfig.requireCharacterApproval) {
+            checkRegisterStatus._id = Types.ObjectId();
+            checkRegisterStatus.isNew = true;
+            checkRegisterStatus.approvedBy = undefined;
+        }
+        let char = req ? req : checkRegisterStatus;
+        if (charName) {
+            char.name = charName;
+        }
+        if (charClass) {
+            char.classes = [{ definition: { name: charClass }, level: char.classes[0].definition.level }];
+        }
+        if (charLevel) {
+            char.classes = [{ definition: { name: char.classes[0].definition.name }, level: charLevel }];
+        }
+        if (raceFullName) {
+            char.race.fullName = raceFullName;
+        }
+        if (campaignName) {
+            char.campaignOverride = campaignName;
+        }
+        if (invAdd) {
+            //appInv.quantity
+            //appInv.definition.name
+            char.inventory.push({ quantity: 1, definition: { name: invAdd } });
+        }
+        if (invRemove) {
+            let success = false;
+            for (let index = 0; index < char.inventory.length; index++) {
+                if (char.inventory[index].definition.name == invRemove) {
+                    char.inventory.splice(index, 1);
+                    success = true;
+                    break;
+                }
+            }
+            if (!success) {
+                throw new Error(`Could not locate ${invRemove} to remove.`);
+            }
+        }
+        char.currencies.gp = addSubtractSetValue(gp, char.currencies?.gp);
+        char.currencies.sp = addSubtractSetValue(sp, char.currencies?.sp);
+        char.currencies.cp = addSubtractSetValue(cp, char.currencies?.cp);
+        char.currencies.pp = addSubtractSetValue(pp, char.currencies?.pp);
+        char.currencies.ep = addSubtractSetValue(ep, char.currencies?.ep);
+        char.currentXp = addSubtractSetValue(xp, char.currentXp);
+        char.inspiration = inspiration ? utils.isTrue(inspiration) : char.inspiration;
+        char.baseHitPoints = addSubtractSetValue(baseHp, char.baseHitPoints);
+        char.luckPoints = addSubtractSetValue(luckPoints, char.luckPoints);
+        char.treasurePoints = addSubtractSetValue(treasurePoints, char.treasurePoints);
+
+        if (guildConfig.requireCharacterApproval) {
+            char.approvalStatus = false;
+            char.isUpdate = true;
+        } else {
+            char.approvalStatus = true;
+            char.isUpdate = false;
+            char.approvedBy = msg.guild.me.id;
+        }
         await char.save();
-        await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
+        await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} ${char.approvalStatus ? 'has been updated.' : 'update is pending approval.'}` }, msg);
         utils.deleteMessage(msg);
     } catch (error) {
+        console.error('handleUpdateManual:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
+}
+
+/**
+ * adds to oldvalue if the newvalue begins with +
+ * subtracts from oldvalue if the newvalue begins with -
+ * replaces the oldvalue with newvalue if neither of the above
+ * @param {String} newValue
+ * @param {String} oldValue
+ * @returns {Integer} replacementValue
+ */
+function addSubtractSetValue(newValue, oldValue) {
+    let returnValue;
+    if (newValue) {
+        if ((newValue.startsWith('+') || newValue.startsWith('-'))) {
+            returnValue = utils.parseIntOrMakeZero(oldValue) + utils.parseIntOrMakeZero(newValue);
+        } else {
+            returnValue = utils.parseIntOrMakeZero(newValue);
+        }
+    } else {
+        returnValue = oldValue;
+    }
+    return returnValue;
 }
 
 /**
@@ -565,6 +631,7 @@ async function handleChanges(msg, msgParms, guildConfig) {
         }
         utils.deleteMessage(msg);
     } catch (error) {
+        console.error(`handleChanges:`, error)
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -632,7 +699,38 @@ function embedForChanges(msg, approvedChar, updatedChar) {
     if (changes?.length > 0) {
         changesEmbed.addFields({ name: 'Currency Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
     }
+    changes = arrayForMiscChanges(approvedChar, updatedChar);
+    if (changes?.length > 0) {
+        changesEmbed.addFields({ name: 'Misc Changes', value: utils.trimAndElipsiseStringArray(changes, 1024) });
+    }
     return changesEmbed;
+}
+
+/**
+ * returns an array of misc changes between characters
+ * Inspiration(/inspiration: boolean)
+ * Base HP: (baseHitPoints: integer)
+ * Luck Points (not in dndbeyond)
+ * Treasure Points (not in dndbeyond)
+ * @param {CharModel} approvedChar
+ * @param {CharModel} updatedChar
+ * @returns {Array}
+ */
+function arrayForMiscChanges(approvedChar, updatedChar) {
+    let miscChanges = [];
+    if (approvedChar.inspiration != updatedChar.inspiration) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Inspiration', utils.isTrue(approvedChar.inspiration), utils.isTrue(updatedChar.inspiration)]));
+    }
+    if (approvedChar.baseHitPoints != updatedChar.baseHitPoints) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Base Hit Points', utils.parseIntOrMakeZero(approvedChar.baseHitPoints), utils.parseIntOrMakeZero(updatedChar.baseHitPoints)]));
+    }
+    if (approvedChar.luckPoints != updatedChar.luckPoints) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Luck Points', utils.parseIntOrMakeZero(approvedChar.luckPoints), utils.parseIntOrMakeZero(updatedChar.luckPoints)]));
+    }
+    if (approvedChar.treasurePoints != updatedChar.treasurePoints) {
+        miscChanges.push(utils.appendStringsForEmbedChanges(['Treasure Points', utils.parseIntOrMakeZero(approvedChar.treasurePoints), utils.parseIntOrMakeZero(updatedChar.treasurePoints)]));
+    }
+    return miscChanges;
 }
 
 /**
@@ -829,7 +927,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
             }
         });
         if (!foundItem) {
-            // console.log('did not find: ' + updInv.definition.name);
+            console.log('did not find: ', updInv.definition.grantedModifiers);
             inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
         }
     });
@@ -844,7 +942,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar) {
             }
         });
         if (!foundItem) {
-            // console.log('did not find: ' + appInv.definition.name);
+            console.log('did not find: ', appInv.definition.grantedModifiers);
             inventoryChanges.push(utils.appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
         }
     });
@@ -878,11 +976,40 @@ function arrayForClassChange(approvedChar, updatedChar) {
     return classChanges;
 }
 
+function stringForRaceWithUrl(urlBase, charRace) {
+    if (charRace.moreDetailsUrl) {
+        return `[${charRace.fullName}](${urlBase}${charRace.moreDetailsUrl})`;
+    } else {
+        return charRace.fullName;
+    }
+}
+
+/**
+ * do this for an array of classes
+ * @param {Array} charClasses
+ * @returns
+ */
+function stringForClassesWithUrls(urlBase, charClasses) {
+    let returnClassesString = '';
+    for (charClass of charClasses) {
+        returnClassesString += stringForClassWithUrl(urlBase, charClass) + ' ';
+    }
+    return returnClassesString.trim();
+}
+
+function stringForClassWithUrl(urlBase, charClass) {
+    if (charClass?.definition?.moreDetailsUrl) {
+        return `[${stringForClass(charClass)}](${urlBase + charClass.definition.moreDetailsUrl})`;
+    } else {
+        return stringForClass(charClass);
+    }
+}
+
 function stringForClass(charClass) {
-    if (typeof charClass !== 'undefined' && charClass?.definition) {
+    if (charClass?.definition) {
         return `${charClass.definition.name}(${charClass.level})` + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : '');
     } else {
-        return '';
+        return 'UNK';
     }
 }
 
@@ -898,6 +1025,25 @@ function stringForRaceChange(approvedChar, updatedChar) {
     if (approvedChar.race.fullName != updatedChar.race.fullName) {
         return utils.appendStringsForEmbedChanges(['Race', approvedChar.race.fullName, updatedChar.race.fullName]);
     }
+}
+
+/**
+ *
+ * @param {CharacterModel} char
+ */
+function stringForInventory(char) {
+    if (char.inventory.length < 1) {
+        return "N/A";
+    }
+    let inventoryString = '';
+    char.inventory.forEach((appInv) => {
+        const rarity = appInv.definition.rarity && appInv.definition.rarity != 'Common' ? ` (${appInv.definition.rarity})` : ``;
+        const type = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.friendlyTypeName ? ` ${appInv.definition.grantedModifiers[0]?.friendlyTypeName}` : '';
+        const subtype = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.friendlySubtypeName ? `(${appInv.definition.grantedModifiers[0]?.friendlySubtypeName})` : '';
+        const bonusValue = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.value ? ` +${appInv.definition.grantedModifiers[0]?.value}` : '';
+        inventoryString += `\`${appInv.quantity}\` ${appInv.definition.name}${rarity}${bonusValue}${type}${subtype}\n`;
+    });
+    return inventoryString;
 }
 
 function stringForNameChange(approvedChar, updatedChar) {
@@ -1024,14 +1170,12 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         // }
         if (isShow) {
             charEmbed.addFields(
-                // { name: 'User', value: `<@${char.guildUser}>`, inline: true },
-                { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
-                {
-                    name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
-                        // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
-                        '?', inline: true
-                },
-                { name: 'Attributes*', value: stringForStats(char), inline: true }
+                // { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: \`${char.classes.length > 0 ? stringForClass(char.classes[0]) : '?'}\``, inline: true },
+                { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nBase HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\``, inline: true },
+                { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
+                { name: 'Currency', value: `GP: \`${utils.parseIntOrMakeZero(char.currencies.gp)}\`\nSP: \`${utils.parseIntOrMakeZero(char.currencies.sp)}\`\nCP: \`${utils.parseIntOrMakeZero(char.currencies.cp)}\`\nPP: \`${utils.parseIntOrMakeZero(char.currencies.pp)}\`\nEP: \`${utils.parseIntOrMakeZero(char.currencies.ep)}\`\n`, inline: true },
+                { name: 'Inventory', value: stringForInventory(char), inline: true },
+                { name: 'Attributes*', value: stringForStats(char), inline: true },
             );
         }
     });
@@ -1271,6 +1415,7 @@ async function handleShow(msg, msgParms, guildConfig) {
         await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
         utils.deleteMessage(msg);
     } catch (error) {
+        console.error(`handleShow:`, error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
