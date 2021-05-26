@@ -15,7 +15,8 @@ DND Vault Table of Contents
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Commands](#commands)
     - [Functionality Documentation](#functionality-documentation)
-    - [Command Descriptions](#command-descriptions)
+    - [Slash Command Descriptions](#slash-command-descriptions)
+    - [Old Command Descriptions](#old-command-descriptions)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
   - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
   - [Screenshots](#screenshots)
@@ -148,7 +149,13 @@ The brackets below (such as in `register manual [CHARACTER_NAME] [CHARACTER_CLAS
 
 **Roll initiative!**
 
-### Command Descriptions
+### Slash Command Descriptions
+
+In order to see the new slash commands and their accompanying options and descriptions, just start a slash command by typing `/` and click on `D&D Vault` and you'll see a list of all the available commands.
+
+![slash](docs/images/slash.png)
+
+### Old Command Descriptions
 
 ```fix
 - [x] help
