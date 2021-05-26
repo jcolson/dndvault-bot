@@ -133,18 +133,21 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser, existingEvent);
                 //since we're editing the event, we'll re-remind users
                 validatedEvent.reminderSent = undefined;
-                let eventMessage;
-                try {
-                    eventMessage = await (
-                        theGuild.channels.resolve(validatedEvent.channelID)
-                    ).messages.fetch(validatedEvent.messageID);
-                    await eventMessage.edit(await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
-                    await validatedEvent.save();
-                } catch (error) {
-                    console.log(`couldn't edit old event message on edit: ${error.message}`);
-                    let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
-                    eventMessage = await eventShow(guild, eventChannel, validatedEvent._id);
-                }
+                // let eventMessage;
+                // try {
+                //     eventMessage = await (
+                //         theGuild.channels.resolve(validatedEvent.channelID)
+                //     ).messages.fetch(validatedEvent.messageID);
+                //     let rolesToPing = utils.parseAllTagsFromString(showEvent.description);
+                //     await eventMessage.edit(`${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`, await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
+                //     await validatedEvent.save();
+                // } catch (error) {
+                //     console.log(`couldn't edit old event message on edit: ${error.message}`);
+                //     let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
+                //     eventMessage = await eventShow(theGuild, eventChannel, validatedEvent._id);
+                // }
+                let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
+                let eventMessage = await eventShow(theGuild, eventChannel, validatedEvent._id);
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Edit ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
                 return true;
             }
@@ -340,7 +343,7 @@ async function eventShow(guild, msgChannel, eventID) {
                 // remove old event message
                 // let oldEventMessageChannel = await guild.channels.resolve(showEvent.channelID);
                 let oldEventMessageChannel = new TextChannel(guild, { id: showEvent.channelID });
-                console.debug(`eventShow: ${showEvent.channelID} oldEventMessageChannel:`, oldEventMessageChannel);
+                // console.debug(`eventShow: ${showEvent.channelID} oldEventMessageChannel:`, oldEventMessageChannel);
                 const eventMessage = await oldEventMessageChannel.messages.fetch(showEvent.messageID);
                 await eventMessage.delete();
             } catch (error) {
