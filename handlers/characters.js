@@ -569,6 +569,14 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
     }
 }
 
+/**
+ * adds to oldvalue if the newvalue begins with +
+ * subtracts from oldvalue if the newvalue begins with -
+ * replaces the oldvalue with newvalue if neither of the above
+ * @param {String} newValue
+ * @param {String} oldValue
+ * @returns {Integer} replacementValue
+ */
 function addSubtractSetValue(newValue, oldValue) {
     let returnValue;
     if (newValue) {
