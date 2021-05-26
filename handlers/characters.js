@@ -982,12 +982,33 @@ function arrayForClassChange(approvedChar, updatedChar) {
     return classChanges;
 }
 
+function stringForClassWithUrl(urlBase, charClass) {
+    if (typeof charClass !== 'undefined' && charClass?.definition) {
+        return `[${stringForClass(charClass)}](${urlBase + charClass.definition.moreDetailsUrl})`;
+    } else {
+        return '';
+    }
+}
+
 function stringForClass(charClass) {
     if (typeof charClass !== 'undefined' && charClass?.definition) {
         return `${charClass.definition.name}(${charClass.level})` + (charClass.subclassDefinition ? '(' + charClass.subclassDefinition.name + ')' : '');
     } else {
         return '';
     }
+}
+
+/**
+ * do this for an array of classes
+ * @param {Array} charClasses
+ * @returns
+ */
+function stringForClassesWithUrls(urlBase, charClasses) {
+    let returnClassesString = '';
+    for (charClass of charClasses) {
+        returnClassesString += stringForClassWithUrl(urlBase, charClass) + ' ';
+    }
+    return returnClassesString.trim();
 }
 
 function stringForClassShort(charClass) {
@@ -1128,13 +1149,9 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         // }
         if (isShow) {
             charEmbed.addFields(
-                // { name: 'User', value: `<@${char.guildUser}>`, inline: true },
-                { name: 'Race', value: `[${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})`, inline: true },
-                {
-                    name: 'Class', value: char.classes.length > 0 ? stringForClass(char.classes[0]) :
-                        // `[${char.classes[0].definition.name}](${Config.dndBeyondUrl}${char.classes[0].definition.moreDetailsUrl})` :
-                        '?', inline: true
-                },
+                // { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: \`${char.classes.length > 0 ? stringForClass(char.classes[0]) : '?'}\``, inline: true },
+                { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}`, inline: true },
+                { name: 'Misc', value: `Base HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\`\nInspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
                 { name: 'Attributes*', value: stringForStats(char), inline: true }
             );
         }
