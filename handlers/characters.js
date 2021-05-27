@@ -914,38 +914,63 @@ function arrayForTraitsChanges(approvedChar, updatedChar) {
  * @param {CharModel} updatedChar
  * @returns {Array}
  */
-function arrayForInventoryChanges(approvedChar, updatedChar) {
+function arrayForInventoryChanges(approvedChar, updatedChar, doNotRecurse) {
     let inventoryChanges = [];
     updatedChar.inventory.forEach((updInv) => {
         let foundItem = false;
         let wrongQty = 0;
         approvedChar.inventory.forEach((appInv) => {
-            if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
-                foundItem = true;
-            } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
-                wrongQty = appInv.quantity;
+            if (updInv.definition.id || appInv.definition.id) {
+                if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
+                    foundItem = true;
+                } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
+                    wrongQty = appInv.quantity;
+                }
+            } else {
+                //handle stub characters inventory (won't have ids like dndbeyond does)
+                if (updInv.definition.name == appInv.definition.name && updInv.quantity == appInv.quantity) {
+                    foundItem = true;
+                } else if (updInv.definition.name == appInv.definition.name && updInv.quantity != appInv.quantity) {
+                    wrongQty = appInv.quantity;
+                }
             }
         });
         if (!foundItem) {
-            console.log('did not find: ', updInv.definition.grantedModifiers);
-            inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
+            // console.log('arrayForInventoryChanges: did not find: ', updInv.definition.name);
+            if (doNotRecurse) {
+                inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + updInv.quantity, '' + wrongQty]));
+            } else {
+                inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
+            }
         }
     });
-    approvedChar.inventory.forEach((appInv) => {
-        let foundItem = false;
-        let wrongQty = 0;
-        updatedChar.inventory.forEach((updInv) => {
-            if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
-                foundItem = true;
-            } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
-                wrongQty = updInv.quantity;
+    // check custom items as well
+    updatedChar.customItems.forEach((updInvArray) => {
+        updInvArray.forEach((updInv) => {
+            let foundItem = false;
+            let wrongQty = 0;
+            approvedChar.customItems.forEach((appInvArray) => {
+                appInvArray.forEach((updInv) => {
+                    if (updInv.id == appInv.id && updInv.quantity == appInv.quantity) {
+                        foundItem = true;
+                    } else if (updInv.id == appInv.id && updInv.quantity != appInv.quantity) {
+                        wrongQty = appInv.quantity;
+                    }
+                });
+            });
+            if (!foundItem) {
+                // console.log('arrayForInventoryChanges: did not find: ', updInv.name);
+                if (doNotRecurse) {
+                    inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.name, '' + updInv.quantity, '' + wrongQty]));
+                } else {
+                    inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.name, '' + wrongQty, '' + updInv.quantity]));
+                }
             }
         });
-        if (!foundItem) {
-            console.log('did not find: ', appInv.definition.grantedModifiers);
-            inventoryChanges.push(utils.appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
-        }
     });
+    if (!doNotRecurse) {
+        inventoryChanges = inventoryChanges.concat(arrayForInventoryChanges(updatedChar, approvedChar, true));
+    }
     return inventoryChanges;
 }
 
@@ -1042,6 +1067,11 @@ function stringForInventory(char) {
         const subtype = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.friendlySubtypeName ? `(${appInv.definition.grantedModifiers[0]?.friendlySubtypeName})` : '';
         const bonusValue = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.value ? ` +${appInv.definition.grantedModifiers[0]?.value}` : '';
         inventoryString += `\`${appInv.quantity}\` ${appInv.definition.name}${rarity}${bonusValue}${type}${subtype}\n`;
+    });
+    char.customItems.forEach((appInvArray) => {
+        appInvArray.forEach((appInv) => {
+            inventoryString += `\`${appInv.quantity}\` ${appInv.name}\n`;
+        });
     });
     return inventoryString;
 }
@@ -1171,7 +1201,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         if (isShow) {
             charEmbed.addFields(
                 // { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: \`${char.classes.length > 0 ? stringForClass(char.classes[0]) : '?'}\``, inline: true },
-                { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nBase HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\``, inline: true },
+                { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nHP: \`${calcHitPoints(char)}\``, inline: true },
                 { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
                 { name: 'Currency', value: `GP: \`${utils.parseIntOrMakeZero(char.currencies.gp)}\`\nSP: \`${utils.parseIntOrMakeZero(char.currencies.sp)}\`\nCP: \`${utils.parseIntOrMakeZero(char.currencies.cp)}\`\nPP: \`${utils.parseIntOrMakeZero(char.currencies.pp)}\`\nEP: \`${utils.parseIntOrMakeZero(char.currencies.ep)}\`\n`, inline: true },
                 { name: 'Inventory', value: stringForInventory(char), inline: true },
@@ -1227,13 +1257,47 @@ function stringForStats(char) {
     }
     let charStatsString = '';
     char.stats.forEach((stat) => {
-        let bonus = RacialBonusLookup[stat.id][char.race.baseRaceName] ? RacialBonusLookup[stat.id][char.race.baseRaceName] : 0;
-        bonus += RacialBonusLookup[stat.id][char.race.fullName] ? RacialBonusLookup[stat.id][char.race.fullName] : 0;
-        let indivStat = stat.value + bonus;
-        let modifier = Math.floor((indivStat - 10) / 2);
+        let indivStat = statValueWithBonusForStat(stat, char.race);
+        let modifier = modifierForStat(indivStat);
         charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: ${indivStat}(${modifier}) | `;
     });
     return charStatsString.substring(0, charStatsString.length - 3);
+}
+
+function calcTotalLevels(char) {
+    let level = 0;
+    for (charClass of char.classes) {
+        level += charClass.level;
+    }
+    return level;
+}
+
+function calcHitPoints(char) {
+    let modifier = modifierForStatId(3, char);
+    let baseHP = utils.parseIntOrMakeZero(char.baseHitPoints);
+    let levels = calcTotalLevels(char);
+    return (levels * modifier) + baseHP;
+}
+
+function modifierForStatId(statId, char) {
+    let modifier = 0;
+    let stat = char.stats.find(s => { return s.id == statId });
+    // console.log(`modifierForStatId: stat:`, stat);
+    if (stat) {
+        modifier = modifierForStat(statValueWithBonusForStat(stat, char.race));
+    }
+    return modifier;
+}
+
+function modifierForStat(statValue) {
+    return Math.floor((statValue - 10) / 2);
+}
+
+function statValueWithBonusForStat(stat, race) {
+    let bonus = RacialBonusLookup[stat.id][race.baseRaceName] ? RacialBonusLookup[stat.id][race.baseRaceName] : 0;
+    bonus += RacialBonusLookup[stat.id][race.fullName] ? RacialBonusLookup[stat.id][race.fullName] : 0;
+    let indivStat = utils.parseIntOrMakeZero(stat.value) + utils.parseIntOrMakeZero(bonus);
+    return indivStat;
 }
 
 /**
