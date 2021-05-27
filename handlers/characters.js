@@ -914,38 +914,63 @@ function arrayForTraitsChanges(approvedChar, updatedChar) {
  * @param {CharModel} updatedChar
  * @returns {Array}
  */
-function arrayForInventoryChanges(approvedChar, updatedChar) {
+function arrayForInventoryChanges(approvedChar, updatedChar, doNotRecurse) {
     let inventoryChanges = [];
     updatedChar.inventory.forEach((updInv) => {
         let foundItem = false;
         let wrongQty = 0;
         approvedChar.inventory.forEach((appInv) => {
-            if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
-                foundItem = true;
-            } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
-                wrongQty = appInv.quantity;
+            if (updInv.definition.id || appInv.definition.id) {
+                if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
+                    foundItem = true;
+                } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
+                    wrongQty = appInv.quantity;
+                }
+            } else {
+                //handle stub characters inventory (won't have ids like dndbeyond does)
+                if (updInv.definition.name == appInv.definition.name && updInv.quantity == appInv.quantity) {
+                    foundItem = true;
+                } else if (updInv.definition.name == appInv.definition.name && updInv.quantity != appInv.quantity) {
+                    wrongQty = appInv.quantity;
+                }
             }
         });
         if (!foundItem) {
-            console.log('did not find: ', updInv.definition.grantedModifiers);
-            inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
+            // console.log('arrayForInventoryChanges: did not find: ', updInv.definition.name);
+            if (doNotRecurse) {
+                inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + updInv.quantity, '' + wrongQty]));
+            } else {
+                inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.definition.name, '' + wrongQty, '' + updInv.quantity]));
+            }
         }
     });
-    approvedChar.inventory.forEach((appInv) => {
-        let foundItem = false;
-        let wrongQty = 0;
-        updatedChar.inventory.forEach((updInv) => {
-            if (updInv.definition.id == appInv.definition.id && updInv.quantity == appInv.quantity) {
-                foundItem = true;
-            } else if (updInv.definition.id == appInv.definition.id && updInv.quantity != appInv.quantity) {
-                wrongQty = updInv.quantity;
+    // check custom items as well
+    updatedChar.customItems.forEach((updInvArray) => {
+        updInvArray.forEach((updInv) => {
+            let foundItem = false;
+            let wrongQty = 0;
+            approvedChar.customItems.forEach((appInvArray) => {
+                appInvArray.forEach((updInv) => {
+                    if (updInv.id == appInv.id && updInv.quantity == appInv.quantity) {
+                        foundItem = true;
+                    } else if (updInv.id == appInv.id && updInv.quantity != appInv.quantity) {
+                        wrongQty = appInv.quantity;
+                    }
+                });
+            });
+            if (!foundItem) {
+                // console.log('arrayForInventoryChanges: did not find: ', updInv.name);
+                if (doNotRecurse) {
+                    inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.name, '' + updInv.quantity, '' + wrongQty]));
+                } else {
+                    inventoryChanges.push(utils.appendStringsForEmbedChanges([updInv.name, '' + wrongQty, '' + updInv.quantity]));
+                }
             }
         });
-        if (!foundItem) {
-            console.log('did not find: ', appInv.definition.grantedModifiers);
-            inventoryChanges.push(utils.appendStringsForEmbedChanges([appInv.definition.name, '' + appInv.quantity, '' + wrongQty]));
-        }
     });
+    if (!doNotRecurse) {
+        inventoryChanges = inventoryChanges.concat(arrayForInventoryChanges(updatedChar, approvedChar, true));
+    }
     return inventoryChanges;
 }
 
@@ -1042,6 +1067,11 @@ function stringForInventory(char) {
         const subtype = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.friendlySubtypeName ? `(${appInv.definition.grantedModifiers[0]?.friendlySubtypeName})` : '';
         const bonusValue = appInv.definition.grantedModifiers?.length > 0 && appInv.definition.grantedModifiers[0]?.value ? ` +${appInv.definition.grantedModifiers[0]?.value}` : '';
         inventoryString += `\`${appInv.quantity}\` ${appInv.definition.name}${rarity}${bonusValue}${type}${subtype}\n`;
+    });
+    char.customItems.forEach((appInvArray) => {
+        appInvArray.forEach((appInv) => {
+            inventoryString += `\`${appInv.quantity}\` ${appInv.name}\n`;
+        });
     });
     return inventoryString;
 }
@@ -1251,7 +1281,7 @@ function calcHitPoints(char) {
 
 function modifierForStatId(statId, char) {
     let modifier = 0;
-    let stat = char.stats.find(s => { console.log(s); return s.id == statId });
+    let stat = char.stats.find(s => { return s.id == statId });
     // console.log(`modifierForStatId: stat:`, stat);
     if (stat) {
         modifier = modifierForStat(statValueWithBonusForStat(stat, char.race));
