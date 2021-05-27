@@ -1171,7 +1171,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         if (isShow) {
             charEmbed.addFields(
                 // { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: \`${char.classes.length > 0 ? stringForClass(char.classes[0]) : '?'}\``, inline: true },
-                { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nBase HP: \`${utils.parseIntOrMakeZero(char.baseHitPoints)}\``, inline: true },
+                { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nHP: \`${calcHitPoints(char)}\``, inline: true },
                 { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
                 { name: 'Currency', value: `GP: \`${utils.parseIntOrMakeZero(char.currencies.gp)}\`\nSP: \`${utils.parseIntOrMakeZero(char.currencies.sp)}\`\nCP: \`${utils.parseIntOrMakeZero(char.currencies.cp)}\`\nPP: \`${utils.parseIntOrMakeZero(char.currencies.pp)}\`\nEP: \`${utils.parseIntOrMakeZero(char.currencies.ep)}\`\n`, inline: true },
                 { name: 'Inventory', value: stringForInventory(char), inline: true },
@@ -1227,13 +1227,47 @@ function stringForStats(char) {
     }
     let charStatsString = '';
     char.stats.forEach((stat) => {
-        let bonus = RacialBonusLookup[stat.id][char.race.baseRaceName] ? RacialBonusLookup[stat.id][char.race.baseRaceName] : 0;
-        bonus += RacialBonusLookup[stat.id][char.race.fullName] ? RacialBonusLookup[stat.id][char.race.fullName] : 0;
-        let indivStat = stat.value + bonus;
-        let modifier = Math.floor((indivStat - 10) / 2);
+        let indivStat = statValueWithBonusForStat(stat, char.race);
+        let modifier = modifierForStat(indivStat);
         charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: ${indivStat}(${modifier}) | `;
     });
     return charStatsString.substring(0, charStatsString.length - 3);
+}
+
+function calcTotalLevels(char) {
+    let level = 0;
+    for (charClass of char.classes) {
+        level += charClass.level;
+    }
+    return level;
+}
+
+function calcHitPoints(char) {
+    let modifier = modifierForStatId(3, char);
+    let baseHP = utils.parseIntOrMakeZero(char.baseHitPoints);
+    let levels = calcTotalLevels(char);
+    return (levels * modifier) + baseHP;
+}
+
+function modifierForStatId(statId, char) {
+    let modifier = 0;
+    let stat = char.stats.find(s => { console.log(s); return s.id == statId });
+    // console.log(`modifierForStatId: stat:`, stat);
+    if (stat) {
+        modifier = modifierForStat(statValueWithBonusForStat(stat, char.race));
+    }
+    return modifier;
+}
+
+function modifierForStat(statValue) {
+    return Math.floor((statValue - 10) / 2);
+}
+
+function statValueWithBonusForStat(stat, race) {
+    let bonus = RacialBonusLookup[stat.id][race.baseRaceName] ? RacialBonusLookup[stat.id][race.baseRaceName] : 0;
+    bonus += RacialBonusLookup[stat.id][race.fullName] ? RacialBonusLookup[stat.id][race.fullName] : 0;
+    let indivStat = utils.parseIntOrMakeZero(stat.value) + utils.parseIntOrMakeZero(bonus);
+    return indivStat;
 }
 
 /**
