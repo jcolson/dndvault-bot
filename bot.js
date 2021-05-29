@@ -31,7 +31,7 @@ require('log-timestamp')(function () { return `[${new Date().toISOString()}] [sh
 
 global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
-global.GuildCache = new NodeCache({ stdTTL: 0, checkperiod: 0, maxKeys: 200 });
+global.GuildCache = new NodeCache({ stdTTL: 0, checkperiod: 0, maxKeys: 1000 });
 global.client = client;
 
 global.COMMANDS = {
