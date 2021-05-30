@@ -32,13 +32,13 @@ async function handleDiceRoll(msg, diceParam) {
  */
 function embedsForDiceRoll(notation, rollitValut) {
     const EMBED_FIELD_MAX = 1000;
-    const FIELDS_PER_EMBED = 5;
+    const FIELDS_PER_EMBED = 4;
     let diceRollEmbedArray = [];
     let embedFields = [];
     // ensure that if the result is larger than 1000 chars we split it up in different discord embed fields
     for (let i = 0; i < rollitValut.length; i += EMBED_FIELD_MAX) {
         const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + EMBED_FIELD_MAX));
-        embedFields.push({ name: `${utils.EMOJIS.DICE}${notation}${utils.EMOJIS.DICE}`, value: `${cont}` });
+        embedFields.push({ name: `${utils.EMOJIS.DICE}${notation.substring(0, 253)}${utils.EMOJIS.DICE}`, value: `${cont}` });
         // console.debug(`embedsForDiceRoll: i: ${i} length: ${rollitValut.length}`);
         if (embedFields.length >= FIELDS_PER_EMBED || i + EMBED_FIELD_MAX > rollitValut.length) {
             diceRollEmbedArray.push(new MessageEmbed()
