@@ -29,7 +29,7 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
         console.error('handleEventCreate:', error.message);
         await utils.sendDirectOrFallbackToChannel([
             { name: 'Event Create Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
         ], msg);
     }
 }
@@ -97,7 +97,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         console.error('handleEventEdit:', error);
         await utils.sendDirectOrFallbackToChannel([
             { name: 'Event Edit Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
         ], msg);
     }
 }
@@ -482,7 +482,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: guildID, userID: currUser.userID });
     if (eon || eat) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
-        console.log('tz offset: ' + timezoneOffset);
+        console.debug('validateEvent: tz offset: ' + timezoneOffset);
 
         // convert to user's time if this exists already
         let usersOriginalEventDate;
@@ -844,15 +844,14 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
     let fieldsToSend = [];
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
-            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example.`, inline: true },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id}>` },
-            { name: 'iCalendar Subscribe (right click the link and `Copy Link`)', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
+            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id})`, inline: true },
+            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&DVault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     } else {
         let usersTimeString = formatDateInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
-            { name: 'iCalendar Subscribe (right click the link and `Copy Link`)', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
+            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&DVault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     }
     await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);

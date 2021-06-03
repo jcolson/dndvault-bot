@@ -77,12 +77,11 @@ async function handleTimezone(msg, msgParms, guildConfig) {
         if (!timeZoneString && currUser?.timezone) {
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Your Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` },
-                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+                { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
             ], msg);
         } else if (!timeZoneString) {
             await utils.sendDirectOrFallbackToChannel([
-                { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example.` },
-                { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+                { name: 'Your Timezone', value: `<@${msg.member.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
             ], msg);
         } else {
             let timezoneResult = await bc_setUsersTimezone(msg.member.id, msg.channel.id, timeZoneString, msg.guild.id);
