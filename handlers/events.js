@@ -508,7 +508,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         validatedEvent.date_time = eventDate;
     }
     if (validatedEvent.date_time < new Date()) {
-        throw new Error(`Date for any event being created or edited, must be in the future (not ${formatDate(validatedEvent.date_time)}).`);
+        throw new Error(`Date for any event being created or edited, must be in the future (${formatDateInDifferentTimezone(validatedEvent.date_time, currUser.timezone)} is in the past).`);
     }
     validatedEvent.title = etitle === null ? undefined : (etitle ? etitle : validatedEvent.title);
     validatedEvent.dm = edmgm === null ? undefined : (edmgm ? edmgm : validatedEvent.dm);
@@ -849,7 +849,7 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
             { name: 'iCalendar Subscribe (right click the link and `Copy Link`)', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
         ];
     } else {
-        let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
+        let usersTimeString = formatDateInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
             { name: 'iCalendar Subscribe (right click the link and `Copy Link`)', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
@@ -858,7 +858,7 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
     await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);
 }
 
-function getDateStringInDifferentTimezone(date, tzString) {
+function formatDateInDifferentTimezone(date, tzString) {
     let convertedDate = getDateInDifferentTimezone(date, tzString);
     return formatDate(convertedDate, false);
 }
