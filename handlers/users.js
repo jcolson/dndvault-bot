@@ -76,7 +76,7 @@ async function handleTimezone(msg, msgParms, guildConfig) {
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
         if (!timeZoneString && currUser?.timezone) {
             await utils.sendDirectOrFallbackToChannel([
-                { name: 'Your Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: ${currUser.timezone}` },
+                { name: 'Your Timezone', value: `<@${msg.member.id}>, your timezone is currently set to: \`${currUser.timezone}\`` },
                 { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
             ], msg);
         } else if (!timeZoneString) {
