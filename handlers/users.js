@@ -86,15 +86,15 @@ async function handleTimezone(msg, msgParms, guildConfig) {
         } else {
             let timezoneResult = await bc_setUsersTimezone(msg.member.id, msg.channel.id, timeZoneString, msg.guild.id);
             if (timezoneResult) {
-                await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone was successfully set to: ${timeZoneString}` }], msg);
+                await utils.sendDirectOrFallbackToChannel([{ name: 'Timezone', value: `<@${msg.member.id}>, your timezone was successfully set to: \`${timeZoneString}\`` }], msg);
             } else {
-                throw new Error(`Could not set timezone: ${timeZoneString}`);
+                throw new Error(`Unknown timezone, \`${timeZoneString}\`, could not set.`);
             }
         }
         utils.deleteMessage(msg);
     } catch (error) {
         console.log('users.handleTimezone:', error);
-        error.message += `\nexample timezones: \`Europe/Berlin\` or \`America/New_York\`\nTimezone Lookup: <${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>`;
+        error.message += `\nExample timezones: \`Europe/Berlin\` or \`America/New_York\`\n[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})`;
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
