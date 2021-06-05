@@ -269,7 +269,7 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
                 await guild.channels.resolve(channelId)
             ).messages.fetch(messageId);
             if (eventMessage) {
-                await eventMessage.edit(await embedForEvent(guild.iconURL(), [existingEvent], undefined, true, memberUser.id));
+                await eventMessage.edit(await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id));
                 await eventMessage.reactions.removeAll();
             }
         }
@@ -317,7 +317,7 @@ async function eventShow(guild, msgChannel, eventID) {
         if (!showEvent) {
             throw new Error('Event not found.');
         }
-        const embedEvent = await embedForEvent(guild.iconURL(), [showEvent], undefined, true);
+        const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let guildConfig = await config.confirmGuildConfig(guild);
         if (guildConfig?.channelForEvents) {
             // console.debug(`eventShow: channelForEvents: ${guildConfig.channelForEvents}`);
@@ -367,7 +367,7 @@ async function handleEventList(msg, msgParms, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 3);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `ALL Events`, false);
+            const embedEvents = await embedForEvent(msg.guild, eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             utils.deleteMessage(msg);
         } else {
@@ -390,7 +390,7 @@ async function handleEventListProposed(msg, msgParms, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 1);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: null }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `PROPOSED Events`, false);
+            const embedEvents = await embedForEvent(msg.guild, eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             utils.deleteMessage(msg);
         } else {
@@ -413,7 +413,7 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 1);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $exists: true, $ne: null } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
+            const embedEvents = await embedForEvent(msg.guild, eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             utils.deleteMessage(msg);
         } else {
@@ -548,7 +548,7 @@ function getTimeZoneOffset(timezone) {
  *
  * @returns {MessageEmbed[]}
  */
-async function embedForEvent(guildIconURL, eventArray, title, isShow, removedBy) {
+async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 1 : 4;
@@ -563,11 +563,9 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow, removedBy)
         .setColor(utils.COLORS.BLUE)
         .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
-        // @todo fix the fact that guildid is not passed
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}`)
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${guild?.id}`)
         // .setDescription(description)
-        .setThumbnail(guildIconURL);
-    // .setThumbnail(msg.guild.iconURL());
+        .setThumbnail(guild.iconURL());
     let i = 0;
     for (let theEvent of eventArray) {
         if (i++ >= charPerEmbed) {
@@ -885,7 +883,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = user.id;
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
+    await reaction.message.edit(await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true));
 }
 
 /**
@@ -963,7 +961,7 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
         }
     }
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild.iconURL(), [eventForMessage], undefined, true));
+    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
 }
 
 /**
@@ -985,7 +983,7 @@ async function attendeeRemove(message, user, eventForMessage) {
     });
     // console.log(eventForMessage);
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild.iconURL(), [eventForMessage], undefined, true));
+    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
 }
 
 async function sendReminders(client) {
@@ -1005,7 +1003,7 @@ async function sendReminders(client) {
             let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
             let channel = new TextChannel(guild, { id: theEvent.channelID });
             let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
-            let eventEmbeds = await embedForEvent(guild.iconURL(), [theEvent], `Reminder for ${theEvent.title}`, true);
+            let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
             let usersToNotify = [];
             if (theEvent.dm) {
                 usersToNotify.push(theEvent.dm);
