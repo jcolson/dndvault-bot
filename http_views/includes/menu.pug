@@ -3,9 +3,9 @@
     h3
         img(src= Config.dndVaultIcon)
         .
-            D&amp;D Vault - #{title} #{discordMe?'('+discordMe.username+'#'+discordMe.discriminator+')':''}
+            D&amp;D Vault - #{title}
     .
-        #{guildConfig?'@ '+guildConfig.name:''}
+        #{discordMe?'User: '+discordMe.username+'#'+discordMe.discriminator+'':''} #{guildConfig?' Server: '+guildConfig.name:''}
 .topnav
     a(href= '/') Support
     a(href= '/timezones') Timezones
