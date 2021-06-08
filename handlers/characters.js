@@ -1205,7 +1205,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
                 { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
                 { name: 'Currency', value: `GP: \`${utils.parseIntOrMakeZero(char.currencies.gp)}\`\nSP: \`${utils.parseIntOrMakeZero(char.currencies.sp)}\`\nCP: \`${utils.parseIntOrMakeZero(char.currencies.cp)}\`\nPP: \`${utils.parseIntOrMakeZero(char.currencies.pp)}\`\nEP: \`${utils.parseIntOrMakeZero(char.currencies.ep)}\`\n`, inline: true },
                 { name: 'Inventory', value: stringForInventory(char), inline: true },
-                { name: 'Attributes*', value: stringForStats(char), inline: true },
+                { name: 'Attributes (*estimate, as not all calculations are correct at this time)', value: stringForStats(char), inline: true },
             );
         }
     });
@@ -1259,9 +1259,9 @@ function stringForStats(char) {
     char.stats.forEach((stat) => {
         let indivStat = statValueWithBonusForStat(stat, char.race);
         let modifier = modifierForStat(indivStat);
-        charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: ${indivStat}(${modifier}) | `;
+        charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: \`${indivStat}(${modifier})\` \n`;
     });
-    return charStatsString.substring(0, charStatsString.length - 3);
+    return charStatsString.substring(0, charStatsString.length - 2);
 }
 
 function calcTotalLevels(char) {
