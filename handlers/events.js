@@ -29,7 +29,7 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
         console.error('handleEventCreate:', error.message);
         await utils.sendDirectOrFallbackToChannel([
             { name: 'Event Create Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
         ], msg);
     }
 }
@@ -97,7 +97,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         console.error('handleEventEdit:', error);
         await utils.sendDirectOrFallbackToChannel([
             { name: 'Event Edit Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id}>` }
+            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
         ], msg);
     }
 }
@@ -133,19 +133,7 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser, existingEvent);
                 //since we're editing the event, we'll re-remind users
                 validatedEvent.reminderSent = undefined;
-                // let eventMessage;
-                // try {
-                //     eventMessage = await (
-                //         theGuild.channels.resolve(validatedEvent.channelID)
-                //     ).messages.fetch(validatedEvent.messageID);
-                //     let rolesToPing = utils.parseAllTagsFromString(showEvent.description);
-                //     await eventMessage.edit(`${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`, await embedForEvent(theGuild.iconURL(), [validatedEvent], undefined, true));
-                //     await validatedEvent.save();
-                // } catch (error) {
-                //     console.log(`couldn't edit old event message on edit: ${error.message}`);
-                //     let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
-                //     eventMessage = await eventShow(theGuild, eventChannel, validatedEvent._id);
-                // }
+                await validatedEvent.save();
                 let eventChannel = await msg.guild.channels.resolve(channelIDForEvent);
                 let eventMessage = await eventShow(theGuild, eventChannel, validatedEvent._id);
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Edit ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - edited event successfully.`, inline: true }], msg ? msg : eventMessage, await client.users.resolve(currUserId), false, eventMessage.url);
@@ -281,7 +269,7 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
                 await guild.channels.resolve(channelId)
             ).messages.fetch(messageId);
             if (eventMessage) {
-                await eventMessage.edit(await embedForEvent(guild.iconURL(), [existingEvent], undefined, true, memberUser.id));
+                await eventMessage.edit(await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id));
                 await eventMessage.reactions.removeAll();
             }
         }
@@ -329,7 +317,7 @@ async function eventShow(guild, msgChannel, eventID) {
         if (!showEvent) {
             throw new Error('Event not found.');
         }
-        const embedEvent = await embedForEvent(guild.iconURL(), [showEvent], undefined, true);
+        const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let guildConfig = await config.confirmGuildConfig(guild);
         if (guildConfig?.channelForEvents) {
             // console.debug(`eventShow: channelForEvents: ${guildConfig.channelForEvents}`);
@@ -379,7 +367,7 @@ async function handleEventList(msg, msgParms, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 3);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `ALL Events`, false);
+            const embedEvents = await embedForEvent(msg.guild, eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             utils.deleteMessage(msg);
         } else {
@@ -402,7 +390,7 @@ async function handleEventListProposed(msg, msgParms, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 1);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: null }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `PROPOSED Events`, false);
+            const embedEvents = await embedForEvent(msg.guild, eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             utils.deleteMessage(msg);
         } else {
@@ -425,7 +413,7 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
         cutOffDate.setDate(cutOffDate.getDate() - 1);
         let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $exists: true, $ne: null } }).sort({ date_time: 'asc' });
         if (eventsArray.length > 0) {
-            const embedEvents = await embedForEvent(msg.guild.iconURL(), eventsArray, `DEPLOYED Events`, false);
+            const embedEvents = await embedForEvent(msg.guild, eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
             utils.deleteMessage(msg);
         } else {
@@ -494,7 +482,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     let validatedEvent = existingEvent ? existingEvent : new EventModel({ guildID: guildID, userID: currUser.userID });
     if (eon || eat) {
         let timezoneOffset = getTimeZoneOffset(currUser.timezone);
-        console.log('tz offset: ' + timezoneOffset);
+        console.debug('validateEvent: tz offset: ' + timezoneOffset);
 
         // convert to user's time if this exists already
         let usersOriginalEventDate;
@@ -520,7 +508,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         validatedEvent.date_time = eventDate;
     }
     if (validatedEvent.date_time < new Date()) {
-        throw new Error(`Date for any event being created or edited, must be in the future (not ${formatDate(validatedEvent.date_time)}).`);
+        throw new Error(`Date for any event being created or edited, must be in the future (${formatDateInDifferentTimezone(validatedEvent.date_time, currUser.timezone)} is in the past).`);
     }
     validatedEvent.title = etitle === null ? undefined : (etitle ? etitle : validatedEvent.title);
     validatedEvent.dm = edmgm === null ? undefined : (edmgm ? edmgm : validatedEvent.dm);
@@ -560,7 +548,7 @@ function getTimeZoneOffset(timezone) {
  *
  * @returns {MessageEmbed[]}
  */
-async function embedForEvent(guildIconURL, eventArray, title, isShow, removedBy) {
+async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
     let returnEmbeds = [];
     // return 3 events for show and 8 events for a list
     let charPerEmbed = isShow ? 1 : 4;
@@ -575,11 +563,9 @@ async function embedForEvent(guildIconURL, eventArray, title, isShow, removedBy)
         .setColor(utils.COLORS.BLUE)
         .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
-        // @todo fix the fact that guildid is not passed
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}`)
+        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${guild?.id}`)
         // .setDescription(description)
-        .setThumbnail(guildIconURL);
-    // .setThumbnail(msg.guild.iconURL());
+        .setThumbnail(guild.iconURL());
     let i = 0;
     for (let theEvent of eventArray) {
         if (i++ >= charPerEmbed) {
@@ -856,21 +842,20 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
     let fieldsToSend = [];
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
-            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example.`, inline: true },
-            { name: 'Timezone Lookup', value: `<${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id}>` },
-            { name: 'iCalendar Subscribe (right click the link and `Copy Link`)', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
+            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id})`, inline: true },
+            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&DVault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     } else {
-        let usersTimeString = getDateStringInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
+        let usersTimeString = formatDateInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
-            { name: 'iCalendar Subscribe (right click the link and `Copy Link`)', value: `${Config.httpServerURL}/calendar?userID=${user.id}` }
+            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&DVault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     }
     await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);
 }
 
-function getDateStringInDifferentTimezone(date, tzString) {
+function formatDateInDifferentTimezone(date, tzString) {
     let convertedDate = getDateInDifferentTimezone(date, tzString);
     return formatDate(convertedDate, false);
 }
@@ -898,7 +883,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = user.id;
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message.guild.iconURL(), [eventForMessage], undefined, true));
+    await reaction.message.edit(await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true));
 }
 
 /**
@@ -976,7 +961,7 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
         }
     }
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild.iconURL(), [eventForMessage], undefined, true));
+    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
 }
 
 /**
@@ -998,7 +983,7 @@ async function attendeeRemove(message, user, eventForMessage) {
     });
     // console.log(eventForMessage);
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild.iconURL(), [eventForMessage], undefined, true));
+    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
 }
 
 async function sendReminders(client) {
@@ -1018,7 +1003,7 @@ async function sendReminders(client) {
             let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
             let channel = new TextChannel(guild, { id: theEvent.channelID });
             let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
-            let eventEmbeds = await embedForEvent(guild.iconURL(), [theEvent], `Reminder for ${theEvent.title}`, true);
+            let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
             let usersToNotify = [];
             if (theEvent.dm) {
                 usersToNotify.push(theEvent.dm);

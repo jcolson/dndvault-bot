@@ -4,7 +4,7 @@ const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
 const GuildModel = require('../models/Guild');
 
-const MAX_EMBED_SIZE = 5950;
+const MAX_EMBED_SIZE = 5975;
 const MESSAGE_TOO_LARGE_RESPONSE = `Resulting message is too large for discord.`;
 
 const COLORS = {
@@ -126,7 +126,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 } else {
                     for (let embed of embedsArray) {
                         if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
-                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${MESSAGE_TOO_LARGE_RESPONSE}`);
+                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}, original message:`, msg.interaction ? msg.interaction.data?.options : msg.content);
                             sentMessage = await user.send(MESSAGE_TOO_LARGE_RESPONSE);
                         } else {
                             sentMessage = await user.send(embed);
@@ -149,7 +149,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     for (let embed of embedsArray) {
                         embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
                         if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
-                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${MESSAGE_TOO_LARGE_RESPONSE}`);
+                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}, original message:`, msg.interaction ? msg.interaction.data?.options : msg.content);
                             sentMessage = await msg.channel.send(MESSAGE_TOO_LARGE_RESPONSE);
                         } else {
                             sentMessage = await msg.channel.send(embed);
@@ -449,7 +449,7 @@ async function clientWsReply(interaction, replyMessage) {
         //check for embeds
         if (typeof replyMessage === 'object') {
             if (lengthOfEmbed(replyMessage) > MAX_EMBED_SIZE) {
-                console.error(`clientWsReply: ${MESSAGE_TOO_LARGE_RESPONSE}`);
+                console.error(`clientWsReply: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}`, interaction.data?.options);
                 data = {
                     content: MESSAGE_TOO_LARGE_RESPONSE
                 }

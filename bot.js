@@ -31,7 +31,7 @@ require('log-timestamp')(function () { return `[${new Date().toISOString()}] [sh
 
 global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
-global.GuildCache = new NodeCache({ stdTTL: 0, checkperiod: 0, maxKeys: 200 });
+global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 global.client = client;
 
 global.COMMANDS = {
@@ -1105,7 +1105,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
  * @param {Object} globalCommand (ex: COMMANDS.updateManual)
  * @param {Array} msgParms
  */
- function xformArrayToMsgParms(globalCommand, msgParms) {
+function xformArrayToMsgParms(globalCommand, msgParms) {
     for (let i = 0; i < msgParms.length; i++) {
         if (!msgParms[i].name) {
             msgParms[i].name = globalCommand.options[i].name;

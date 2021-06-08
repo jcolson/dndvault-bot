@@ -14,7 +14,7 @@ const UserModel = require('./models/User');
 
 const DEFAULT_CONFIGDIR = __dirname;
 global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
-global.GuildCache = new NodeCache({ stdTTL: 0, checkperiod: 0, maxKeys: 200 });
+global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 
 const timezones = require('./handlers/timezones.js');
 const calendar = require('./handlers/calendar.js');
