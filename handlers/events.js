@@ -169,9 +169,14 @@ async function handleEventSignup(msg, msgParms, guildConfig) {
         if (!eventToAlter) {
             throw new Error(`Could not locate event ${eventIDparam.value}`);
         }
-        const eventMessage = await (
-            await msg.guild.channels.resolve(eventToAlter.channelID)
-        ).messages.fetch(eventToAlter.messageID);
+        let eventMessage;
+        try {
+            eventMessage = await (
+                await msg.guild.channels.resolve(eventToAlter.channelID)
+            ).messages.fetch(eventToAlter.messageID);
+        } catch (error) {
+            throw new Error(`Could not locate event message, it may have been removed (on accident?), republish it with the \`/event_show\` command first.`);
+        }
         const userToSignup = await client.users.fetch(eventUserIDparam.value);
         if (!userToSignup) {
             throw new Error(`Could not locate player/user ${eventUserIDparam.value}`);
@@ -208,9 +213,14 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
         if (!eventToAlter) {
             throw new Error(`Could not locate event ${eventIDparam.value}`);
         }
-        const eventMessage = await (
-            await msg.guild.channels.resolve(eventToAlter.channelID)
-        ).messages.fetch(eventToAlter.messageID);
+        let eventMessage;
+        try {
+            eventMessage = await (
+                await msg.guild.channels.resolve(eventToAlter.channelID)
+            ).messages.fetch(eventToAlter.messageID);
+        } catch (error) {
+            throw new Error(`Could not locate event message, it may have been removed (on accident?), republish it with the \`/event_show\` command first.`);
+        }
         const userToSignup = await client.users.fetch(eventUserIDparam.value);
         if (!userToSignup) {
             throw new Error(`Could not locate player/user ${eventUserIDparam.value}`);
@@ -265,15 +275,20 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
             await existingEvent.delete();
             let channelId = existingEvent?.channelID ? existingEvent.channelID : existingEventMessage?.channel?.id;
             let messageId = existingEvent?.messageID ? existingEvent.messageID : existingEventMessage?.id;
-            const eventMessage = await (
-                await guild.channels.resolve(channelId)
-            ).messages.fetch(messageId);
-            if (eventMessage) {
+            let eventMessage;
+            try {
+                eventMessage = await (
+                    await guild.channels.resolve(channelId)
+                ).messages.fetch(messageId);
                 await eventMessage.edit(await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id));
                 await eventMessage.reactions.removeAll();
+            } catch (error) {
+                console.error(`removeEvent: Could not locate event message, it may have been removed already ... event removed without removing the associated message embed`);
             }
+            returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, \`${eventID}\`, was successfully removed.`, inline: true };
+        } else {
+            returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, \`${eventID}\`, could not be located, so was \`not\` removed.`, inline: true };
         }
-        returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, ${eventID} , was successfully removed.`, inline: true };
     } catch (error) {
         console.error(`removeEvent: couldn't remove event`, error);
     }
