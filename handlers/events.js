@@ -858,13 +858,13 @@ async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) 
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
             { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id})`, inline: true },
-            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&DVault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
+            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&D Vault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     } else {
         let usersTimeString = formatDateInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
             { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
-            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&DVault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
+            { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&D Vault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     }
     await utils.sendDirectOrFallbackToChannel(fieldsToSend, reaction.message, user);

@@ -433,7 +433,7 @@ function trimTagsFromId(idToTrim) {
  * @returns {Array} of tag Strings
  */
 function parseAllTagsFromString(mentions) {
-    const tagRegex = /<@[!&]?([0-9]*)>/gm;
+    const tagRegex = /<@[!&]?([0-9]*)>|(@everyone)/gm;
     let matches = mentions.match(tagRegex);
     console.debug('matches', matches);
     return matches;
