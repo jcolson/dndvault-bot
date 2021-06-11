@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [1.4.8 (2021-06-11)](#148-2021-06-11)
   - [1.4.7 (2021-06-11)](#147-2021-06-11)
   - [1.4.6 (2021-06-08)](#146-2021-06-08)
   - [1.4.5 (2021-06-08)](#145-2021-06-08)
@@ -77,6 +78,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [1.4.8](https://github.com/jcolson/dndvault-bot/tree/1.4.8) (2021-06-11)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.7...1.4.8)
+
+**Closed issues:**
+
+- Total the stat rolls [\#288](https://github.com/jcolson/dndvault-bot/issues/288)
 
 ## [1.4.7](https://github.com/jcolson/dndvault-bot/tree/1.4.7) (2021-06-11)
 
