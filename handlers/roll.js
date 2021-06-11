@@ -14,8 +14,9 @@ async function handleDiceRoll(msg, diceParam) {
             notation = '1d20';
         }
         const rollit = new DiceRoll(notation);
-        let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
-        let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut);
+        // console.debug(`handleDiceRoll: ${rollit.output}`);
+        let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2, rollit.output.lastIndexOf(' = '));
+        let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut, rollit.total);
         await utils.sendDirectOrFallbackToChannelEmbeds(diceRollEmbedArray, msg, undefined, true);
         utils.deleteMessage(msg);
     } catch (error) {
@@ -30,15 +31,17 @@ async function handleDiceRoll(msg, diceParam) {
  * @param {String} rollitValut
  * @returns {MessageEmbed[]}
  */
-function embedsForDiceRoll(notation, rollitValut) {
+function embedsForDiceRoll(notation, rollitValut, total) {
     const EMBED_FIELD_MAX = 1000;
     const FIELDS_PER_EMBED = 4;
     let diceRollEmbedArray = [];
     let embedFields = [];
+    let fieldName = utils.EMOJIS.DICE + notation.substring(0, 253) + utils.EMOJIS.DICE;
     // ensure that if the result is larger than 1000 chars we split it up in different discord embed fields
     for (let i = 0; i < rollitValut.length; i += EMBED_FIELD_MAX) {
         const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + EMBED_FIELD_MAX));
-        embedFields.push({ name: `${utils.EMOJIS.DICE}${notation.substring(0, 253)}${utils.EMOJIS.DICE}`, value: `${cont}` });
+        embedFields.push({ name: fieldName, value: `\`${cont}\`` });
+        fieldName = utils.EMPTY_FIELD;
         // console.debug(`embedsForDiceRoll: i: ${i} length: ${rollitValut.length}`);
         if (embedFields.length >= FIELDS_PER_EMBED || i + EMBED_FIELD_MAX > rollitValut.length) {
             diceRollEmbedArray.push(new MessageEmbed()
@@ -48,6 +51,7 @@ function embedsForDiceRoll(notation, rollitValut) {
             embedFields = [];
         }
     }
+    diceRollEmbedArray[diceRollEmbedArray.length - 1].addFields({ name: 'Total', value: `\`${total}\`` });
     return diceRollEmbedArray;
 }
 
@@ -63,11 +67,16 @@ async function handleDiceRollStats(msg, diceParam) {
             .setTitle(`${utils.EMOJIS.DICE}D&D 5E Stats Roll${utils.EMOJIS.DICE}`)
             .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
             .setThumbnail(msg.guild.iconURL());
+        let statRollString = '';
+        let total = 0;
         for (let j = 0; j < 6; j++) {
             const rollit = new DiceRoll('4d6dl1sd');
-            let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
-            statsEmbed.addFields({ name: `Stat ${j + 1}`, value: `${rollitValut}` });
+            let rollitValue = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
+            total += rollit.total;
+            statRollString += `Stat ${j + 1}: \`${rollitValue}\`\n`;
         }
+        statsEmbed.addFields({ name: 'Stats Roll', value: statRollString });
+        statsEmbed.addFields({ name: 'Total', value: `\`${total}\`` });
         await utils.sendDirectOrFallbackToChannelEmbeds(statsEmbed, msg, undefined, true);
         utils.deleteMessage(msg);
     } catch (error) {

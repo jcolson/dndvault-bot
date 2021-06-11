@@ -40,6 +40,8 @@ const EMOJIS = {
     DICE: `\uD83C\uDFB2`,
 };
 
+const EMPTY_FIELD = '\u200B';
+
 /**
  *
  * @param {EmbedFieldData[]} fields
@@ -114,7 +116,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     // console.debug('sendDirectOrFallbackToChannelEmbeds: ', embedsArray[embedsArray.length - 1].fields);
                     if (!lastFieldValue.startsWith(goBackMessage)) {
                         // console.debug(`last field did not start with ${goBackMessage}`, embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1]);
-                        embedsArray[embedsArray.length - 1].addFields({ name: '\u200B', value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
+                        embedsArray[embedsArray.length - 1].addFields({ name: utils.EMPTY_FIELD, value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
                     }
                 }
                 // if it's an interaction (slash command) and there is only 1 embed, then just reply with it
@@ -634,6 +636,7 @@ exports.getDiscordUrl = getDiscordUrl;
 exports.clientWsReply = clientWsReply;
 exports.COLORS = COLORS;
 exports.EMOJIS = EMOJIS;
+exports.EMPTY_FIELD = EMPTY_FIELD;
 exports.removeAllDataForGuild = removeAllDataForGuild;
 exports.trimTagsFromId = trimTagsFromId;
 exports.parseAllTagsFromString = parseAllTagsFromString;
