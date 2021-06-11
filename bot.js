@@ -765,26 +765,12 @@ client.once('ready', async () => {
  * guildCreate
  */
 client.on("guildCreate", async (guild) => {
-    console.log(`guildCreate: ${guild.id}(${guild.name})`);
+    console.log(`guildCreate: ${guild.id} (${guild.name})`);
     try {
         await config.confirmGuildConfig(guild);
-        let channel;
-        if (guild.systemChannelID) {
-            channel = guild.channels.resolve(guild.systemChannelID);
-        }
-        // console.debug('channel', channel);
-        if (!channel ||
-            (channel.type !== 'text' ||
-                !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']))) {
-            // console.debug('finding another channel');
-            channel = guild.channels.cache.find(c => {
-                // console.debug(`${c.name} - ${c.type} - ${c.permissionsFor(guild.me).has('VIEW_CHANNEL')} - ${c.permissionsFor(guild.me).has('SEND_MESSAGES')}`);
-                return (c.type == 'text' && c.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']));
-            });
-        }
-        // console.debug('channel', channel);
+        let channel = utils.locateChannelForMessageSend(guild);
         if (channel) {
-            await channel.send('Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me. Cheers!');
+            await channel.send('Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me.  Roll initiative!');
         }
     } catch (error) {
         console.error("guildCreate:", error);
@@ -795,8 +781,8 @@ client.on("guildCreate", async (guild) => {
  * guildDelete
  */
 client.on("guildDelete", async (guild) => {
-    console.log(`guildDelete: ${guild.id}(${guild.name}) because of: ${guild.unavailable ? guild.unavailable : 'KICKED'}`);
-    // if bot was kicked from guild, then this 'unavailable' field will not be populated
+    console.log(`guildDelete: ${guild.id} (${guild.name}) because of: ${guild.unavailable ? guild.unavailable : 'KICKED'}`);
+    // if bot was kicked from guild, then this 'unavailable' field will not be populated, otherwise it is just temp unavailable
     if (!guild.unavailable) {
         try {
             await utils.removeAllDataForGuild(guild);
@@ -817,7 +803,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             await reaction.message.fetch();
         }
     } catch (error) {
-        console.error('Something went wrong when fetching the message: ', error);
+        console.error('messageReactionAdd: Something went wrong when fetching the message: ', error);
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
@@ -934,7 +920,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
      * (commands used to have spaces in them with old-school prefix method)
      */
     messageContentLowercase = messageContentLowercase.replace(/ /g, '_');
-    console.debug('handleCommandExec:', messageContentLowercase);
+    console.debug('handleCommandExec: ', messageContentLowercase);
     let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
     let handled = true;
     try {
@@ -1093,7 +1079,7 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
             console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
         }
     } catch (error) {
-        console.error('handleCommandExec:', error);
+        console.error('handleCommandExec: ', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
     return handled;
