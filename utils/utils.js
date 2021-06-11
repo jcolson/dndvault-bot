@@ -116,7 +116,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     // console.debug('sendDirectOrFallbackToChannelEmbeds: ', embedsArray[embedsArray.length - 1].fields);
                     if (!lastFieldValue.startsWith(goBackMessage)) {
                         // console.debug(`last field did not start with ${goBackMessage}`, embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1]);
-                        embedsArray[embedsArray.length - 1].addFields({ name: utils.EMPTY_FIELD, value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
+                        embedsArray[embedsArray.length - 1].addFields({ name: EMPTY_FIELD, value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
                     }
                 }
                 // if it's an interaction (slash command) and there is only 1 embed, then just reply with it
@@ -137,7 +137,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 }
                 messageSent = true;
             } catch (error) {
-                console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s %s', error.message);
+                console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s', error.message);
             }
         }
         if (!messageSent && (msg.channel || msg.interaction)) {
