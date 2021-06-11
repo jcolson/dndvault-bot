@@ -82,9 +82,18 @@
 
 [Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.6...HEAD)
 
+**Implemented enhancements:**
+
+- there are times which the bot is added to a server and doesn't have any way to communicate with users [\#285](https://github.com/jcolson/dndvault-bot/issues/285)
+
 **Fixed bugs:**
 
+- mentions of @everyone don't work in event descriptions [\#283](https://github.com/jcolson/dndvault-bot/issues/283)
 - server name on web is placed over the menu bar [\#279](https://github.com/jcolson/dndvault-bot/issues/279)
+
+**Closed issues:**
+
+- if a event embed message is removed, and a user attempts to event\_withdrawal or event\_signup commands, they fail with obscure error [\#284](https://github.com/jcolson/dndvault-bot/issues/284)
 
 ## [1.4.6](https://github.com/jcolson/dndvault-bot/tree/1.4.6) (2021-06-08)
 
