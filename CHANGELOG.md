@@ -3,6 +3,15 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [1.4.7 (2021-06-11)](#147-2021-06-11)
+  - [1.4.6 (2021-06-08)](#146-2021-06-08)
+  - [1.4.5 (2021-06-08)](#145-2021-06-08)
+  - [1.4.4 (2021-05-30)](#144-2021-05-30)
+  - [1.4.3 (2021-05-29)](#143-2021-05-29)
+  - [1.4.2 (2021-05-27)](#142-2021-05-27)
+  - [1.4.1 (2021-05-27)](#141-2021-05-27)
+  - [1.4.0 (2021-05-26)](#140-2021-05-26)
+  - [1.3.16 (2021-05-24)](#1316-2021-05-24)
   - [1.3.15 (2021-05-23)](#1315-2021-05-23)
   - [1.3.14 (2021-05-21)](#1314-2021-05-21)
   - [1.3.13 (2021-05-21)](#1313-2021-05-21)
@@ -68,6 +77,88 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [1.4.7](https://github.com/jcolson/dndvault-bot/tree/1.4.7) (2021-06-11)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.6...1.4.7)
+
+**Implemented enhancements:**
+
+- there are times which the bot is added to a server and doesn't have any way to communicate with users [\#285](https://github.com/jcolson/dndvault-bot/issues/285)
+
+**Fixed bugs:**
+
+- mentions of @everyone don't work in event descriptions [\#283](https://github.com/jcolson/dndvault-bot/issues/283)
+- server name on web is placed over the menu bar [\#279](https://github.com/jcolson/dndvault-bot/issues/279)
+
+**Closed issues:**
+
+- if a event embed message is removed, and a user attempts to event\_withdrawal or event\_signup commands, they fail with obscure error [\#284](https://github.com/jcolson/dndvault-bot/issues/284)
+
+## [1.4.6](https://github.com/jcolson/dndvault-bot/tree/1.4.6) (2021-06-08)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.5...1.4.6)
+
+## [1.4.5](https://github.com/jcolson/dndvault-bot/tree/1.4.5) (2021-06-08)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.4...1.4.5)
+
+**Fixed bugs:**
+
+- external link on event coordinator doesn't include the guildid [\#278](https://github.com/jcolson/dndvault-bot/issues/278)
+
+**Closed issues:**
+
+- bug: max keys messages being sent to users [\#273](https://github.com/jcolson/dndvault-bot/issues/273)
+
+## [1.4.4](https://github.com/jcolson/dndvault-bot/tree/1.4.4) (2021-05-30)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.3...1.4.4)
+
+**Closed issues:**
+
+- !roll /roll allow notations larger than the field name could accomodate ... trim them [\#275](https://github.com/jcolson/dndvault-bot/issues/275)
+
+## [1.4.3](https://github.com/jcolson/dndvault-bot/tree/1.4.3) (2021-05-29)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.2...1.4.3)
+
+**Fixed bugs:**
+
+- bug: event\_edit is no longer save\(\)ing the event prior to `show`ing it [\#270](https://github.com/jcolson/dndvault-bot/issues/270)
+
+## [1.4.2](https://github.com/jcolson/dndvault-bot/tree/1.4.2) (2021-05-27)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.1...1.4.2)
+
+**Fixed bugs:**
+
+- `show` inventory is not listing items that are added manually on dndbeyond [\#266](https://github.com/jcolson/dndvault-bot/issues/266)
+
+## [1.4.1](https://github.com/jcolson/dndvault-bot/tree/1.4.1) (2021-05-27)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.0...1.4.1)
+
+**Implemented enhancements:**
+
+- feature: enhance character resource tracking [\#259](https://github.com/jcolson/dndvault-bot/issues/259)
+
+**Fixed bugs:**
+
+- `show` base hp not accurately showing hp from dndbeyond [\#267](https://github.com/jcolson/dndvault-bot/issues/267)
+
+## [1.4.0](https://github.com/jcolson/dndvault-bot/tree/1.4.0) (2021-05-26)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.3.16...1.4.0)
+
+**Fixed bugs:**
+
+- report that event's aren't pinging roles when they are created with roles in the descriptions [\#261](https://github.com/jcolson/dndvault-bot/issues/261)
+- recurring event exception channel\_id: undefined [\#257](https://github.com/jcolson/dndvault-bot/issues/257)
+
+## [1.3.16](https://github.com/jcolson/dndvault-bot/tree/1.3.16) (2021-05-24)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.3.15...1.3.16)
 
 ## [1.3.15](https://github.com/jcolson/dndvault-bot/tree/1.3.15) (2021-05-23)
 

@@ -135,11 +135,12 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 }
                 messageSent = true;
             } catch (error) {
-                console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s %s', error.message, error);
+                console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s %s', error.message);
             }
         }
         if (!messageSent && (msg.channel || msg.interaction)) {
             try {
+                let channel = locateChannelForMessageSend(msg.guild, msg.channel);
                 if (msg.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
                         clientWsReply(msg.interaction, embed);
@@ -150,16 +151,17 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                         embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
                         if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
                             console.error(`sendDirectOrFallbackToChannelEmbeds: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}, original message:`, msg.interaction ? msg.interaction.data?.options : msg.content);
-                            sentMessage = await msg.channel.send(MESSAGE_TOO_LARGE_RESPONSE);
+                            sentMessage = await channel.send(MESSAGE_TOO_LARGE_RESPONSE);
                         } else {
-                            sentMessage = await msg.channel.send(embed);
+                            sentMessage = await channel.send(embed);
                         }
                     }
                 }
                 messageSent = true;
             } catch (error) {
-                error.message += ': could not channel send.';
-                throw error;
+                // error.message += ': could not channel send.';
+                console.error('Could not channel send', error);
+                // throw error;
             }
         }
         if (messageSent && sentMessage && msg.interaction) {
@@ -386,7 +388,7 @@ async function checkChannelPermissions(msg) {
     // }
     for (reqPerm of requiredPerms) {
         if (!await botPerms.has(reqPerm)) {
-            throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission for the bot to function properly (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}).`);
+            throw new Error(`Server (${msg.guild}) channel (${msg.channel.name}) is missing a Required Permission for the bot to function properly (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}).`);
         }
     }
     // debug info below for permissions debugging in a channel
@@ -431,7 +433,7 @@ function trimTagsFromId(idToTrim) {
  * @returns {Array} of tag Strings
  */
 function parseAllTagsFromString(mentions) {
-    const tagRegex = /<@[!&]?([0-9]*)>/gm;
+    const tagRegex = /<@[!&]?([0-9]*)>|(@everyone)/gm;
     let matches = mentions.match(tagRegex);
     console.debug('matches', matches);
     return matches;
@@ -497,7 +499,7 @@ async function removeAllDataForGuild(guild) {
     let eventsDeleted = await EventModel.deleteMany({ guildID: guild.id });
     let configDeleted = await GuildModel.deleteMany({ guildID: guild.id });
     GuildCache.del(guild.id);
-    console.info(`removeAllDataForGuild: ${guild.id}(${guild.name}): chars: ${charsDeleted.deletedCount} users: ${usersDeleted.deletedCount} events: ${eventsDeleted.deletedCount} config: ${configDeleted.deletedCount}`);
+    console.info(`removeAllDataForGuild: ${guild.id} (${guild.name}): chars: ${charsDeleted.deletedCount} users: ${usersDeleted.deletedCount} events: ${eventsDeleted.deletedCount} config: ${configDeleted.deletedCount}`);
 }
 
 /**
@@ -589,6 +591,30 @@ function parseIntOrMakeZero(intToParse) {
     return parseInt(intToParse ? intToParse : 0);
 }
 
+/**
+ * locate a channel that the bot can use to send a message
+ * @param {Guild} guild
+ * @param {Channel} channel
+ * @returns
+ */
+function locateChannelForMessageSend(guild, channel) {
+    if (!channel ||
+        (channel.type !== 'text' ||
+            !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']))) {
+        // console.debug('finding another channel');
+        if (guild.systemChannelID) {
+            channel = guild.channels.resolve(guild.systemChannelID);
+        }
+        if (!channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES'])) {
+            channel = guild.channels.cache.find(c => {
+                // console.debug(`${c.name} - ${c.type} - ${c.permissionsFor(guild.me).has('VIEW_CHANNEL')} - ${c.permissionsFor(guild.me).has('SEND_MESSAGES')}`);
+                return (c.type == 'text' && c.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']));
+            });
+        }
+    }
+    return channel;
+}
+
 exports.parseIntOrMakeZero = parseIntOrMakeZero;
 exports.deleteMessage = deleteMessage;
 exports.stringOfSize = stringOfSize;
@@ -614,3 +640,4 @@ exports.parseAllTagsFromString = parseAllTagsFromString;
 exports.checkIfCommandsChanged = checkIfCommandsChanged;
 exports.transformCommandsToDiscordFormat = transformCommandsToDiscordFormat;
 exports.strikeThrough = strikeThrough;
+exports.locateChannelForMessageSend = locateChannelForMessageSend;
