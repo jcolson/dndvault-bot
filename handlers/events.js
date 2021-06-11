@@ -622,7 +622,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
     if (isShow) {
         eventEmbed.addFields(
             {
-                name: '\u200B', value: `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy\n${utils.EMOJIS.CLOCK}Your TZ and Calendar ${utils.EMOJIS.EDIT}DC edit command ${utils.EMOJIS.TRASH}Remove\n`
+                name: utils.EMPTY_FIELD, value: `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy\n${utils.EMOJIS.CLOCK}Your TZ and Calendar ${utils.EMOJIS.EDIT}DC edit command ${utils.EMOJIS.TRASH}Remove\n`
             },
         );
     }
