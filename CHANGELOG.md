@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
-  - [Unreleased](#unreleased)
+  - [1.4.7 (2021-06-11)](#147-2021-06-11)
   - [1.4.6 (2021-06-08)](#146-2021-06-08)
   - [1.4.5 (2021-06-08)](#145-2021-06-08)
   - [1.4.4 (2021-05-30)](#144-2021-05-30)
@@ -78,9 +78,9 @@
 
 # Changelog
 
-## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+## [1.4.7](https://github.com/jcolson/dndvault-bot/tree/1.4.7) (2021-06-11)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.6...HEAD)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.6...1.4.7)
 
 **Implemented enhancements:**
 
