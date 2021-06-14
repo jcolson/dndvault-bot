@@ -106,7 +106,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         // console.log('user: ' + user.id);
         // console.log('msg member: ' + msg.member.id);
         let messageSent = false;
-        let sentMessage;
+        let sentMessage, commsErrorMessage;
         if (user && !skipDM) {
             try {
                 if (urlToLinkBank) {
@@ -142,13 +142,14 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (!messageSent && (msg.channel || msg.interaction)) {
             try {
-                let channel = locateChannelForMessageSend(msg.guild, msg.channel);
+                let channel = locateChannelForMessageSend(msg.guild ? msg.guild : msg.interaction?.guild, msg.channel ? msg.channel : msg.interaction?.channel);
                 if (msg.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
                         clientWsReply(msg.interaction, embed);
                     }
+                    messageSent = true;
                     // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
-                } else {
+                } else if (channel) {
                     for (let embed of embedsArray) {
                         embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
                         if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
@@ -158,11 +159,16 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                             sentMessage = await channel.send(embed);
                         }
                     }
+                    messageSent = true;
+                } else {
+                    // channel must not be defined
+                    commsErrorMessage = `sendDirectOrFallbackToChannelEmbeds: no appropriate channel was found to communicate with user, <@${user.id}> on server, ${msg.guild ? msg.guild.name : msg.interaction?.guild?.name}.`;
+                    console.error(commsErrorMessage);
                 }
-                messageSent = true;
             } catch (error) {
                 // error.message += ': could not channel send.';
-                console.error('Could not channel send', error);
+                commsErrorMessage = error.message;
+                console.error('sendDirectOrFallbackToChannelEmbeds: Could not channel send', error);
                 // throw error;
             }
         }
@@ -171,6 +177,12 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                 .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
+            clientWsReply(msg.interaction, interactionEmbed);
+        } else if (!messageSent && msg.interaction && commsErrorMessage) {
+            let interactionEmbed = new MessageEmbed()
+                .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+                .setColor(COLORS.RED)
+                .addField('Response', commsErrorMessage);
             clientWsReply(msg.interaction, interactionEmbed);
         }
         if (!messageSent) {
