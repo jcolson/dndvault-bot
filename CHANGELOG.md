@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [1.4.10 (2021-06-14)](#1410-2021-06-14)
   - [1.4.9 (2021-06-11)](#149-2021-06-11)
   - [1.4.8 (2021-06-11)](#148-2021-06-11)
   - [1.4.7 (2021-06-11)](#147-2021-06-11)
@@ -79,6 +80,19 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [1.4.10](https://github.com/jcolson/dndvault-bot/tree/1.4.10) (2021-06-14)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.9...1.4.10)
+
+**Implemented enhancements:**
+
+- if improper permissions are configured on channel, and bot can not locate a channel with proper permissions, exception occurs [\#294](https://github.com/jcolson/dndvault-bot/issues/294)
+
+**Fixed bugs:**
+
+- on guildCreate seeing this in logs sometimes [\#295](https://github.com/jcolson/dndvault-bot/issues/295)
+- bug sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - utils is not defined %s [\#291](https://github.com/jcolson/dndvault-bot/issues/291)
 
 ## [1.4.9](https://github.com/jcolson/dndvault-bot/tree/1.4.9) (2021-06-11)
 
