@@ -94,10 +94,10 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         if (embedsArray.length < 1) {
             throw new Error('No embeds passed to send');
         }
-        if (!user && msg) {
+        if (!user && msg?.author) {
             user = msg.author;
         }
-        if (!urlToLinkBank) {
+        if (!urlToLinkBank && msg?.url) {
             urlToLinkBank = msg.url;
         }
         if (!user) {
@@ -120,7 +120,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     }
                 }
                 // if it's an interaction (slash command) and there is only 1 embed, then just reply with it
-                if (msg.interaction && embedsArray.length == 1) {
+                if (msg?.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
                         clientWsReply(msg.interaction, embed);
                     }
@@ -128,7 +128,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 } else {
                     for (let embed of embedsArray) {
                         if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
-                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}, original message:`, msg.interaction ? msg.interaction.data?.options : msg.content);
+                            console.error(`sendDirectOrFallbackToChannelEmbeds: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}, original message:`, msg?.interaction ? msg.interaction.data?.options : msg?.content);
                             sentMessage = await user.send(MESSAGE_TOO_LARGE_RESPONSE);
                         } else {
                             sentMessage = await user.send(embed);
@@ -140,7 +140,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s', error.message);
             }
         }
-        if (!messageSent && (msg.channel || msg.interaction)) {
+        if (!messageSent && (msg?.channel || msg?.interaction)) {
             try {
                 let channel = locateChannelForMessageSend(msg.guild ? msg.guild : msg.interaction?.guild, msg.channel ? msg.channel : msg.interaction?.channel);
                 if (msg.interaction && embedsArray.length == 1) {
@@ -172,13 +172,13 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 // throw error;
             }
         }
-        if (messageSent && sentMessage && msg.interaction) {
+        if (messageSent && sentMessage && msg?.interaction) {
             let interactionEmbed = new MessageEmbed()
                 .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                 .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
             clientWsReply(msg.interaction, interactionEmbed);
-        } else if (!messageSent && msg.interaction && commsErrorMessage) {
+        } else if (!messageSent && msg?.interaction && commsErrorMessage) {
             let interactionEmbed = new MessageEmbed()
                 .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(COLORS.RED)

@@ -1008,39 +1008,43 @@ async function sendReminders(client) {
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
         console.log("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
         for (theEvent of eventsToRemind) {
-            theEvent.reminderSent = new Date();
             try {
-                await theEvent.save();
-            } catch (error) {
-                console.info(`sendReminders: avoiding race condition on saving theEvent between reminders and recurring events ${theEvent._id}: ${error.message}`);
-                continue;
-            }
-            let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
-            let channel = new TextChannel(guild, { id: theEvent.channelID });
-            let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
-            let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
-            let usersToNotify = [];
-            if (theEvent.dm) {
-                usersToNotify.push(theEvent.dm);
-            }
-            for (attendee of theEvent.attendees) {
-                usersToNotify.push(attendee.userID);
-            }
-            usersToNotify = [...new Set(usersToNotify)];
-            console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
-            for (userToNotify of usersToNotify) {
-                // let user = await (new User(client, { id: '227562842591723521' })).fetch();
+                theEvent.reminderSent = new Date();
                 try {
-                    let user = await (new User(client, { id: userToNotify })).fetch();
-                    await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+                    await theEvent.save();
                 } catch (error) {
-                    console.error(`sendReminders: Could not notify user ${userToNotify} due to ${error.message}`);
+                    console.info(`sendReminders: avoiding race condition on saving theEvent between reminders and recurring events ${theEvent._id}: ${error.message}`);
+                    continue;
                 }
+                let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
+                let channel = new TextChannel(guild, { id: theEvent.channelID });
+                let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
+                let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
+                let usersToNotify = [];
+                if (theEvent.dm) {
+                    usersToNotify.push(theEvent.dm);
+                }
+                for (attendee of theEvent.attendees) {
+                    usersToNotify.push(attendee.userID);
+                }
+                usersToNotify = [...new Set(usersToNotify)];
+                console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
+                for (userToNotify of usersToNotify) {
+                    // let user = await (new User(client, { id: '227562842591723521' })).fetch();
+                    try {
+                        let user = await (new User(client, { id: userToNotify })).fetch();
+                        await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+                    } catch (error) {
+                        console.error(`sendReminders: Could not notify user ${userToNotify} due to ${error.message}`);
+                    }
+                }
+            } catch (error) {
+                console.error(`sendReminders: could not send reminders for guildId: ${theEvent.guildID}; channelID: ${theEvent.channelID}; messageID: ${theEvent.messageID}; eventID: ${theEvent._id}`, error);
             }
         }
     }
     catch (error) {
-        console.error("sendReminders", error);
+        console.error("sendReminders: ", error);
     }
 }
 
