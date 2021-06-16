@@ -635,6 +635,17 @@ global.COMMANDS = {
             "type": 3
         }]
     },
+    "configEventchandays": {
+        "name": "config_eventchandays",
+        "description": "Configure how many days after an event planning channel should be removed",
+        "slash": true,
+        "options": [{
+            "name": "channel_days",
+            "description": "The number of days after an event that the planning channel should be removed",
+            "required": true,
+            "type": 4 // Integer
+        }]
+    },
     "configPrefix": {
         "name": "config_prefix",
         "description": "Configure/modify the command prefix",
@@ -1059,6 +1070,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.configEventplancat.name:
                         config.handleConfigEventPlanCat(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configEventchandays.name:
+                        config.handleConfigEventPlanChanRemoveDays(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.configPrefix.name:
                         config.handleConfigPrefix(msg, msgParms, guildConfig);

@@ -42,6 +42,9 @@ const Guild = Schema({
     },
     "eventPlanCat": {
         type: "String"
+    },
+    "eventPlanDays": {
+        type: Number
     }
 })
 module.exports = model('Guild', Guild);

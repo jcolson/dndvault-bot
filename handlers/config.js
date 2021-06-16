@@ -14,6 +14,7 @@ async function handleConfig(msg, msgParms, guildConfig) {
         let channelForPolls = {};
         let approverRoleName;
         let playerRoleName;
+        let eventPlanCat = {};
         try {
             if (guildConfig.channelForEvents) {
                 channelForEvents = await msg.guild.channels.resolve(guildConfig.channelForEvents);
@@ -40,6 +41,13 @@ async function handleConfig(msg, msgParms, guildConfig) {
         } catch (error) {
             console.error(`handleConfig: could not retrieve role for id: ${guildConfig.prole}`, error);
         }
+        try {
+            if (guildConfig.eventPlanCat) {
+                eventPlanCat = await msg.guild.channels.resolve(guildConfig.eventPlanCat);
+            }
+        } catch (error) {
+            console.error(`handleConfig: could not retrieve role for id: ${guildConfig.eventPlanCat}`, error);
+        }
         await utils.sendDirectOrFallbackToChannel(
             [{ name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
             { name: 'Prefix', value: guildConfig.prefix, inline: true },
@@ -48,7 +56,9 @@ async function handleConfig(msg, msgParms, guildConfig) {
             { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
             { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent, inline: true },
             { name: 'Event Channel', value: channelForEvents.name, inline: true },
-            { name: 'Poll Channel', value: channelForPolls.name, inline: true }
+            { name: 'Poll Channel', value: channelForPolls.name, inline: true },
+            { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
+            { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true }
             ],
             msg);
             utils.deleteMessage(msg);
@@ -412,10 +422,39 @@ async function handleConfigEventPlanCat(msg, msgParms, guildConfig) {
                     throw new Error(`Could not locate the channel category: ${stringParam}`);
                 }
                 guildConfig.eventPlanCat = catTest.id;
+                if (!guildConfig.eventPlanDays) {
+                    guildConfig.eventPlanDays = 7;
+                }
             }
             await guildConfig.save();
             GuildCache.set(msg.guild.id, guildConfig);
-            await utils.sendDirectOrFallbackToChannel({ name: 'Config Evnet Planning Category', value: `Event Planning Channel Category now set to: \`${guildConfig.eventPlanCat ? catTest.name : guildConfig.eventPlanCat}\`.` }, msg);
+            await utils.sendDirectOrFallbackToChannel({ name: 'Config Event Planning Category', value: `Event Planning Channel Category now set to: \`${guildConfig.eventPlanCat ? catTest.name : guildConfig.eventPlanCat}\`.` }, msg);
+            utils.deleteMessage(msg);
+        } else {
+            throw new Error(`please ask an \`approver role\` to configure.`);
+        }
+    } catch (error) {
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
+}
+
+/**
+ * config how many days after an event to remove an autocreated channel
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+ async function handleConfigEventPlanChanRemoveDays(msg, msgParms, guildConfig) {
+    try {
+        if (msgParms.length == 0 || msgParms[0].value === '') {
+            throw new Error(`Not enough parameters, must pass at least one.`);
+        }
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
+            let eventPlanDays = msgParms[0].value;
+            guildConfig.eventPlanDays = eventPlanDays;
+            await guildConfig.save();
+            GuildCache.set(msg.guild.id, guildConfig);
+            await utils.sendDirectOrFallbackToChannel({ name: 'Config Event Planning Channel Remove Days', value: `Channel removal days now set to: \`${guildConfig.eventPlanDays}\`.` }, msg);
             utils.deleteMessage(msg);
         } else {
             throw new Error(`please ask an \`approver role\` to configure.`);
@@ -506,6 +545,7 @@ exports.getGuildConfig = getGuildConfig;
 exports.handleConfigEventChannel = handleConfigEventChannel;
 exports.handleConfigPollChannel = handleConfigPollChannel;
 exports.handleConfigEventPlanCat = handleConfigEventPlanCat;
+exports.handleConfigEventPlanChanRemoveDays = handleConfigEventPlanChanRemoveDays;
 exports.handleStats = handleStats;
 exports.handleKick = handleKick;
 exports.bc_handleKick = bc_handleKick;
