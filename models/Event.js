@@ -68,6 +68,9 @@ const Event = Schema({
     "recurComplete": {
         type: Date,
         index: true
+    },
+    "planningChannel": {
+        type: String
     }
 }, { optimisticConcurrency: true });
 module.exports = model('Event', Event);

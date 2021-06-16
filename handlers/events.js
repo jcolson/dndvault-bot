@@ -335,6 +335,8 @@ async function handleEventShow(msg, msgParms, guildConfig) {
 
 /**
  * show an event
+ * update the messageID in the event to reflect the new embed
+ * call the create planning channel for the event, if needed (also done when a player signs up or withdrawals)
  * @param {Guild} guild
  * @param {Channel} msgChannel
  * @param {String} eventID
@@ -372,6 +374,13 @@ async function eventShow(guild, msgChannel, eventID) {
         }
         showEvent.channelID = sentMessage.channel.id;
         showEvent.messageID = sentMessage.id;
+        let planningChannelError;
+        try {
+            showEvent.planningChannel = await maintainPlanningChannel(guild, showEvent, guildConfig);
+        }
+        catch (error) {
+            planningChannelError = error.message;
+        }
         await showEvent.save();
         sentMessage.react(utils.EMOJIS.CHECK);
         sentMessage.react(utils.EMOJIS.X);
@@ -379,12 +388,100 @@ async function eventShow(guild, msgChannel, eventID) {
         sentMessage.react(utils.EMOJIS.CLOCK);
         sentMessage.react(utils.EMOJIS.EDIT);
         sentMessage.react(utils.EMOJIS.TRASH);
+        if (planningChannelError) {
+            throw new Error(planningChannelError);
+        }
     } catch (error) {
-        console.error('eventShow:', error.message);
+        console.error('eventShow:', error);
         error.message += ` For Channel: ${eventChannel?.name}`;
         throw error;
     }
     return sentMessage;
+}
+
+/**
+ * function to create planning channel if required for an event
+ * also adds players to the channel if required
+ * also removes players from the channel if required
+ */
+async function maintainPlanningChannel(guild, eventToMaintain, guildConfig) {
+    if (guildConfig.eventPlanCat) {
+        let playersToAdd = eventToMaintain.attendees.map((attendee) => attendee.userID);
+        if (eventToMaintain.dm) {
+            playersToAdd.push(eventToMaintain.dm);
+        }
+        playersToAdd.push(eventToMaintain.userID);
+        playersToAdd = [...new Set(playersToAdd)];
+        console.debug(`maintainPlanningChannel: new players to add`, playersToAdd);
+        let playersToRemove = [];
+
+        let channelNameShouldBe = eventToMaintain.title.substring(0, 90);
+        // if there is no channel for this event yet, lets make one
+        if (eventToMaintain.planningChannel) {
+            let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+            // if we couldn't resolve the planning channel, unset it so we recreate it
+            if (!planningChannel) {
+                console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventToMaintain.planningChannel}, we'll need to recreate it`);
+                eventToMaintain.planningChannel = undefined;
+            }
+        }
+        if (!eventToMaintain.planningChannel) {
+            let planCategory = await guild.channels.resolve(guildConfig.eventPlanCat);
+            if (!planCategory) {
+                throw new Error(`Could not locate event planning category <#${guildConfig.eventPlanCat}>`)
+            }
+            await utils.checkChannelPermissions({ channel: planCategory, guild: guild }, ['MANAGE_CHANNELS']);
+            let permissionOverwrites = [{
+                id: guild.id,
+                deny: ['VIEW_CHANNEL'],
+            }, {
+                id: guild.me.id,
+                allow: ['VIEW_CHANNEL', 'MANAGE_CHANNELS'],
+            }];
+            for (let playerToAdd of playersToAdd) {
+                console.debug(`maintainPlanningChannel: player to add perms:${playerToAdd}`);
+                permissionOverwrites.push({
+                    id: playerToAdd,
+                    allow: ['VIEW_CHANNEL'],
+                })
+            }
+            eventToMaintain.planningChannel = (await guild.channels.create(channelNameShouldBe, {
+                parent: planCategory,
+                permissionOverwrites: permissionOverwrites,
+            })).id;
+            console.debug(`maintainPlanningChannel: planning channel id: ${eventToMaintain.planningChannel}`);
+        }
+        // ensure planning channel exists
+        // now maintain the channel's name (could need to change if title of event changed)
+        // now maintain players once we have a channel
+        if (!eventToMaintain.planningChannel) {
+            throw new Error(`Could not ensure a planning channel for this event`);
+        }
+        let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+        console.debug(`maintainPlanningChannel: planningChannel resolved `, planningChannel.id);
+        if (planningChannel.name != channelNameShouldBe) {
+            planningChannel = await planningChannel.setName(channelNameShouldBe);
+        }
+        // @TODO this is a problem, the bot can't see any other members except itself.
+        console.debug(`maintainPlanningChannel: all members of planningchannel `, planningChannel.members);
+        for (const [memberKey, member] of Object.entries(planningChannel.members)) {
+            console.debug(`maintainPlanningChannel: member:`, member);
+            let addIDidx = playersToAdd.findIndex((userID) => { userID == member.id });
+            if (addIDidx) {
+                playersToAdd = playersToAdd.splice(addIDidx, 1);
+            }
+
+            let removeID = eventToMaintain.attendees.find((attendee) => attendee.userID == member.id);
+            if (removeID) {
+                playersToRemove.push(removeID);
+            }
+            console.debug(`maintainPlanningChannel: new players to add`, playersToAdd);
+            console.debug(`maintainPlanningChannel: old players to remove`, playersToRemove);
+        }
+    } else {
+        console.debug(`maintainPlanningChannel: no event planning category set, don't need to maintain event planning channels`);
+    }
+    return eventToMaintain.planningChannel;
 }
 
 /**
