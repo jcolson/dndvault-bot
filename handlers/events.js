@@ -464,7 +464,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig) {
         }
         // @TODO this is a problem, the bot can't see any other members except itself.
         console.debug(`maintainPlanningChannel: all members of planningchannel `, planningChannel.members);
-        for (const [memberKey, member] of Object.entries(planningChannel.members)) {
+        for (let [memberKey, member] of planningChannel.members) {
             console.debug(`maintainPlanningChannel: member:`, member);
             let addIDidx = playersToAdd.findIndex((userID) => { userID == member.id });
             if (addIDidx) {
