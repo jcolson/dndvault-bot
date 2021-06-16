@@ -27,10 +27,12 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
         }
     } catch (error) {
         console.error('handleEventCreate:', error.message);
-        await utils.sendDirectOrFallbackToChannel([
-            { name: 'Event Create Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
-        ], msg);
+        await utils.sendDirectOrFallbackToChannelError(error, msg, undefined, undefined, undefined,
+            [{ name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }]);
+        // await utils.sendDirectOrFallbackToChannel([
+        //     { name: 'Event Create Error', value: `${error.message}` },
+        //     { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
+        // ], msg);
     }
 }
 
@@ -85,9 +87,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         if (!eventIDparam) {
             throw new Error('Please check the format of your `event edit` command');
         }
-        const eventID = eventIDparam.value;
-        // console.log(eventID);
-        let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
+        let eventEditResult = await bc_eventEdit(eventIDparam.value, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
             utils.deleteMessage(msg);
         } else {
@@ -95,10 +95,12 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         }
     } catch (error) {
         console.error('handleEventEdit:', error);
-        await utils.sendDirectOrFallbackToChannel([
-            { name: 'Event Edit Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
-        ], msg);
+        await utils.sendDirectOrFallbackToChannelError(error, msg, undefined, undefined, undefined,
+            [{ name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }]);
+        // await utils.sendDirectOrFallbackToChannel([
+        //     { name: 'Event Edit Error', value: `${error.message}` },
+        //     { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
+        // ], msg);
     }
 }
 
@@ -121,8 +123,13 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
-                let existingEvent = await EventModel.findById(eventID);
-                if (!existingEvent) {
+                let existingEvent;
+                try {
+                    existingEvent = await EventModel.findById(eventID);
+                    if (!existingEvent) {
+                        throw new Error(`Unknown event id (${eventID})`);
+                    }
+                } catch (error) {
                     throw new Error(`Unknown event id (${eventID})`);
                 }
                 let guildMember = await theGuild.members.fetch(currUserId);
@@ -165,8 +172,13 @@ async function handleEventSignup(msg, msgParms, guildConfig) {
         if (!eventUserIDparam) {
             throw new Error(`Please ensure to pass the player's user id that you wish to signup.`);
         }
-        const eventToAlter = await EventModel.findById(eventIDparam.value);
-        if (!eventToAlter) {
+        let eventToAlter;
+        try {
+            eventToAlter = await EventModel.findById(eventIDparam.value);
+            if (!eventToAlter) {
+                throw new Error(`Could not locate event ${eventIDparam.value}`);
+            }
+        } catch (error) {
             throw new Error(`Could not locate event ${eventIDparam.value}`);
         }
         let eventMessage;
@@ -209,8 +221,13 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
         if (!eventUserIDparam) {
             throw new Error(`Please ensure to pass the player's user id that you wish to signup.`);
         }
-        const eventToAlter = await EventModel.findById(eventIDparam.value);
-        if (!eventToAlter) {
+        let eventToAlter;
+        try {
+            eventToAlter = await EventModel.findById(eventIDparam.value);
+            if (!eventToAlter) {
+                throw new Error(`Could not locate event ${eventIDparam.value}`);
+            }
+        } catch (error) {
             throw new Error(`Could not locate event ${eventIDparam.value}`);
         }
         let eventMessage;
@@ -481,7 +498,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     } else if ((!efor && !existingEvent?.duration_hours) || efor === null) {
         throw new Error(`You must include a duration for your event, was ${efor}`);
     } else if (efor && isNaN(efor)) {
-        throw new Error(`The duration hours needs to be a number, not: "${efor}"`);
+        throw new Error(`The duration hours needs to be a number (ex: 3 or 3.5), not: "${efor}"`);
     } else if ((!eon && !existingEvent?.date_time) || eon === null) {
         throw new Error('You must include a date for your event.');
     } else if ((!eat && !existingEvent?.date_time) || eat === null) {

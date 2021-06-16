@@ -49,11 +49,14 @@ const EMPTY_FIELD = '\u200B';
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
  */
-async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank) {
+async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank, addtlFields) {
     let embed = new MessageEmbed()
         .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.RED);
     embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
+    if (addtlFields) {
+        embed.addFields(addtlFields);
+    }
     return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
 }
 
