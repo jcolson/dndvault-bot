@@ -624,6 +624,17 @@ global.COMMANDS = {
             "type": 7 // channel
         }]
     },
+    "configEventplancat": {
+        "name": "config_eventplancat",
+        "description": "Configure what channel category to autocreate event planning channels in",
+        "slash": true,
+        "options": [{
+            "name": "channel_category",
+            "description": "Channel Category to autocreate event planning channels in, `unset` by not setting this value.",
+            "required": false,
+            "type": 3
+        }]
+    },
     "configPrefix": {
         "name": "config_prefix",
         "description": "Configure/modify the command prefix",
@@ -1045,6 +1056,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.configPollchannel.name:
                         config.handleConfigPollChannel(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configEventplancat.name:
+                        config.handleConfigEventPlanCat(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.configPrefix.name:
                         config.handleConfigPrefix(msg, msgParms, guildConfig);

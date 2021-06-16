@@ -394,6 +394,38 @@ async function handleStats(msg) {
 }
 
 /**
+ * handle configuring what channel category that events should auto create planning channels in
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+async function handleConfigEventPlanCat(msg, msgParms, guildConfig) {
+    try {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
+            let catTest;
+            let stringParam = msgParms.length > 0 ? msgParms[0].value : '';
+            if (stringParam.trim() == '') {
+                guildConfig.eventPlanCat = undefined;
+            } else {
+                catTest = msg.guild.channels.cache.find(c => c.name.toLowerCase() == stringParam.toLowerCase() && c.type == "category");
+                if (!catTest) {
+                    throw new Error(`Could not locate the channel category: ${stringParam}`);
+                }
+                guildConfig.eventPlanCat = catTest.id;
+            }
+            await guildConfig.save();
+            GuildCache.set(msg.guild.id, guildConfig);
+            await utils.sendDirectOrFallbackToChannel({ name: 'Config Evnet Planning Category', value: `Event Planning Channel Category now set to: \`${guildConfig.eventPlanCat ? catTest.name : guildConfig.eventPlanCat}\`.` }, msg);
+            utils.deleteMessage(msg);
+        } else {
+            throw new Error(`please ask an \`approver role\` to configure.`);
+        }
+    } catch (error) {
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
+}
+
+/**
  * calls the broadcast aware method via client.shard
  * @param {*} msg
  * @param {*} msgParms
@@ -473,6 +505,7 @@ exports.confirmGuildConfig = confirmGuildConfig;
 exports.getGuildConfig = getGuildConfig;
 exports.handleConfigEventChannel = handleConfigEventChannel;
 exports.handleConfigPollChannel = handleConfigPollChannel;
+exports.handleConfigEventPlanCat = handleConfigEventPlanCat;
 exports.handleStats = handleStats;
 exports.handleKick = handleKick;
 exports.bc_handleKick = bc_handleKick;

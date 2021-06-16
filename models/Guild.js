@@ -39,6 +39,9 @@ const Guild = Schema({
     },
     "botID": {
         type: "String"
+    },
+    "eventPlanCat": {
+        type: "String"
     }
 })
 module.exports = model('Guild', Guild);
