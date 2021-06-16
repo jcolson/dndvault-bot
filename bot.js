@@ -16,7 +16,7 @@ const insult = require('./handlers/insult.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 //https://discord.com/developers/docs/topics/gateway#gateway-intents
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES', 'GUILD_MEMBERS'] } });
+const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES', 'GUILD_PRESENCES'] } });
 
 /**
  * scheduled cron for calendar reminders
