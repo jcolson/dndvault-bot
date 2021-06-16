@@ -27,10 +27,12 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
         }
     } catch (error) {
         console.error('handleEventCreate:', error.message);
-        await utils.sendDirectOrFallbackToChannel([
-            { name: 'Event Create Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
-        ], msg);
+        await utils.sendDirectOrFallbackToChannelError(error, msg, undefined, undefined, undefined,
+            [{ name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }]);
+        // await utils.sendDirectOrFallbackToChannel([
+        //     { name: 'Event Create Error', value: `${error.message}` },
+        //     { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
+        // ], msg);
     }
 }
 
@@ -85,9 +87,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         if (!eventIDparam) {
             throw new Error('Please check the format of your `event edit` command');
         }
-        const eventID = eventIDparam.value;
-        // console.log(eventID);
-        let eventEditResult = await bc_eventEdit(eventID, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
+        let eventEditResult = await bc_eventEdit(eventIDparam.value, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
         if (eventEditResult) {
             utils.deleteMessage(msg);
         } else {
@@ -95,10 +95,12 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         }
     } catch (error) {
         console.error('handleEventEdit:', error);
-        await utils.sendDirectOrFallbackToChannel([
-            { name: 'Event Edit Error', value: `${error.message}` },
-            { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
-        ], msg);
+        await utils.sendDirectOrFallbackToChannelError(error, msg, undefined, undefined, undefined,
+            [{ name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }]);
+        // await utils.sendDirectOrFallbackToChannel([
+        //     { name: 'Event Edit Error', value: `${error.message}` },
+        //     { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
+        // ], msg);
     }
 }
 
@@ -121,8 +123,13 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
             } else {
-                let existingEvent = await EventModel.findById(eventID);
-                if (!existingEvent) {
+                let existingEvent;
+                try {
+                    existingEvent = await EventModel.findById(eventID);
+                    if (!existingEvent) {
+                        throw new Error(`Unknown event id (${eventID})`);
+                    }
+                } catch (error) {
                     throw new Error(`Unknown event id (${eventID})`);
                 }
                 let guildMember = await theGuild.members.fetch(currUserId);
@@ -165,8 +172,13 @@ async function handleEventSignup(msg, msgParms, guildConfig) {
         if (!eventUserIDparam) {
             throw new Error(`Please ensure to pass the player's user id that you wish to signup.`);
         }
-        const eventToAlter = await EventModel.findById(eventIDparam.value);
-        if (!eventToAlter) {
+        let eventToAlter;
+        try {
+            eventToAlter = await EventModel.findById(eventIDparam.value);
+            if (!eventToAlter) {
+                throw new Error(`Could not locate event ${eventIDparam.value}`);
+            }
+        } catch (error) {
             throw new Error(`Could not locate event ${eventIDparam.value}`);
         }
         let eventMessage;
@@ -209,8 +221,13 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
         if (!eventUserIDparam) {
             throw new Error(`Please ensure to pass the player's user id that you wish to signup.`);
         }
-        const eventToAlter = await EventModel.findById(eventIDparam.value);
-        if (!eventToAlter) {
+        let eventToAlter;
+        try {
+            eventToAlter = await EventModel.findById(eventIDparam.value);
+            if (!eventToAlter) {
+                throw new Error(`Could not locate event ${eventIDparam.value}`);
+            }
+        } catch (error) {
             throw new Error(`Could not locate event ${eventIDparam.value}`);
         }
         let eventMessage;
@@ -481,7 +498,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     } else if ((!efor && !existingEvent?.duration_hours) || efor === null) {
         throw new Error(`You must include a duration for your event, was ${efor}`);
     } else if (efor && isNaN(efor)) {
-        throw new Error(`The duration hours needs to be a number, not: "${efor}"`);
+        throw new Error(`The duration hours needs to be a number (ex: 3 or 3.5), not: "${efor}"`);
     } else if ((!eon && !existingEvent?.date_time) || eon === null) {
         throw new Error('You must include a date for your event.');
     } else if ((!eat && !existingEvent?.date_time) || eat === null) {
@@ -1008,39 +1025,43 @@ async function sendReminders(client) {
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
         console.log("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
         for (theEvent of eventsToRemind) {
-            theEvent.reminderSent = new Date();
             try {
-                await theEvent.save();
-            } catch (error) {
-                console.info(`sendReminders: avoiding race condition on saving theEvent between reminders and recurring events ${theEvent._id}: ${error.message}`);
-                continue;
-            }
-            let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
-            let channel = new TextChannel(guild, { id: theEvent.channelID });
-            let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
-            let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
-            let usersToNotify = [];
-            if (theEvent.dm) {
-                usersToNotify.push(theEvent.dm);
-            }
-            for (attendee of theEvent.attendees) {
-                usersToNotify.push(attendee.userID);
-            }
-            usersToNotify = [...new Set(usersToNotify)];
-            console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
-            for (userToNotify of usersToNotify) {
-                // let user = await (new User(client, { id: '227562842591723521' })).fetch();
+                theEvent.reminderSent = new Date();
                 try {
-                    let user = await (new User(client, { id: userToNotify })).fetch();
-                    await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+                    await theEvent.save();
                 } catch (error) {
-                    console.error(`sendReminders: Could not notify user ${userToNotify} due to ${error.message}`);
+                    console.info(`sendReminders: avoiding race condition on saving theEvent between reminders and recurring events ${theEvent._id}: ${error.message}`);
+                    continue;
                 }
+                let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
+                let channel = new TextChannel(guild, { id: theEvent.channelID });
+                let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
+                let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
+                let usersToNotify = [];
+                if (theEvent.dm) {
+                    usersToNotify.push(theEvent.dm);
+                }
+                for (attendee of theEvent.attendees) {
+                    usersToNotify.push(attendee.userID);
+                }
+                usersToNotify = [...new Set(usersToNotify)];
+                console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
+                for (userToNotify of usersToNotify) {
+                    // let user = await (new User(client, { id: '227562842591723521' })).fetch();
+                    try {
+                        let user = await (new User(client, { id: userToNotify })).fetch();
+                        await utils.sendDirectOrFallbackToChannelEmbeds(eventEmbeds, msg, user);
+                    } catch (error) {
+                        console.error(`sendReminders: Could not notify user ${userToNotify} due to ${error.message}`);
+                    }
+                }
+            } catch (error) {
+                console.error(`sendReminders: could not send reminders for guildId: ${theEvent.guildID}; channelID: ${theEvent.channelID}; messageID: ${theEvent.messageID}; eventID: ${theEvent._id}`, error);
             }
         }
     }
     catch (error) {
-        console.error("sendReminders", error);
+        console.error("sendReminders: ", error);
     }
 }
 
