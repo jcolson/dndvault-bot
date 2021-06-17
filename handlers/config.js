@@ -1,6 +1,7 @@
 const GuildModel = require('../models/Guild');
 const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
+const events = require('../handlers/events.js');
 
 /**
  * Show the configuration for your server
@@ -61,7 +62,7 @@ async function handleConfig(msg, msgParms, guildConfig) {
             { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true }
             ],
             msg);
-            utils.deleteMessage(msg);
+        utils.deleteMessage(msg);
     } catch (error) {
         console.error("handleConfig:", error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -421,6 +422,10 @@ async function handleConfigEventPlanCat(msg, msgParms, guildConfig) {
                 if (!catTest) {
                     throw new Error(`Could not locate the channel category: ${stringParam}`);
                 }
+                // await utils.checkChannelPermissions({ channel: catTest, guild: msg.guild }, events.SESSION_PLANNING_PERMS);
+                if (!await msg.guild.me.hasPermission(events.SESSION_PLANNING_PERMS)) {
+                    throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${events.SESSION_PLANNING_PERMS}`);
+                }
                 guildConfig.eventPlanCat = catTest.id;
                 if (!guildConfig.eventPlanDays) {
                     guildConfig.eventPlanDays = 7;
@@ -444,7 +449,7 @@ async function handleConfigEventPlanCat(msg, msgParms, guildConfig) {
  * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
- async function handleConfigEventPlanChanRemoveDays(msg, msgParms, guildConfig) {
+async function handleConfigEventPlanChanRemoveDays(msg, msgParms, guildConfig) {
     try {
         if (msgParms.length == 0 || msgParms[0].value === '') {
             throw new Error(`Not enough parameters, must pass at least one.`);
