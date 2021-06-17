@@ -45,7 +45,7 @@ let shutdown = false;
 /**
  * invoke shardingmanager
  */
-const manager = new ShardingManager('./bot.js', { token: Config.token, respawn: false });
+const manager = new ShardingManager('./bot.js', { token: Config.token, respawn: false, totalShards: Config.totalShards });
 
 manager.on('shardCreate', (shard) => {
     console.log(`===== Launched shard ${shard.id} =====`);

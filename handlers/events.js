@@ -507,7 +507,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                 if (addIDidx >= 0) {
                     playersToAdd.splice(addIDidx, 1);
                 }
-                let removeID = playersInChannelShouldBe.find((userID) => { console.debug(`${userID} == ${memberKey}`); return userID == memberKey });
+                let removeID = playersInChannelShouldBe.find((userID) => { return userID == memberKey });
                 if (!removeID) {
                     playersToRemove.push(memberKey);
                 }
@@ -1261,6 +1261,9 @@ async function recurEvents(client) {
     }
 }
 
+/**
+ * removes old session planning channels
+ */
 async function removeOldSessionPlanningChannels(client) {
     try {
         let guildsToRecur = client.guilds.cache.keyArray();

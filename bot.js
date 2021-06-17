@@ -750,7 +750,7 @@ async function registerCommands() {
         // console.debug('shard ids:', client.shard.ids);
         // only register commands if I'm shard id '0'
         if (client.shard.ids.includes(0)) {
-            console.info('registerCommands: ShardId:0, registering commands ...');
+            console.info(`registerCommands: ShardId:${client.shard.ids}, registering commands ...`);
             let commandsToRegister = utils.transformCommandsToDiscordFormat(COMMANDS);
             const registeredCommands = await getClientApp().commands.get();
             //console.debug('registeredCommands:', registeredCommands);
