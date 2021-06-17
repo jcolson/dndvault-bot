@@ -1257,7 +1257,19 @@ async function recurEvents(client) {
         }
     }
     catch (error) {
-        console.error("recurEvents", error);
+        console.error("recurEvents: ", error);
+    }
+}
+
+async function removeOldSessionPlanningChannels(client) {
+    try {
+        let guildsToRecur = client.guilds.cache.keyArray();
+        // will need a mongo pipeline to figure out which channels to remove
+        let channelsToRemove = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, guildID: { $in: guildsToRecur } });
+        console.log("removeOldSessionPlanningChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRecur.length);
+
+    } catch (error) {
+        console.error("removeOldSessionPlanningChannels: ", error);
     }
 }
 
@@ -1275,6 +1287,7 @@ exports.handleEventWithdrawal = handleEventWithdrawal;
 exports.getLinkForEvent = getLinkForEvent;
 exports.sendReminders = sendReminders;
 exports.recurEvents = recurEvents;
+exports.removeOldSessionPlanningChannels = removeOldSessionPlanningChannels;
 exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
 exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;

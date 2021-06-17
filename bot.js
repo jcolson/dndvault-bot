@@ -21,7 +21,7 @@ const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { 
 /**
  * scheduled cron for calendar reminders
  */
-let calendarReminderCron, calendarRecurCron;
+let calendarReminderCron;
 
 Client.prototype.dnd_users = users;
 Client.prototype.dnd_events = events;
@@ -775,12 +775,11 @@ client.once('ready', async () => {
     console.info(`D&D Vault Bot - logged in as ${client.user.tag} & ${client.user.id}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type /help', type: 'PLAYING' }, status: 'online' });
     registerCommands();
-    calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
-        events.sendReminders(client);
-    });
-    calendarRecurCron = cron.schedule(Config.calendarReminderCron, () => {
-        events.recurEvents(client);
-    });
+    calendarReminderCron = cron.schedule(Config.calendarReminderCron, async () => {
+        await events.sendReminders(client);
+        await events.recurEvents(client);
+        await events.removeOldSessionPlanningChannels(client);
+        });
 });
 
 /**
@@ -1239,8 +1238,6 @@ async function cleanShutdown(callProcessExit) {
     try {
         console.log('Closing out shard resources...');
         calendarReminderCron.destroy();
-        console.log('Scheduled calendar reminders destroyed.');
-        calendarRecurCron.destroy();
         console.log('Scheduled calendar recuring destroyed.');
         client.destroy();
         console.log('Discord client destroyed.');
