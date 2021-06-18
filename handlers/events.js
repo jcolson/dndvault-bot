@@ -1270,11 +1270,11 @@ async function removeOldSessionPlanningChannels(client) {
         const channelsToRemove = await EventModel.aggregate(
             [{
                 $match: {
-                    $and: [{
+                    $and: [
+                        {
                             guildID: {
                                 $in: guildsToRemoveChannels
                             }
-
                         },
                         {
                             planningChannel: {
