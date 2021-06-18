@@ -3,7 +3,6 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
-  - [Unreleased](#unreleased)
   - [1.5.0 (2021-06-18)](#150-2021-06-18)
   - [1.4.10 (2021-06-14)](#1410-2021-06-14)
   - [1.4.9 (2021-06-11)](#149-2021-06-11)
@@ -83,17 +82,13 @@
 
 # Changelog
 
-## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+## [1.5.0](https://github.com/jcolson/dndvault-bot/tree/1.5.0) (2021-06-18)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.0...HEAD)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.10...1.5.0)
 
 **Implemented enhancements:**
 
 - feature: option to auto create session-planning channels for events with just those in the session [\#303](https://github.com/jcolson/dndvault-bot/issues/303)
-
-## [1.5.0](https://github.com/jcolson/dndvault-bot/tree/1.5.0) (2021-06-18)
-
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.10...1.5.0)
 
 **Fixed bugs:**
 
