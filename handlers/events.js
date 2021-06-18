@@ -1039,7 +1039,8 @@ function getDateInDifferentTimezone(date, tzString) {
 async function deployEvent(reaction, user, eventForMessage, guildConfig) {
     let dmgmID;
     if (eventForMessage.dm) {
-        dmgmID = eventForMessage.dm.substring(3, eventForMessage.dm.length - 1);
+        // @todo check database, this is not needed anymore
+        dmgmID = utils.trimTagsFromId(eventForMessage.dm);
     }
     // console.log('dmgm', dmgmID);
     let userMember = await reaction.message.guild.members.fetch(user.id);
@@ -1050,12 +1051,13 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = null;
     } else {
         if (!eventForMessage.dm) {
-            eventForMessage.dm = `${user.id}`;
+            eventForMessage.dm = user.id;
         }
         eventForMessage.deployedByID = user.id;
     }
     await eventForMessage.save();
     await reaction.message.edit(await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true));
+    await maintainPlanningChannel(reaction.message.guild, eventForMessage, guildConfig);
 }
 
 /**
