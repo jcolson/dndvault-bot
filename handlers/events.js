@@ -265,13 +265,6 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
 async function handleEventRemove(msg, msgParms, guildConfig) {
     try {
         let eventID = msgParms[0].value;
-        // console.log(eventID);
-        try {
-            let eventToRemove = await EventModel.findById(eventID);
-            await maintainPlanningChannel(msg.guild, eventToRemove, guildConfig, true);
-        } catch (error) {
-            console.error(`Could not remove associated planning channel for this event ${eventID}`);
-        }
         let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
         await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
         utils.deleteMessage(msg);
@@ -293,10 +286,16 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
     let returnMessage;
     try {
         let existingEvent = await EventModel.findById(eventID);
+        // console.log(eventID);
         if (!await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole) && memberUser.id != existingEvent?.userID) {
             throw new Error(`Please have <@${existingEvent?.userID}> remove, or ask an \`approver role\` to remove.`);
         }
         if (existingEvent) {
+            try {
+                await maintainPlanningChannel(guild, existingEvent, guildConfig, true);
+            } catch (error) {
+                console.error(`removeEvent: Could not remove associated planning channel for this event ${existingEvent._id}.`, error);
+            }
             await existingEvent.delete();
             let channelId = existingEvent?.channelID ? existingEvent.channelID : existingEventMessage?.channel?.id;
             let messageId = existingEvent?.messageID ? existingEvent.messageID : existingEventMessage?.id;
@@ -431,8 +430,8 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${SESSION_PLANNING_PERMS}`);
         }
         if (removeChannel) {
-            console.debug(`Removing planning channel for ${eventToMaintain._id} - ${eventToMaintain.planningChannel}`);
             if (eventToMaintain.planningChannel) {
+                console.debug(`maintainPlanningChannel: Removing planning channel (${eventToMaintain.planningChannel}) for event: ${eventToMaintain._id}.`);
                 let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
                 if (!planningChannel) {
                     console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventToMaintain.planningChannel}, so couldn't remove it.`);
