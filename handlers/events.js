@@ -1294,6 +1294,7 @@ async function removeOldSessionPlanningChannels(client) {
                 $project: {
                     planningChannel: 1,
                     date_time: 1,
+                    guildID: 1,
                     todayMinusEventPlanDays: {
                         $toDate: {
                             $subtract: [Date.now(), {
@@ -1312,8 +1313,19 @@ async function removeOldSessionPlanningChannels(client) {
                 }
             }]
         );
-        console.log("removeOldSessionPlanningChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRemoveChannels.length);
-
+        console.info("removeOldSessionPlanningChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRemoveChannels.length);
+        for (row of channelsToRemove) {
+            try {
+                let existingEvent = await EventModel.findById(row._id);
+                existingEvent.planningChannel = undefined;
+                await existingEvent.save();
+                let guild = await client.guilds.fetch(row.guildID);
+                let planningChannel = await guild.channels.resolve(row.planningChannel);
+                await planningChannel.delete();
+            } catch (error) {
+                console.error(`Could not remove an old session planning channel (${row.planningChannel}) for event: ${row._id}.`, error);
+            }
+        }
     } catch (error) {
         console.error("removeOldSessionPlanningChannels: ", error);
     }
