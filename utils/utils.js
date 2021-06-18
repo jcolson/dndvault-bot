@@ -389,14 +389,18 @@ function isTrue(value) {
 /**
  * ensure that the bot has proper permissions in the channel
  * @param {Message} msg
+ * @param {Array} addtlPermsToCheck (optional)
  */
-async function checkChannelPermissions(msg) {
+async function checkChannelPermissions(msg, addtlPermsToCheck) {
     // throw new Error(`test error`);
     //check that I have the proper permissions
     let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
     if (msg.interaction) {
         // interactions don't remove old messages or send messages to the channel, so can ignore those permission in this case.
         requiredPerms = ['ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
+    }
+    if (addtlPermsToCheck) {
+        requiredPerms = requiredPerms.concat(addtlPermsToCheck);
     }
     let botPerms = msg.channel.permissionsFor(msg.guild.me);
     // console.debug("channel perms: ", botPerms);
@@ -426,7 +430,7 @@ async function checkChannelPermissions(msg) {
 }
 
 /**
- * remove tags from an snowflake tag passed
+ * retrieve snowflake from a tag passed
  * @param {String} idToTrim
  * @returns {String}
  */

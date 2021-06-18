@@ -16,12 +16,13 @@ const insult = require('./handlers/insult.js');
 
 const DEFAULT_CONFIGDIR = __dirname;
 //https://discord.com/developers/docs/topics/gateway#gateway-intents
+// const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES', 'GUILD_PRESENCES'] } });
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] } });
 
 /**
  * scheduled cron for calendar reminders
  */
-let calendarReminderCron, calendarRecurCron;
+let calendarReminderCron;
 
 Client.prototype.dnd_users = users;
 Client.prototype.dnd_events = events;
@@ -624,6 +625,28 @@ global.COMMANDS = {
             "type": 7 // channel
         }]
     },
+    "configEventplancat": {
+        "name": "config_eventplancat",
+        "description": "Configure what channel category to autocreate event planning channels in",
+        "slash": true,
+        "options": [{
+            "name": "channel_category",
+            "description": "Channel Category to autocreate event planning channels in, `unset` by not setting this value.",
+            "required": false,
+            "type": 3
+        }]
+    },
+    "configEventchandays": {
+        "name": "config_eventchandays",
+        "description": "Configure how many days after an event planning channel should be removed",
+        "slash": true,
+        "options": [{
+            "name": "channel_days",
+            "description": "The number of days after an event that the planning channel should be removed",
+            "required": true,
+            "type": 4 // Integer
+        }]
+    },
     "configPrefix": {
         "name": "config_prefix",
         "description": "Configure/modify the command prefix",
@@ -728,7 +751,7 @@ async function registerCommands() {
         // console.debug('shard ids:', client.shard.ids);
         // only register commands if I'm shard id '0'
         if (client.shard.ids.includes(0)) {
-            console.info('registerCommands: ShardId:0, registering commands ...');
+            console.info(`registerCommands: ShardId:${client.shard.ids}, registering commands ...`);
             let commandsToRegister = utils.transformCommandsToDiscordFormat(COMMANDS);
             const registeredCommands = await getClientApp().commands.get();
             //console.debug('registeredCommands:', registeredCommands);
@@ -753,11 +776,10 @@ client.once('ready', async () => {
     console.info(`D&D Vault Bot - logged in as ${client.user.tag} & ${client.user.id}`);
     client.user.setPresence({ activity: { name: 'with Tiamat, type /help', type: 'PLAYING' }, status: 'online' });
     registerCommands();
-    calendarReminderCron = cron.schedule(Config.calendarReminderCron, () => {
-        events.sendReminders(client);
-    });
-    calendarRecurCron = cron.schedule(Config.calendarReminderCron, () => {
-        events.recurEvents(client);
+    calendarReminderCron = cron.schedule(Config.calendarReminderCron, async () => {
+        await events.sendReminders(client);
+        await events.recurEvents(client);
+        await events.removeOldSessionPlanningChannels(client);
     });
 });
 
@@ -1046,6 +1068,12 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                     case COMMANDS.configPollchannel.name:
                         config.handleConfigPollChannel(msg, msgParms, guildConfig);
                         break;
+                    case COMMANDS.configEventplancat.name:
+                        config.handleConfigEventPlanCat(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configEventchandays.name:
+                        config.handleConfigEventPlanChanRemoveDays(msg, msgParms, guildConfig);
+                        break;
                     case COMMANDS.configPrefix.name:
                         config.handleConfigPrefix(msg, msgParms, guildConfig);
                         break;
@@ -1211,7 +1239,7 @@ async function cleanShutdown(callProcessExit) {
     try {
         console.log('Closing out shard resources...');
         calendarReminderCron.destroy();
-        console.log('Scheduled calendar reminders destroyed.');
+        console.log('Scheduled calendar recuring destroyed.');
         client.destroy();
         console.log('Discord client destroyed.');
         // boolean means [force], see in mongoose doc
