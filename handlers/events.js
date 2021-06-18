@@ -10,6 +10,8 @@ const characters = require('../handlers/characters.js');
 const utils = require('../utils/utils.js');
 const config = require('../handlers/config.js');
 
+const SESSION_PLANNING_PERMS = ['MANAGE_CHANNELS', 'MANAGE_ROLES'];
+
 /**
  * Create an event
  * @param {Message} msg
@@ -263,7 +265,6 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
 async function handleEventRemove(msg, msgParms, guildConfig) {
     try {
         let eventID = msgParms[0].value;
-        // console.log(eventID);
         let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
         await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
         utils.deleteMessage(msg);
@@ -283,31 +284,34 @@ async function handleEventRemove(msg, msgParms, guildConfig) {
  */
 async function removeEvent(guild, memberUser, eventID, guildConfig, existingEventMessage) {
     let returnMessage;
-    try {
-        let existingEvent = await EventModel.findById(eventID);
-        if (!await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole) && memberUser.id != existingEvent?.userID) {
-            throw new Error(`Please have <@${existingEvent?.userID}> remove, or ask an \`approver role\` to remove.`);
+    let existingEvent = await EventModel.findById(eventID);
+    // console.log(eventID);
+    if (!await users.hasRoleOrIsAdmin(memberUser, guildConfig.arole) && memberUser.id != existingEvent?.userID) {
+        throw new Error(`Please have <@${existingEvent?.userID}> remove, or ask an \`approver role\` to remove.`);
+    }
+    if (existingEvent) {
+        try {
+            await maintainPlanningChannel(guild, existingEvent, guildConfig, true);
+        } catch (error) {
+            console.error(`removeEvent: Could not remove associated planning channel for this event ${existingEvent._id}.`, error);
         }
-        if (existingEvent) {
-            await existingEvent.delete();
-            let channelId = existingEvent?.channelID ? existingEvent.channelID : existingEventMessage?.channel?.id;
-            let messageId = existingEvent?.messageID ? existingEvent.messageID : existingEventMessage?.id;
-            let eventMessage;
-            try {
-                eventMessage = await (
-                    await guild.channels.resolve(channelId)
-                ).messages.fetch(messageId);
-                await eventMessage.edit(await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id));
-                await eventMessage.reactions.removeAll();
-            } catch (error) {
-                console.error(`removeEvent: Could not locate event message, it may have been removed already ... event removed without removing the associated message embed`);
-            }
-            returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, \`${eventID}\`, was successfully removed.`, inline: true };
-        } else {
-            returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, \`${eventID}\`, could not be located, so was \`not\` removed.`, inline: true };
+        await existingEvent.delete();
+        let channelId = existingEvent?.channelID ? existingEvent.channelID : existingEventMessage?.channel?.id;
+        let messageId = existingEvent?.messageID ? existingEvent.messageID : existingEventMessage?.id;
+        let eventMessage;
+        try {
+            eventMessage = await (
+                await guild.channels.resolve(channelId)
+            ).messages.fetch(messageId);
+            await eventMessage.edit(await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id));
+            await eventMessage.reactions.removeAll();
+        } catch (error) {
+            console.error(`removeEvent: Could not locate event message, it may have been removed already ... event removed without removing the associated message embed`);
         }
-    } catch (error) {
-        console.error(`removeEvent: couldn't remove event`, error);
+        returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, \`${eventID}\`, was successfully removed.`, inline: true };
+    } else {
+        throw new Error(`<@${memberUser.id}> - the event, \`${eventID}\`, could not be located, so was \`not\` removed.`);
+        // returnMessage = { name: `${utils.EMOJIS.DAGGER} Event Remove ${utils.EMOJIS.SHIELD}`, value: `<@${memberUser.id}> - the event, \`${eventID}\`, could not be located, so was \`not\` removed.`, inline: true };
     }
     return returnMessage;
 }
@@ -335,6 +339,8 @@ async function handleEventShow(msg, msgParms, guildConfig) {
 
 /**
  * show an event
+ * update the messageID in the event to reflect the new embed
+ * call the create planning channel for the event, if needed (also done when a player signs up or withdrawals)
  * @param {Guild} guild
  * @param {Channel} msgChannel
  * @param {String} eventID
@@ -345,9 +351,14 @@ async function eventShow(guild, msgChannel, eventID) {
     let sentMessage;
     let eventChannel = msgChannel;
     try {
-        let showEvent = await EventModel.findById(eventID);
-        if (!showEvent) {
-            throw new Error('Event not found.');
+        let showEvent;
+        try {
+            showEvent = await EventModel.findById(eventID);
+            if (!showEvent) {
+                throw new Error(`Event id ${eventID} not found.`);
+            }
+        } catch (error) {
+            throw new Error(`Event id ${eventID} not found.`);
         }
         const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let guildConfig = await config.confirmGuildConfig(guild);
@@ -379,12 +390,127 @@ async function eventShow(guild, msgChannel, eventID) {
         sentMessage.react(utils.EMOJIS.CLOCK);
         sentMessage.react(utils.EMOJIS.EDIT);
         sentMessage.react(utils.EMOJIS.TRASH);
+        await maintainPlanningChannel(guild, showEvent, guildConfig);
     } catch (error) {
-        console.error('eventShow:', error.message);
-        error.message += ` For Channel: ${eventChannel?.name}`;
+        console.error('eventShow:', error);
+        error.message += `; chref: ${eventChannel?.name}`;
         throw error;
     }
     return sentMessage;
+}
+
+/**
+ * function to create planning channel if required for an event
+ * also adds players to the channel if required
+ * also removes players from the channel if required
+ * removes channel if removeChannel is true
+ *
+ * @param {Guild} guild
+ * @param {EventModel} eventToMaintain
+ * @param {GuildModel} guildConfig
+ * @param {Boolean} removeChannel
+ */
+async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, removeChannel) {
+    if (guildConfig.eventPlanCat) {
+        if (!await guild.me.hasPermission(SESSION_PLANNING_PERMS)) {
+            throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${SESSION_PLANNING_PERMS}`);
+        }
+        if (removeChannel) {
+            if (eventToMaintain.planningChannel) {
+                console.debug(`maintainPlanningChannel: Removing planning channel (${eventToMaintain.planningChannel}) for event: ${eventToMaintain._id}.`);
+                let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+                if (!planningChannel) {
+                    console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventToMaintain.planningChannel}, so couldn't remove it.`);
+                    eventToMaintain.planningChannel = undefined;
+                } else {
+                    await planningChannel.delete();
+                }
+            }
+        } else {
+            let playersToAdd = eventToMaintain.attendees.map((attendee) => attendee.userID);
+            if (eventToMaintain.dm) {
+                playersToAdd.push(eventToMaintain.dm);
+            }
+            playersToAdd.push(eventToMaintain.userID);
+            playersToAdd = [...new Set(playersToAdd)];
+            let playersInChannelShouldBe = [...new Set(playersToAdd)];
+            playersInChannelShouldBe.push(guild.me.id);
+            console.debug(`maintainPlanningChannel: initial list of new players to add`, playersToAdd);
+            // let playersToRemove = [];
+
+            let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-');
+            // if there is no channel for this event yet, lets make one
+            if (eventToMaintain.planningChannel) {
+                let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+                // if we couldn't resolve the planning channel, unset it so we recreate it
+                if (!planningChannel) {
+                    console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventToMaintain.planningChannel}, we'll need to recreate it`);
+                    eventToMaintain.planningChannel = undefined;
+                }
+            }
+            if (!eventToMaintain.planningChannel) {
+                let planCategory = await guild.channels.resolve(guildConfig.eventPlanCat);
+                if (!planCategory) {
+                    throw new Error(`Could not locate event planning category <#${guildConfig.eventPlanCat}>`)
+                }
+                let permissionOverwrites = [{
+                    id: guild.me.id,
+                    allow: ['VIEW_CHANNEL'],
+                }, {
+                    id: guild.roles.everyone,
+                    deny: ['VIEW_CHANNEL'],
+                }];
+                for (let playerToAdd of playersToAdd) {
+                    let playerMember = await guild.members.fetch(playerToAdd);
+                    console.debug(`maintainPlanningChannel: player to add perms: ${playerToAdd}`);
+                    permissionOverwrites.push({
+                        id: playerMember.id,
+                        allow: ['VIEW_CHANNEL'],
+                    });
+                }
+                eventToMaintain.planningChannel = (await guild.channels.create(channelNameShouldBe, {
+                    parent: planCategory,
+                    permissionOverwrites: permissionOverwrites,
+                })).id;
+                console.debug(`maintainPlanningChannel: planning channel id: ${eventToMaintain.planningChannel}`);
+            }
+            // ensure planning channel exists
+            // now maintain the channel's name (could need to change if title of event changed)
+            // now maintain players once we have a channel
+            if (!eventToMaintain.planningChannel) {
+                throw new Error(`Could not ensure a planning channel for this event`);
+            }
+            let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+            console.debug(`maintainPlanningChannel: planningChannel resolved `, planningChannel.id);
+            if (planningChannel.name != channelNameShouldBe) {
+                console.debug(`maintainPlanningChannel: renaming channel from ${planningChannel.name} to ${channelNameShouldBe}`)
+                planningChannel = await planningChannel.setName(channelNameShouldBe);
+            }
+            for (let [memberKey, permOverwrite] of planningChannel.permissionOverwrites) {
+                // console.debug(`maintainPlanningChannel: existing permissionOverwrites key ${memberKey}:`, permOverwrite);
+                if (permOverwrite.type == 'member') {
+                    let addIDidx = playersToAdd.findIndex((userID) => { return userID == memberKey });
+                    if (addIDidx >= 0) {
+                        playersToAdd.splice(addIDidx, 1);
+                    }
+                    let removeID = playersInChannelShouldBe.find((userID) => { return userID == memberKey });
+                    if (!removeID) {
+                        // playersToRemove.push(memberKey);
+                        await permOverwrite.delete();
+                    }
+                }
+            }
+            console.debug(`maintainPlanningChannel: new players to add`, playersToAdd);
+            // console.debug(`maintainPlanningChannel: old players to remove`, playersToRemove);
+            for (playerAdd of playersToAdd) {
+                console.debug(`maintainPlanningChannel: adding ${playerAdd}`);
+                await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
+            }
+            eventToMaintain.save();
+        }
+    } else {
+        console.debug(`maintainPlanningChannel: no event planning category set, don't need to maintain event planning channels`);
+    }
 }
 
 /**
@@ -739,7 +865,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.X && eventForMessage) {
             // console.debug(eventForMessage);
-            await attendeeRemove(reaction.message, user, eventForMessage);
+            await attendeeRemove(reaction.message, user, eventForMessage, guildConfig);
             await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.PLAY && eventForMessage) {
             // console.debug(eventForMessage);
@@ -899,7 +1025,8 @@ function getDateInDifferentTimezone(date, tzString) {
 async function deployEvent(reaction, user, eventForMessage, guildConfig) {
     let dmgmID;
     if (eventForMessage.dm) {
-        dmgmID = eventForMessage.dm.substring(3, eventForMessage.dm.length - 1);
+        // @todo check database, this is not needed anymore
+        dmgmID = utils.trimTagsFromId(eventForMessage.dm);
     }
     // console.log('dmgm', dmgmID);
     let userMember = await reaction.message.guild.members.fetch(user.id);
@@ -910,12 +1037,13 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = null;
     } else {
         if (!eventForMessage.dm) {
-            eventForMessage.dm = `${user.id}`;
+            eventForMessage.dm = user.id;
         }
         eventForMessage.deployedByID = user.id;
     }
     await eventForMessage.save();
     await reaction.message.edit(await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true));
+    await maintainPlanningChannel(reaction.message.guild, eventForMessage, guildConfig);
 }
 
 /**
@@ -994,6 +1122,7 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
     }
     await eventForMessage.save();
     await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
+    await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
 }
 
 /**
@@ -1002,7 +1131,7 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
  * @param {User} user
  * @param {EventModel} eventForMessage
  */
-async function attendeeRemove(message, user, eventForMessage) {
+async function attendeeRemove(message, user, eventForMessage, guildConfig) {
     // console.log('attendees: ', eventForMessage.attendees);
 
     if (!eventForMessage.attendees) {
@@ -1016,6 +1145,7 @@ async function attendeeRemove(message, user, eventForMessage) {
     // console.log(eventForMessage);
     await eventForMessage.save();
     await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
+    await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
 }
 
 async function sendReminders(client) {
@@ -1114,7 +1244,78 @@ async function recurEvents(client) {
         }
     }
     catch (error) {
-        console.error("recurEvents", error);
+        console.error("recurEvents: ", error);
+    }
+}
+
+/**
+ * removes old session planning channels
+ */
+async function removeOldSessionPlanningChannels(client) {
+    try {
+        let guildsToRemoveChannels = client.guilds.cache.keyArray();
+        // will need a mongo pipeline to figure out which channels to remove
+        const channelsToRemove = await EventModel.aggregate(
+            [{
+                $match: {
+                    $and: [
+                        {
+                            guildID: {
+                                $in: guildsToRemoveChannels
+                            }
+                        },
+                        {
+                            planningChannel: {
+                                $ne: null
+                            }
+                        }
+                    ]
+                }
+            }, {
+                $lookup: {
+                    from: 'guilds',
+                    localField: 'guildID',
+                    foreignField: 'guildID',
+                    as: 'guildDocs'
+                }
+            }, {
+                $project: {
+                    planningChannel: 1,
+                    date_time: 1,
+                    guildID: 1,
+                    todayMinusEventPlanDays: {
+                        $toDate: {
+                            $subtract: [Date.now(), {
+                                $multiply: [1000, 3600, 24, {
+                                    '$arrayElemAt': ['$guildDocs.eventPlanDays', 0]
+                                }]
+                            }]
+                        }
+                    },
+                }
+            }, {
+                $match: {
+                    $expr: {
+                        $lt: ['$date_time', '$todayMinusEventPlanDays']
+                    }
+                }
+            }]
+        );
+        console.info("removeOldSessionPlanningChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRemoveChannels.length);
+        for (row of channelsToRemove) {
+            try {
+                let existingEvent = await EventModel.findById(row._id);
+                existingEvent.planningChannel = undefined;
+                await existingEvent.save();
+                let guild = await client.guilds.fetch(row.guildID);
+                let planningChannel = await guild.channels.resolve(row.planningChannel);
+                await planningChannel.delete();
+            } catch (error) {
+                console.error(`Could not remove an old session planning channel (${row.planningChannel}) for event: ${row._id}.`, error);
+            }
+        }
+    } catch (error) {
+        console.error("removeOldSessionPlanningChannels: ", error);
     }
 }
 
@@ -1132,5 +1333,7 @@ exports.handleEventWithdrawal = handleEventWithdrawal;
 exports.getLinkForEvent = getLinkForEvent;
 exports.sendReminders = sendReminders;
 exports.recurEvents = recurEvents;
+exports.removeOldSessionPlanningChannels = removeOldSessionPlanningChannels;
 exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
+exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;

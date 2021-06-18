@@ -130,7 +130,7 @@ I'm looking for feedback, so please feel free to open bugs, feature requests, et
 
 ## Invite the BOT to your server
 
-[Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot%20applications.commands)
+[Invite the bot to your server](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=268659792&scope=bot%20applications.commands)
 
 ## Commands
 
@@ -346,5 +346,5 @@ Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue):
 ### Test Bot Invite
 
 ```html
-https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=223296&scope=bot%20applications.commands
+https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=268659792&scope=bot%20applications.commands
 ```
