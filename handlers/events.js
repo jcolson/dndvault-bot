@@ -435,8 +435,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
             playersToAdd = [...new Set(playersToAdd)];
             let playersInChannelShouldBe = [...new Set(playersToAdd)];
             playersInChannelShouldBe.push(guild.me.id);
-            console.debug(`maintainPlanningChannel: initial list of new players to add`, playersToAdd);
-            // let playersToRemove = [];
+            // console.debug(`maintainPlanningChannel: initial list of new players to add`, playersToAdd);
 
             let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-');
             // if there is no channel for this event yet, lets make one
@@ -461,12 +460,16 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                     deny: ['VIEW_CHANNEL'],
                 }];
                 for (let playerToAdd of playersToAdd) {
-                    let playerMember = await guild.members.fetch(playerToAdd);
-                    console.debug(`maintainPlanningChannel: player to add perms: ${playerToAdd}`);
-                    permissionOverwrites.push({
-                        id: playerMember.id,
-                        allow: ['VIEW_CHANNEL'],
-                    });
+                    try {
+                        let playerMember = await guild.members.fetch(playerToAdd);
+                        console.debug(`maintainPlanningChannel: player to add perms: ${playerToAdd}`);
+                        permissionOverwrites.push({
+                            id: playerMember.id,
+                            allow: ['VIEW_CHANNEL'],
+                        });
+                    } catch (error) {
+                        console.error(`maintainPlanningChannel: could not add player, ${playerToAdd}, due to error: ${error.message}`);
+                    }
                 }
                 eventToMaintain.planningChannel = (await guild.channels.create(channelNameShouldBe, {
                     parent: planCategory,
