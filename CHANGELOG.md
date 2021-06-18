@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [Unreleased](#unreleased)
+  - [1.5.0 (2021-06-18)](#150-2021-06-18)
   - [1.4.10 (2021-06-14)](#1410-2021-06-14)
   - [1.4.9 (2021-06-11)](#149-2021-06-11)
   - [1.4.8 (2021-06-11)](#148-2021-06-11)
@@ -80,6 +82,22 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.0...HEAD)
+
+**Implemented enhancements:**
+
+- feature: option to auto create session-planning channels for events with just those in the session [\#303](https://github.com/jcolson/dndvault-bot/issues/303)
+
+## [1.5.0](https://github.com/jcolson/dndvault-bot/tree/1.5.0) (2021-06-18)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.4.10...1.5.0)
+
+**Fixed bugs:**
+
+- obscure error message returned when event id is not correct for event\_signup and event\_withdrawal [\#300](https://github.com/jcolson/dndvault-bot/issues/300)
 
 ## [1.4.10](https://github.com/jcolson/dndvault-bot/tree/1.4.10) (2021-06-14)
 
