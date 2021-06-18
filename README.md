@@ -214,6 +214,8 @@ In order to see the new slash commands and their accompanying options and descri
   - [x] campaign [BOOLEAN] - require that a user have matching character for event's campaigns
   - [x] pollchannel [#CHANNEL] - send all polls to this channel
   - [x] eventchannel [#CHANNEL] - send all events to this channel
+  - [x] eventplancat [channel_category] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [x] eventchandays [channel_days] - Configure how many days after an event planning channel should be removed
 ```
 
 ## Example character workflow with the BOT
