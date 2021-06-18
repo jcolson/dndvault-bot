@@ -1265,10 +1265,54 @@ async function recurEvents(client) {
  */
 async function removeOldSessionPlanningChannels(client) {
     try {
-        let guildsToRecur = client.guilds.cache.keyArray();
+        let guildsToRemoveChannels = client.guilds.cache.keyArray();
         // will need a mongo pipeline to figure out which channels to remove
-        let channelsToRemove = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, guildID: { $in: guildsToRecur } });
-        console.log("removeOldSessionPlanningChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRecur.length);
+        const channelsToRemove = await EventModel.aggregate(
+            [{
+                $match: {
+                    $and: [{
+                            guildID: {
+                                $in: guildsToRemoveChannels
+                            }
+
+                        },
+                        {
+                            planningChannel: {
+                                $ne: null
+                            }
+                        }
+                    ]
+                }
+            }, {
+                $lookup: {
+                    from: 'guilds',
+                    localField: 'guildID',
+                    foreignField: 'guildID',
+                    as: 'guildDocs'
+                }
+            }, {
+                $project: {
+                    planningChannel: 1,
+                    date_time: 1,
+                    todayMinusEventPlanDays: {
+                        $toDate: {
+                            $subtract: [Date.now(), {
+                                $multiply: [1000, 3600, 24, {
+                                    '$arrayElemAt': ['$guildDocs.eventPlanDays', 0]
+                                }]
+                            }]
+                        }
+                    },
+                }
+            }, {
+                $match: {
+                    $expr: {
+                        $lt: ['$date_time', '$todayMinusEventPlanDays']
+                    }
+                }
+            }]
+        );
+        console.log("removeOldSessionPlanningChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRemoveChannels.length);
 
     } catch (error) {
         console.error("removeOldSessionPlanningChannels: ", error);
