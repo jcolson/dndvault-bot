@@ -825,7 +825,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             await reaction.message.fetch();
         }
     } catch (error) {
-        console.error('messageReactionAdd: Something went wrong when fetching the message: ', error);
+        console.error(`messageReactionAdd: Something went wrong when fetching the reaction.message for a partial: ${error.message}`);
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
@@ -884,7 +884,7 @@ client.ws.on('INTERACTION_CREATE', async (interaction) => {
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
         await handleCommandExec(guildConfig, command, msg, options);
     } catch (error) {
-        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
+        console.error(`clientOnINTERACTION_CREATE: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
@@ -896,7 +896,7 @@ client.on('message', async (msg) => {
             try {
                 await msg.fetch();
             } catch (error) {
-                console.error('Something went wrong when fetching the message: ', error);
+                console.error(`clientOnMessage: Something went wrong when fetching the message for a partial: ${error.message}`);
                 // Return as `reaction.message.author` may be undefined/null
                 return;
             }
@@ -922,7 +922,7 @@ client.on('message', async (msg) => {
         }
         await handleCommandExec(guildConfig, messageContentLowercase, msg);
     } catch (error) {
-        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}:${error.message}`);
+        console.error(`clientOnMessage: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
