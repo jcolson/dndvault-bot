@@ -59,7 +59,8 @@ async function handleConfig(msg, msgParms, guildConfig) {
             { name: 'Event Channel', value: channelForEvents.name, inline: true },
             { name: 'Poll Channel', value: channelForPolls.name, inline: true },
             { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
-            { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true }
+            { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true },
+            { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing, inline: true }
             ],
             msg);
         utils.deleteMessage(msg);
@@ -236,6 +237,32 @@ async function getGuildConfig(guildID) {
         }
     }
     return guildConfig;
+}
+
+/**
+ * does server / guild support standby queuing of events
+ * @param {Message} msg
+ * @param {Array} msgParms
+ * @param {GuildModel} guildConfig
+ */
+ async function handleConfigStandby(msg, msgParms, guildConfig) {
+    try {
+        if (msgParms.length == 0 || msgParms[0].value === '') {
+            throw new Error(`Not enough parameters, must pass at least one.`);
+        }
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
+            let boolParam = msgParms[0].value;
+            guildConfig.enableStandbyQueuing = utils.isTrue(boolParam);
+            await guildConfig.save();
+            GuildCache.set(msg.guild.id, guildConfig);
+            await utils.sendDirectOrFallbackToChannel({ name: 'Standby Queuing', value: `Standby queuing now set to: \`${guildConfig.enableStandbyQueuing}\`.` }, msg);
+            utils.deleteMessage(msg);
+        } else {
+            throw new Error(`please ask an \`approver role\` to configure.`);
+        }
+    } catch (error) {
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    }
 }
 
 /**
@@ -541,6 +568,7 @@ function getUptime() {
 
 exports.handleConfigCampaign = handleConfigCampaign;
 exports.handleConfigApproval = handleConfigApproval;
+exports.handleConfigStandby = handleConfigStandby;
 exports.handleConfigPrefix = handleConfigPrefix;
 exports.handleConfigProle = handleConfigProle;
 exports.handleConfigArole = handleConfigArole;
