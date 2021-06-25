@@ -603,6 +603,17 @@ global.COMMANDS = {
             "type": 5 // boolean
         }]
     },
+    "configStandby": {
+        "name": "config_standby",
+        "description": "Does your server support standby queuing on events?",
+        "slash": true,
+        "options": [{
+            "name": "true_or_false",
+            "description": "True or False",
+            "required": true,
+            "type": 5 // boolean
+        }]
+    },
     "configEventchannel": {
         "name": "config_eventchannel",
         "description": "Configure what channel to send all events to",
@@ -1061,6 +1072,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.configApproval.name:
                         config.handleConfigApproval(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configStandby.name:
+                        config.handleConfigStandby(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.configEventchannel.name:
                         config.handleConfigEventChannel(msg, msgParms, guildConfig);

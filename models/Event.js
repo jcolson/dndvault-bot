@@ -33,6 +33,10 @@ const Event = Schema({
             },
             "date_time": {
                 type: Date
+            },
+            "standby": {
+                type: "Boolean",
+                default: false
             }
         }]
     },

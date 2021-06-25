@@ -99,10 +99,6 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         console.error('handleEventEdit:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg, undefined, undefined, undefined,
             [{ name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }]);
-        // await utils.sendDirectOrFallbackToChannel([
-        //     { name: 'Event Edit Error', value: `${error.message}` },
-        //     { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
-        // ], msg);
     }
 }
 
@@ -360,13 +356,18 @@ async function eventShow(guild, msgChannel, eventID) {
         } catch (error) {
             throw new Error(`Event id ${eventID} not found.`);
         }
-        const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let guildConfig = await config.confirmGuildConfig(guild);
         if (guildConfig?.channelForEvents) {
             // console.debug(`eventShow: channelForEvents: ${guildConfig.channelForEvents}`);
             eventChannel = new TextChannel(guild, { id: guildConfig.channelForEvents });
             // eventChannel = await guild.channels.resolve(guildConfig.channelForEvents);
         }
+        try {
+            await maintainPlanningChannel(guild, showEvent, guildConfig);
+        } catch (error) {
+            console.error(`eventShow: had an issue maintaining planning channel`, error);
+        }
+        const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let rolesToPing = utils.parseAllTagsFromString(showEvent.description);
         sentMessage = await eventChannel.send(`${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`, embedEvent);
         if (showEvent.channelID && showEvent.messageID) {
@@ -390,7 +391,14 @@ async function eventShow(guild, msgChannel, eventID) {
         sentMessage.react(utils.EMOJIS.CLOCK);
         sentMessage.react(utils.EMOJIS.EDIT);
         sentMessage.react(utils.EMOJIS.TRASH);
-        await maintainPlanningChannel(guild, showEvent, guildConfig);
+        if (showEvent.planningChannel) {
+            try {
+                let planningChannel = await guild.channels.resolve(showEvent.planningChannel);
+                await planningChannel.send(await embedForEvent(guild, [showEvent], 'Planning Channel', false));
+            } catch (error) {
+                console.error(`eventShow: had an issue sending event embed to planning channel`, error);
+            }
+        }
     } catch (error) {
         console.error('eventShow:', error);
         error.message += `; chref: ${eventChannel?.name}`;
@@ -427,7 +435,12 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                 }
             }
         } else {
-            let playersToAdd = eventToMaintain.attendees.map((attendee) => attendee.userID);
+            let playersToAdd = [];
+            for (attendee of eventToMaintain.attendees) {
+                if (!attendee.standby) {
+                    playersToAdd.push(attendee.userID);
+                }
+            }
             if (eventToMaintain.dm) {
                 playersToAdd.push(eventToMaintain.dm);
             }
@@ -477,7 +490,6 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                 });
 
                 eventToMaintain.planningChannel = planningChannel.id;
-                await planningChannel.send(await embedForEvent(guild, [eventToMaintain], 'Planning Channel', false));
                 console.debug(`maintainPlanningChannel: planning channel id: ${eventToMaintain.planningChannel}`);
             }
             // ensure planning channel exists
@@ -512,7 +524,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                 console.debug(`maintainPlanningChannel: adding ${playerAdd}`);
                 await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
             }
-            eventToMaintain.save();
+            // eventToMaintain.save();
         }
     } else {
         console.debug(`maintainPlanningChannel: no event planning category set, don't need to maintain event planning channels`);
@@ -745,12 +757,12 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             eventEmbed.setColor(utils.COLORS.RED);
             eventEmbed.addFields({ name: `${utils.EMOJIS.TRASH}EVENT REMOVED by${utils.EMOJIS.TRASH}`, value: `<@${removedBy}>`, inline: false });
         }
-        let principals = `Author: <@${theEvent.userID}>`;
+        let principals = `Author:\n<@${theEvent.userID}>`;
         if (theEvent.deployedByID) {
-            principals += `\nDeployed By: <@${theEvent.deployedByID}>`;
+            principals += `\nDeployed By:\n<@${theEvent.deployedByID}>`;
         }
         if (theEvent.dm) {
-            principals += `\nDMGM: <@${theEvent.dm}>`;
+            principals += `\nDMGM:\n<@${theEvent.dm}>`;
         }
         eventEmbed.addFields(
             { name: `${isShow ? '' : utils.EMOJIS.DAGGER}ID`, value: messageTitleAndUrl, inline: isShow },
@@ -758,16 +770,29 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs${theEvent.recurEvery ? `, ${utils.EMOJIS.REPEAT}every ${theEvent.recurEvery} day(s)` : ``}`, inline: true }
         );
         if (!isShow) {
-            eventEmbed.addFields({ name: `Attendees`, value: `${theEvent.attendees ? '(' + theEvent.attendees.length : '(' + 0}/${theEvent.number_player_slots + ')'}`, inline: true },);
+            eventEmbed.addFields({ name: `Attendees`, value: `${stringForAttendeesLength(theEvent)}`, inline: true },);
         }
         if (theEvent.campaign) {
             eventEmbed.addField('Campaign', theEvent.campaign, true);
         }
-        let attendees = await getStringForAttendees(theEvent);
         if (isShow) {
-            eventEmbed.addFields(
-                { name: `Attendees${theEvent.attendees ? ' (' + theEvent.attendees.length : ' (' + 0}/${theEvent.number_player_slots + ')'}`, value: `${attendees}`, inline: true }
-            );
+            let attendees = await getStringForAttendees(theEvent);
+            // console.debug(`embedForEvent: attendees: `, attendees);
+            if (attendees != ``) {
+                eventEmbed.addFields(
+                    { name: `Attendees${stringForAttendeesLength(theEvent)}`, value: `${attendees}`, inline: true }
+                );
+            } else {
+                eventEmbed.addFields(
+                    { name: `Attendees`, value: `${stringForAttendeesLength(theEvent)}`, inline: true }
+                );
+            }
+            let standbys = await getStringForAttendees(theEvent, true);
+            if (standbys != ``) {
+                eventEmbed.addFields(
+                    { name: `Standbys`, value: `${standbys}`, inline: true }
+                );
+            }
             if (theEvent.planningChannel) {
                 eventEmbed.addFields({ name: 'Event Planning Channel', value: `<#${theEvent.planningChannel}>`, inline: true });
             }
@@ -787,25 +812,53 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
 }
 
 /**
+ *
+ * @param {EventModel} theEvent
+ * @returns {String} ex: (0/15)
+ */
+function stringForAttendeesLength(theEvent, standbys) {
+    return `(${getNumberAttendees(theEvent, standbys)}/${theEvent.number_player_slots})`;
+}
+
+/**
+ * retrieve number of attendees (or standby attendees)
+ * @param {EventModel} theEvent
+ * @param {Boolean} standbys
+ * @returns {Number}
+ */
+function getNumberAttendees(theEvent, standbys) {
+    let attCount = 0;
+    for (attendee of theEvent.attendees) {
+        if (utils.isTrue(standbys) == utils.isTrue(attendee.standby)) {
+            attCount++;
+        }
+    }
+    return attCount;
+}
+
+/**
  * returns string for attendees that is not over 1024 characters (embed field value limit)
  * @param {String} event
+ * @param {Boolean} standbys retrieve string for standby attendees
  */
-async function getStringForAttendees(event) {
-    let attendees = '';
+async function getStringForAttendees(event, standbys) {
+    let attendees = ``;
     for (let attendee of event.attendees) {
         // console.log('attendee: ' + attendee);
         // console.log('guildid %s charid %s guilduser %s', event.guildID, attendee.characterID, attendee.userID);
-        let charString = '';
-        if (attendee.characterID) {
-            let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
-            // console.log('attendee char',char.name);
-            if (char) {
-                charString = `\`w/${characters.stringForCharacterShort(char)}\``;
+        if (utils.isTrue(standbys) == utils.isTrue(attendee.standby)) {
+            let charString = '';
+            if (attendee.characterID) {
+                let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
+                // console.log('attendee char',char.name);
+                if (char) {
+                    charString = `\n\`w/${characters.stringForCharacterShort(char)}\``;
+                }
             }
+            attendees += `<@${attendee.userID}>${charString},\n`;
         }
-        attendees += `<@${attendee.userID}>${charString},\n`;
     }
-    attendees = (attendees != '' ? attendees.substring(0, attendees.length - 2) : 'None yet').substring(0, 1024);
+    attendees = (attendees != '' ? attendees.substring(0, attendees.length - 2) : ``).substring(0, 1024);
     return attendees;
 }
 
@@ -1053,9 +1106,13 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         }
         eventForMessage.deployedByID = user.id;
     }
+    try {
+        await maintainPlanningChannel(reaction.message.guild, eventForMessage, guildConfig);
+    } catch (error) {
+        console.error(`deployEvent: encountered error maintaining planning channel`, error);
+    }
     await eventForMessage.save();
     await reaction.message.edit(await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true));
-    await maintainPlanningChannel(reaction.message.guild, eventForMessage, guildConfig);
 }
 
 /**
@@ -1117,24 +1174,40 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
     if (!eventForMessage.attendees) {
         eventForMessage.attendees = [];
     }
-    let alreadySignedUp = false;
+    let alreadySignedUp;
     eventForMessage.attendees.forEach((attendee) => {
         if (attendee.userID == user.id) {
             attendee.characterID = character?.id ? character.id : undefined;
             attendee.date_time = new Date();
-            alreadySignedUp = true;
+            alreadySignedUp = attendee;
         }
     });
+    // if attendee is not already part of attendees list ... (standby or not)
     if (!alreadySignedUp) {
-        if (eventForMessage.attendees.length < eventForMessage.number_player_slots) {
-            eventForMessage.attendees.push({ userID: user.id, characterID: character?.id ? character.id : undefined, date_time: new Date() });
+        if (getNumberAttendees(eventForMessage) < eventForMessage.number_player_slots) {
+            eventForMessage.attendees.push({ userID: user.id, characterID: character?.id ? character.id : undefined, date_time: new Date(), standby: false });
+        } else if (guildConfig.enableStandbyQueuing) {
+            eventForMessage.attendees.push({ userID: user.id, characterID: character?.id ? character.id : undefined, date_time: new Date(), standby: true });
         } else {
             throw new Error(`Could not add another attendee, there are only ${eventForMessage.number_player_slots} total slots available, and they're all taken.`);
         }
     }
+    // else if attendee IS already signed up AND enable standby queuing is enabled AND attendee is a standby
+    else if (guildConfig.enableStandbyQueuing && alreadySignedUp?.standby) {
+        // if number of attendees is less than max player slots, pivot the attendee away from a standby
+        // this is an edge case, as generally this would happen upon attendeeRemove ... but it could happen if the event's
+        // number_player_slots had been edited
+        if (getNumberAttendees(eventForMessage) < eventForMessage.number_player_slots) {
+            alreadySignedUp.standby = false;
+        }
+    }
+    try {
+        await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
+    } catch (error) {
+        console.error(`attendeeAdd: encountered error maintianing planning channel`, error);
+    }
     await eventForMessage.save();
     await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
-    await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
 }
 
 /**
@@ -1154,10 +1227,25 @@ async function attendeeRemove(message, user, eventForMessage, guildConfig) {
             eventForMessage.attendees.splice(index, 1);
         }
     });
+    // if enable standby queuing is enabled, switch the next standby to active
+    if (guildConfig.enableStandbyQueuing) {
+        if (getNumberAttendees(eventForMessage) < eventForMessage.number_player_slots) {
+            for (attendee of eventForMessage.attendees) {
+                if (attendee.standby) {
+                    attendee.standby = false;
+                    break;
+                }
+            }
+        }
+    }
     // console.log(eventForMessage);
+    try {
+        await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
+    } catch (error) {
+        console.error(`attendeeRemove: encountered error maintaining planning channel`, error);
+    }
     await eventForMessage.save();
     await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
-    await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
 }
 
 async function sendReminders(client) {
