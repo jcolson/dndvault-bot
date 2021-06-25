@@ -394,7 +394,11 @@ async function eventShow(guild, msgChannel, eventID) {
         if (showEvent.planningChannel) {
             try {
                 let planningChannel = await guild.channels.resolve(showEvent.planningChannel);
-                await planningChannel.send(await embedForEvent(guild, [showEvent], 'Planning Channel', false));
+                // await planningChannel.send(await embedForEvent(guild, [showEvent], 'Planning Channel', false));
+                await planningChannel.send(new MessageEmbed()
+                    .setColor(utils.COLORS.BLUE)
+                    .setThumbnail(guild.iconURL())
+                    .addField(`Event Planning Channel For`, `${getEmbedLinkForEvent(showEvent)}`));
             } catch (error) {
                 console.error(`eventShow: had an issue sending event embed to planning channel`, error);
             }
@@ -499,10 +503,15 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                 throw new Error(`Could not ensure a planning channel for this event`);
             }
             let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
-            console.debug(`maintainPlanningChannel: planningChannel resolved `, planningChannel.id);
+            console.info(`maintainPlanningChannel: planningChannel resolved `, planningChannel.id);
             if (planningChannel.name != channelNameShouldBe) {
-                console.debug(`maintainPlanningChannel: renaming channel from ${planningChannel.name} to ${channelNameShouldBe}`)
-                planningChannel = await planningChannel.setName(channelNameShouldBe);
+                console.info(`maintainPlanningChannel: renaming channel from ${planningChannel.name} to ${channelNameShouldBe}`)
+                try {
+                    planningChannel = await planningChannel.setName(channelNameShouldBe);
+                } catch (error) {
+                    console.error(`maintainPlanningChannel: error caught renaming channel`, error);
+                }
+                console.debug(`maintainPlanningChannel: COMPLETED renaming channel from ${planningChannel.name} to ${channelNameShouldBe}`)
             }
             for (let [memberKey, permOverwrite] of planningChannel.permissionOverwrites) {
                 // console.debug(`maintainPlanningChannel: existing permissionOverwrites key ${memberKey}:`, permOverwrite);
