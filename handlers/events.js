@@ -797,7 +797,7 @@ async function getStringForAttendees(event) {
             let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
             // console.log('attendee char',char.name);
             if (char) {
-                charString = ` w/${characters.stringForCharacterShort(char)}`;
+                charString = `\`w/${characters.stringForCharacterShort(char)}\``;
             }
         }
         attendees += `<@${attendee.userID}>${charString},\n`;
