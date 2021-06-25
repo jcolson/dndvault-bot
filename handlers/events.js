@@ -735,7 +735,6 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
                 .setColor(utils.COLORS.BLUE);
             i = 0;
         }
-        let dmgmString = theEvent.dm ? '<@' + theEvent.dm + '>' : 'Unassigned';
         let messageTitleAndUrl = isShow
             ? `${theEvent._id}`
             : `${getEmbedLinkForEvent(theEvent)}`;
@@ -743,11 +742,17 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             eventEmbed.setColor(utils.COLORS.RED);
             eventEmbed.addFields({ name: `${utils.EMOJIS.TRASH}EVENT REMOVED by${utils.EMOJIS.TRASH}`, value: `<@${removedBy}>`, inline: false });
         }
+        let principals = `Author: <@${theEvent.userID}>`;
+        if (theEvent.deployedByID) {
+            principals += `\nDeployed By: <@${theEvent.deployedByID}>`;
+        }
+        if (theEvent.dm) {
+            principals += `\nDMGM: <@${theEvent.dm}>`;
+        }
         eventEmbed.addFields(
             { name: `${isShow ? '' : utils.EMOJIS.DAGGER}ID`, value: messageTitleAndUrl, inline: isShow },
-            { name: 'DMGM', value: `${dmgmString}`, inline: true },
-            { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs${theEvent.recurEvery ? `, ${utils.EMOJIS.REPEAT}every ${theEvent.recurEvery} day(s)` : ``}`, inline: true },
-            { name: 'Deployed By', value: `${theEvent.deployedByID ? '<@' + theEvent.deployedByID + '>' : 'Pending ...'}`, inline: true },
+            { name: 'Principals', value: principals, inline: true },
+            { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs${theEvent.recurEvery ? `, ${utils.EMOJIS.REPEAT}every ${theEvent.recurEvery} day(s)` : ``}`, inline: true }
         );
         if (!isShow) {
             eventEmbed.addFields({ name: `Attendees`, value: `${theEvent.attendees ? '(' + theEvent.attendees.length : '(' + 0}/${theEvent.number_player_slots + ')'}`, inline: true },);
@@ -758,14 +763,15 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
         let attendees = await getStringForAttendees(theEvent);
         if (isShow) {
             eventEmbed.addFields(
-                // { name: 'Player Slots', value: `${theEvent.number_player_slots}`, inline: true },
-                { name: 'Author', value: `<@${theEvent.userID}>`, inline: true },
-                { name: `Attendees${theEvent.attendees ? ' (' + theEvent.attendees.length : ' (' + 0}/${theEvent.number_player_slots + ')'}`, value: `${attendees}`, inline: true },
-                { name: 'Description', value: `${theEvent.description}`, inline: false },
+                { name: `Attendees${theEvent.attendees ? ' (' + theEvent.attendees.length : ' (' + 0}/${theEvent.number_player_slots + ')'}`, value: `${attendees}`, inline: true }
             );
+            if (theEvent.planningChannel) {
+                eventEmbed.addFields({ name: 'Event Planning Channel', value: `<#${theEvent.planningChannel}>`, inline: true });
+            }
+            eventEmbed.addFields({ name: 'Description', value: `${theEvent.description}`, inline: false });
         }
     }
-    if (isShow) {
+    if (isShow && !removedBy) {
         eventEmbed.addFields(
             {
                 name: utils.EMPTY_FIELD, value: `${utils.EMOJIS.CHECK}Sign up ${utils.EMOJIS.X}Withdraw ▶️Deploy\n${utils.EMOJIS.CLOCK}Your TZ and Calendar ${utils.EMOJIS.EDIT}DC edit command ${utils.EMOJIS.TRASH}Remove\n`
