@@ -15,6 +15,7 @@ DND Vault Table of Contents
   - [Invite the BOT to your server](#invite-the-bot-to-your-server)
   - [Commands](#commands)
     - [Functionality Documentation](#functionality-documentation)
+    - [Slash Commands](#slash-commands)
     - [Slash Command Descriptions](#slash-command-descriptions)
     - [Old Command Descriptions](#old-command-descriptions)
   - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
@@ -149,11 +150,58 @@ The brackets below (such as in `register manual [CHARACTER_NAME] [CHARACTER_CLAS
 
 **Roll initiative!**
 
-### Slash Command Descriptions
+### Slash Commands
 
 In order to see the new slash commands and their accompanying options and descriptions, just start a slash command by typing `/` and click on `D&D Vault` and you'll see a list of all the available commands.
 
 ![slash](docs/images/slash.png)
+
+### Slash Command Descriptions
+
+```fix
+- /help
+- /register_manual [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - create a stub character, do not use spaces in any of the parameters except the campaign
+- /register [DNDBEYOND_URL] - register a character in the vault from dndbeyond
+- /update_manual [CHAR_ID] [CHARACTER_NAME] [CHARACTER_CLASS] [CHARACTER_LEVEL] [CHARACTER_RACE] {CAMPAIGN} - update a stub character, do not use spaces in any of the parameters except the campaign
+- /update [DNDBEYOND_URL] - request an update a character from dndbeyond to the vault
+- /remove [CHAR_ID] {@USER_NAME} - remove a character (or pending update) from the vault, if username is passed, remove for that user
+- /approve [CHAR_ID] - approve a new/updated character within vault
+- /changes [CHAR_ID] - display changes for an unapproved character update
+- /campaign [CHAR_ID] [CAMPAIGN_ID] - update character to override dndbeyond's campaign name, this does NOT update dndbeyond's campaign
+- /default - show current default character
+- /default [CHAR_ID] - set your default character id to be used for events/missions with no campaign
+- /list - list YOUR registered characters within vault
+- /list_all - list all characters
+- /list_queued - list all characters queued for approval
+- /list_user [@USER_NAME] - list all characters by discord user
+- /list_campaign [CAMPAIGN_ID] - list all characters registered for a campaign
+- /show [CHAR_ID] - show a user's character from the vault
+- /timezone - view your timezone
+- /timezone [TIMEZONE] - set your timezone (required for interacting with events)
+- /poll ["Poll Question"] {"Response 0"} {"Response 1"} {"Response 2"} {"Response 3"} ...
+- /roll {notation} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
+- /roll_stats - roll for D&D 5E stat block
+- /insult - generates a random insult for Vicious Mockery
+- /event_attendance - produces a report of players signup attendance for events
+- /event_create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] {!campaign [CAMPAIGN]} !desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
+- /event_edit [MISSION_ID] !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [MISSION_DESC_REGION_PLAYSTYLE] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
+- /event_show [MISSION_ID] - replace the posting for an event (for instance if it got deleted by accident)
+- /event_remove [MISSION_ID] - removes mission event
+- /event_list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
+- /event_list proposed - list all future PROPOSED events
+- /event_list deployed - list all future DEPLOYED events
+- /config - show BOT config
+- /config_arole [@ROLE] - modify approver role (allows user to approve characters)
+- /config_prole [@ROLE] - modify player role (allows user to use bot)
+- /config_prefix [NEW_PREFIX] - modify the command prefix
+- /config_approval [BOOLEAN] - does character registration and updates require arole approval?
+- /config_campaign [BOOLEAN] - require that a user have matching character for event's campaigns
+- /config_pollchannel [#CHANNEL] - send all polls to this channel
+- /config_eventchannel [#CHANNEL] - send all events to this channel
+- /config_eventplancat [channel_category] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+- /config_eventchandays [channel_days] - Configure how many days after an event planning channel should be removed
+- /config_standby [BOOLEAN] - Does your server support standby queuing on events?
+```
 
 ### Old Command Descriptions
 
@@ -216,6 +264,7 @@ In order to see the new slash commands and their accompanying options and descri
   - [x] eventchannel [#CHANNEL] - send all events to this channel
   - [x] eventplancat [channel_category] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
   - [x] eventchandays [channel_days] - Configure how many days after an event planning channel should be removed
+  - [x] standby [BOOLEAN] - Does your server support standby queuing on events?
 ```
 
 ## Example character workflow with the BOT
