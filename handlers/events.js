@@ -471,10 +471,13 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                         console.error(`maintainPlanningChannel: could not add player, ${playerToAdd}, due to error: ${error.message}`);
                     }
                 }
-                eventToMaintain.planningChannel = (await guild.channels.create(channelNameShouldBe, {
+                let planningChannel = await guild.channels.create(channelNameShouldBe, {
                     parent: planCategory,
                     permissionOverwrites: permissionOverwrites,
-                })).id;
+                });
+
+                eventToMaintain.planningChannel = planningChannel.id;
+                await planningChannel.send(await embedForEvent(guild, [eventToMaintain], 'Planning Channel', false));
                 console.debug(`maintainPlanningChannel: planning channel id: ${eventToMaintain.planningChannel}`);
             }
             // ensure planning channel exists
