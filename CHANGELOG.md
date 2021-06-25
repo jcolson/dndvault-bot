@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [Unreleased](#unreleased)
   - [1.5.4 (2021-06-25)](#154-2021-06-25)
   - [1.5.3 (2021-06-18)](#153-2021-06-18)
   - [1.5.2 (2021-06-18)](#152-2021-06-18)
@@ -85,6 +86,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.4...HEAD)
+
+**Implemented enhancements:**
+
+- feature: support 'standby' queuing for events that are full [\#277](https://github.com/jcolson/dndvault-bot/issues/277)
 
 ## [1.5.4](https://github.com/jcolson/dndvault-bot/tree/1.5.4) (2021-06-25)
 
