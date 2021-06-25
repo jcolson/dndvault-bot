@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [1.5.4 (2021-06-25)](#154-2021-06-25)
+  - [1.5.3 (2021-06-18)](#153-2021-06-18)
   - [1.5.2 (2021-06-18)](#152-2021-06-18)
   - [1.5.1 (2021-06-18)](#151-2021-06-18)
   - [1.5.0 (2021-06-18)](#150-2021-06-18)
@@ -83,6 +85,22 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [1.5.4](https://github.com/jcolson/dndvault-bot/tree/1.5.4) (2021-06-25)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.3...1.5.4)
+
+**Implemented enhancements:**
+
+- in an event show embed, link to a planning channel if one exists for it [\#313](https://github.com/jcolson/dndvault-bot/issues/313)
+
+**Closed issues:**
+
+- bug: if a member has left a guild but is still on an event, session planning channel member updates will fail [\#309](https://github.com/jcolson/dndvault-bot/issues/309)
+
+## [1.5.3](https://github.com/jcolson/dndvault-bot/tree/1.5.3) (2021-06-18)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.2...1.5.3)
 
 ## [1.5.2](https://github.com/jcolson/dndvault-bot/tree/1.5.2) (2021-06-18)
 
