@@ -603,6 +603,17 @@ global.COMMANDS = {
             "type": 5 // boolean
         }]
     },
+    "configStandby": {
+        "name": "config_standby",
+        "description": "Does your server support standby queuing on events?",
+        "slash": true,
+        "options": [{
+            "name": "true_or_false",
+            "description": "True or False",
+            "required": true,
+            "type": 5 // boolean
+        }]
+    },
     "configEventchannel": {
         "name": "config_eventchannel",
         "description": "Configure what channel to send all events to",
@@ -825,7 +836,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             await reaction.message.fetch();
         }
     } catch (error) {
-        console.error('messageReactionAdd: Something went wrong when fetching the message: ', error);
+        console.error(`messageReactionAdd: Something went wrong when fetching the reaction.message for a partial: ${error.message}`);
         // Return as `reaction.message.author` may be undefined/null
         return;
     }
@@ -884,7 +895,7 @@ client.ws.on('INTERACTION_CREATE', async (interaction) => {
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
         await handleCommandExec(guildConfig, command, msg, options);
     } catch (error) {
-        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
+        console.error(`clientOnINTERACTION_CREATE: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
@@ -896,7 +907,7 @@ client.on('message', async (msg) => {
             try {
                 await msg.fetch();
             } catch (error) {
-                console.error('Something went wrong when fetching the message: ', error);
+                console.error(`clientOnMessage: Something went wrong when fetching the message for a partial: ${error.message}`);
                 // Return as `reaction.message.author` may be undefined/null
                 return;
             }
@@ -922,7 +933,7 @@ client.on('message', async (msg) => {
         }
         await handleCommandExec(guildConfig, messageContentLowercase, msg);
     } catch (error) {
-        console.error(`msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}:${error.message}`);
+        console.error(`clientOnMessage: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${msg.content}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
@@ -1061,6 +1072,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.configApproval.name:
                         config.handleConfigApproval(msg, msgParms, guildConfig);
+                        break;
+                    case COMMANDS.configStandby.name:
+                        config.handleConfigStandby(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.configEventchannel.name:
                         config.handleConfigEventChannel(msg, msgParms, guildConfig);

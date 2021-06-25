@@ -28,6 +28,10 @@ const Guild = Schema({
         type: "Boolean",
         default: false
     },
+    "enableStandbyQueuing": {
+        type: "Boolean",
+        default: false
+    },
     "channelForPolls": {
         type: "String"
     },
