@@ -4,6 +4,7 @@
 
 - [Changelog](#changelog)
   - [Unreleased](#unreleased)
+  - [1.5.5 (2021-06-27)](#155-2021-06-27)
   - [1.5.4 (2021-06-25)](#154-2021-06-25)
   - [1.5.3 (2021-06-18)](#153-2021-06-18)
   - [1.5.2 (2021-06-18)](#152-2021-06-18)
@@ -89,7 +90,15 @@
 
 ## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.4...HEAD)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.5...HEAD)
+
+**Closed issues:**
+
+- eventShow throws exception when called from recurEvents [\#317](https://github.com/jcolson/dndvault-bot/issues/317)
+
+## [1.5.5](https://github.com/jcolson/dndvault-bot/tree/1.5.5) (2021-06-27)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.4...1.5.5)
 
 **Implemented enhancements:**
 
