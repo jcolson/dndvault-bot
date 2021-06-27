@@ -1165,7 +1165,7 @@ function parseMessageParms(messageContent, command, prefix) {
     if (commandIndex == -1) {
         commandIndex = messageContentLowercase.indexOf(command);
         if (commandIndex == -1) {
-            throw new Error("Command parameters could not be parsed");
+            throw new Error(`Command (${command}) parameters could not be parsed: ${messageContent}`);
         } else {
             commandIndex += command.length;
         }
