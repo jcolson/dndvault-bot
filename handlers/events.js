@@ -1347,7 +1347,8 @@ async function recurEvents(client) {
             console.debug(`recurEvents: New title: ${theRecurEvent.title}`);
             await theRecurEvent.save();
 
-            let guild = await (new Guild(client, { id: theRecurEvent.guildID })).fetch();
+            // let guild = await (new Guild(client, { id: theRecurEvent.guildID })).fetch();
+            let guild = await client.guilds.fetch(theRecurEvent.guildID);
             let channel = new TextChannel(guild, { id: theEvent.channelID });
             await eventShow(guild, channel, theRecurEvent._id);
         }
