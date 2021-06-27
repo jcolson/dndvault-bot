@@ -38,6 +38,12 @@ async function handleCalendarRequest(userID, excludeGuild) {
     // console.log(events);
     for (currEvent of userEvents) {
         if (!excludeGuild.includes(currEvent.guildID)) {
+            let userAttendee;
+            for (attendee of currEvent.attendees) {
+                if (attendee.userID == userID) {
+                    userAttendee = attendee;
+                }
+            }
             let guildConfig = await config.getGuildConfig(currEvent.guildID);
             returnICS += 'BEGIN:VEVENT\r\n';
             let endDate = new Date(currEvent.date_time);
@@ -50,7 +56,7 @@ async function handleCalendarRequest(userID, excludeGuild) {
             // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>\r\n`;
             returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
             returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
-            returnICS += `SUMMARY:${utils.EMOJIS.DAGGER}${encodeStringICS(currEvent.title)} [Deployed? ${currEvent.deployedByID ? utils.EMOJIS.CHECK : utils.EMOJIS.X}] (${encodeStringICS(guildConfig.name)})\r\n`;
+            returnICS += `SUMMARY:${utils.EMOJIS.DAGGER}${encodeStringICS(currEvent.title)} ${userAttendee?.standby ? `[${utils.EMOJIS.HOURGLASS}STANDBY]` : ''}[${currEvent.deployedByID ? utils.EMOJIS.CHECK : utils.EMOJIS.X}DEPLOYED] (${encodeStringICS(guildConfig.name)})\r\n`;
             returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
             returnICS += `END:VEVENT\r\n`;
         }
