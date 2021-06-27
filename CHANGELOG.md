@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
-  - [Unreleased](#unreleased)
+  - [1.5.6 (2021-06-27)](#156-2021-06-27)
   - [1.5.5 (2021-06-27)](#155-2021-06-27)
   - [1.5.4 (2021-06-25)](#154-2021-06-25)
   - [1.5.3 (2021-06-18)](#153-2021-06-18)
@@ -88,12 +88,13 @@
 
 # Changelog
 
-## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+## [1.5.6](https://github.com/jcolson/dndvault-bot/tree/1.5.6) (2021-06-27)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.5...HEAD)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.5...1.5.6)
 
 **Closed issues:**
 
+- if a player is on standby, the event will still show on their calendar [\#320](https://github.com/jcolson/dndvault-bot/issues/320)
 - eventShow throws exception when called from recurEvents [\#317](https://github.com/jcolson/dndvault-bot/issues/317)
 
 ## [1.5.5](https://github.com/jcolson/dndvault-bot/tree/1.5.5) (2021-06-27)
