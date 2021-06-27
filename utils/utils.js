@@ -38,6 +38,7 @@ const EMOJIS = {
     SHIELD: `\uD83D\uDEE1`,
     ASTERISK: `\u2733`,
     DICE: `\uD83C\uDFB2`,
+    HOURGLASS: `\u23F3`,
 };
 
 const EMPTY_FIELD = '\u200B';
