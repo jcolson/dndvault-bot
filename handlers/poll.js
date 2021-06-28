@@ -4,6 +4,7 @@ const { MessageEmbed, User } = require('discord.js');
 
 const POLLSTER_AUTHOR = 'Pollster';
 const POLLSTER_MULTIPLE_ALLOWED = ' (Multiple answers allowed)';
+const POLLSTER_AUTHOR_FIELD_NAME = 'Author';
 
 /**
  *
@@ -33,23 +34,39 @@ async function handlePoll(msg, msgParms, guildConfig) {
         utils.deleteMessage(msg);
     } catch (error) {
         error.message += ` For Channel: ${pollChannel.name}`;
-        console.error('handlePoll:', error.message);
+        console.error('handlePoll:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
 function embedForPoll(msg, thePoll, allowMultiple) {
+    let title = `${thePoll.question}${allowMultiple ? POLLSTER_MULTIPLE_ALLOWED : ''}`;
+    let pollQuestion;
+    if (title.length > 255) {
+        if (allowMultiple) {
+            title = `Poll${allowMultiple ? POLLSTER_MULTIPLE_ALLOWED : ''}`;
+        } else {
+            title = undefined;
+        }
+        pollQuestion = thePoll.question.substring(0, 1023);
+    }
     let pollEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setTitle(`${thePoll.question}${allowMultiple ? POLLSTER_MULTIPLE_ALLOWED : ''}`)
         .setAuthor(POLLSTER_AUTHOR, Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setThumbnail(msg.guild.iconURL());
-    pollEmbed.addFields({ name: 'Author', value: `<@${msg.author.id}>` });
+    if (title) {
+        pollEmbed.setTitle(title);
+    }
+    if (pollQuestion) {
+        pollEmbed.addFields({ name: 'Question', value: pollQuestion });
+    }
     let description = '';
     for (let i = 0; i < thePoll.choices.length; i++) {
         description += `${thePoll.emojis[i]} - ${thePoll.choices[i]}\n`;
     }
-    pollEmbed.setDescription(description);
+    // pollEmbed.setDescription(description);
+    pollEmbed.addFields({ name: 'Options', value: description });
+    pollEmbed.addFields({ name: POLLSTER_AUTHOR_FIELD_NAME, value: `<@${msg.author.id}>` });
     return pollEmbed;
 }
 
@@ -76,8 +93,12 @@ function parseMessageForPoll(pollParams) {
 async function handleReactionAdd(reaction, user, guildConfig) {
     try {
         console.log('handleReactionAdd...' + reaction.emoji.name);
-        let pollAuthor = reaction.message.embeds[0].fields[0].value;
-        pollAuthor = pollAuthor.substring(2, pollAuthor.length - 1);
+        let pollAuthor;
+        for (field of reaction.message.embeds[0].fields) {
+            if (field.name == POLLSTER_AUTHOR_FIELD_NAME) {
+                pollAuthor = field.value.substring(2, field.value.length - 1);
+            }
+        }
         let memberUser = await reaction.message.guild.members.resolve(user.id);
         // handle trashbin (delete poll)
         if (reaction.emoji.name == utils.EMOJIS.TRASH) {
@@ -109,9 +130,10 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                 throw new Error(`Please have <@${pollAuthor}> remove, or ask an \`approver role\` to remove.`);
             }
         } else {
-            console.debug(`handleReactionAdd: ${reaction.message.embeds[0].title}`);
+            // console.debug(`handleReactionAdd: ${reaction.message.embeds[0].title}`);
             // if this is a multiple answer allowed poll, don't remove previous reactions
-            if (reaction.message.embeds.length > 0 && !reaction.message.embeds[0].title.endsWith(POLLSTER_MULTIPLE_ALLOWED)) {
+            let multAnswer = reaction.message.embeds[0].title && reaction.message.embeds[0].title.endsWith(POLLSTER_MULTIPLE_ALLOWED) ? true : false;
+            if (reaction.message.embeds.length > 0 && !multAnswer) {
                 for (aReaction of reaction.message.reactions.cache.values()) {
                     if (aReaction.emoji.name != reaction.emoji.name) {
                         if (aReaction.users.cache.array().length == 0) {
@@ -127,6 +149,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             }
         }
     } catch (error) {
+        console.error('handleReactionAdd:', error);
         await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
     }
 }

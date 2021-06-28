@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [1.5.7 (2021-06-28)](#157-2021-06-28)
   - [1.5.6 (2021-06-27)](#156-2021-06-27)
   - [1.5.5 (2021-06-27)](#155-2021-06-27)
   - [1.5.4 (2021-06-25)](#154-2021-06-25)
@@ -87,6 +88,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [1.5.7](https://github.com/jcolson/dndvault-bot/tree/1.5.7) (2021-06-28)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.6...1.5.7)
+
+**Closed issues:**
+
+- polls - exception - title: must be 256 or fewer in length [\#323](https://github.com/jcolson/dndvault-bot/issues/323)
 
 ## [1.5.6](https://github.com/jcolson/dndvault-bot/tree/1.5.6) (2021-06-27)
 
