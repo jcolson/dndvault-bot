@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [Unreleased](#unreleased)
+  - [1.5.8 (2021-07-02)](#158-2021-07-02)
   - [1.5.7 (2021-06-28)](#157-2021-06-28)
   - [1.5.6 (2021-06-27)](#156-2021-06-27)
   - [1.5.5 (2021-06-27)](#155-2021-06-27)
@@ -88,6 +90,18 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.8...HEAD)
+
+**Fixed bugs:**
+
+- bug: if an channelForEvents channel that is invalid is setup, recurring events will fail [\#329](https://github.com/jcolson/dndvault-bot/issues/329)
+
+## [1.5.8](https://github.com/jcolson/dndvault-bot/tree/1.5.8) (2021-07-02)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.7...1.5.8)
 
 ## [1.5.7](https://github.com/jcolson/dndvault-bot/tree/1.5.7) (2021-06-28)
 
