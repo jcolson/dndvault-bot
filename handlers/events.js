@@ -359,8 +359,17 @@ async function eventShow(guild, msgChannel, eventID) {
         let guildConfig = await config.confirmGuildConfig(guild);
         if (guildConfig?.channelForEvents) {
             // console.debug(`eventShow: channelForEvents: ${guildConfig.channelForEvents}`);
-            eventChannel = new TextChannel(guild, { id: guildConfig.channelForEvents });
-            // eventChannel = await guild.channels.resolve(guildConfig.channelForEvents);
+            // eventChannel = new TextChannel(guild, { id: guildConfig.channelForEvents });
+            try {
+                eventChannel = await guild.channels.resolve(guildConfig.channelForEvents);
+                if (!eventChannel) {
+                    console.error(`eventShow: invalid channelForEvents (${guildConfig.channelForEvents}) channel configured, falling back to msgChannel`);
+                    eventChannel = msgChannel;
+                }
+            } catch (error) {
+                console.error(`eventShow: invalid channelForEvents (${guildConfig.channelForEvents}) channel configured, falling back to msgChannel: ${error.message}`);
+                eventChannel = msgChannel;
+            }
         }
         try {
             await maintainPlanningChannel(guild, showEvent, guildConfig);
@@ -1319,6 +1328,10 @@ async function recurEvents(client) {
                 console.info(`recurEvents: avoiding race condition on saving theEvent between reminders and recurring events ${theEvent._id}`);
                 continue;
             }
+            if (!theEvent.channelID) {
+                console.info(`recurEvents: previous event (${theEvent._id}) didn't have a channel id ... possibly misconfigured server, will not recur this event and propogate the issue...`);
+                continue;
+            }
             let theRecurEvent = new EventModel();
             theRecurEvent._id = Types.ObjectId();
             console.debug(`recurEvents: id: ${theRecurEvent._id}`);
@@ -1349,7 +1362,8 @@ async function recurEvents(client) {
 
             // let guild = await (new Guild(client, { id: theRecurEvent.guildID })).fetch();
             let guild = await client.guilds.fetch(theRecurEvent.guildID);
-            let channel = new TextChannel(guild, { id: theEvent.channelID });
+            let channel = await guild.channels.resolve(theEvent.channelID);
+            // let channel = new TextChannel(guild, { id: theEvent.channelID });
             await eventShow(guild, channel, theRecurEvent._id);
         }
     }
