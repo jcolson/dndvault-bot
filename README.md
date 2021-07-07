@@ -28,12 +28,13 @@ DND Vault Table of Contents
     - [list characters](#list-characters)
     - [changes in character updates](#changes-in-character-updates)
     - [config of server for guild](#config-of-server-for-guild)
-    - [permissions required for bot](#permissions-required-for-bot)
+  - [Run the bot yourself](#run-the-bot-yourself)
+    - [Permissions required for bot](#permissions-required-for-bot)
   - [Notes](#notes)
+    - [run nodemon](#run-nodemon)
     - [create change log for release](#create-change-log-for-release)
     - [Test via docker container](#test-via-docker-container)
     - [Mongodb queries](#mongodb-queries)
-    - [discordjs](#discordjs)
     - [Bot Commands for testing](#bot-commands-for-testing)
     - [Test Bot Invite](#test-bot-invite)
 
@@ -332,7 +333,75 @@ all the while anyone on the server can 'view' any user's character ...
 
 ![config](docs/images/config.png)
 
-### permissions required for bot
+## Run the bot yourself
+
+If you would like to run your own instance of the D&D Vault Bot instead of using the one that is hosted for the community, it's open source, so **have at it**!!
+
+The first thing that is required is an instance of mongodb.  The easiest way to bring up mongo, is to use [docker](https://www.docker.com/products/docker-desktop).
+
+Below is a few docker commands (meant to be run via linux/unix/macos shell).  In order for it to work, you need to do the following:
+
+- install DOCKER!
+- create a directory in which mongo data will be stored on your host system, the one referenced below is `/home/user/dnd-mongo`.  Once you create that directory, replace the `VOLUME=`, below, with your full directory name.
+- create a text file called `mongoadmin` in the mongo data directory that you just created.  place the password that you want the mongo db admin to be/use in that file.
+- create a directory with the SAME NAME as the data directory above, but add `-init` to it.  create a file called `1-create-user.js` in that directory.  that file should contain the below, replace `xxxxxxxxxx` with the password you wish the bot to use to connect to mongo.
+
+```js
+db.createUser(
+   {
+     user: "dnduser",
+     pwd: "xxxxxxxxxx",
+     roles: [
+        {
+            role: "readWrite",
+            db: "dnd"
+        }
+     ]
+   }
+)
+```
+
+- create a docker network for mongo and dnd-vault to use.  Use this command to do that: `docker network create dnd-net`
+- After all the above is complete, run the below command to create and run your mongodb container for the dndvault bot.
+
+```sh
+export VOLUME=/home/user/dnd-mongo
+docker run -d --network dnd-net --name dnd-mongo \
+    --restart always \
+    -p 27017:27017 \
+    --ulimit nofile=64000:64000 \
+    -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+    -e MONGO_INITDB_DATABASE=dnd \
+    -e MONGO_INITDB_ROOT_PASSWORD_FILE=/data/db/mongoadmin \
+    -v ${VOLUME}:/data/db \
+    -v ${VOLUME}-init:/docker-entrypoint-initdb.d \
+    mongo:4.4.3-bionic
+```
+
+- now that mongdb is running, let's run the bot!  Create a directory for the dndvault bot config, and replace the `VOLUME=`, below, with that directory.
+- create a file called config.json and copy [this example config](https://github.com/jcolson/dndvault-bot/blob/master/config_example.json) file into it.
+  - Replace `token` with your discord bot token.
+  - Replace `mongoServer` with `dnd-mongo`
+  - Replace `mongoUser` with `dnduser` (from your `1-create-user.js` script that you created above)
+  - Replace `mongoPass` with your `1-create-user.js` password that you created above
+  - Replace `adminUser` with your discord id (this is so you don't accidentally lock yourself out of the bot config)
+  - Remove `debugGuild`
+  - Replace `key` with your discord bot key for oauth support on the web
+  - Replace `secret` with your discord bot secret key for oauth support on web
+  - Replace `inviteURL` with your discord bot's invite url
+- You are now ready to run the bot, execute the below (remember to replace the `VOLUME=` with your own bot config directory that you made above)!
+
+```sh
+docker pull karmanet/dndvault && \
+export VOLUME=/home/user/dndvault && \
+docker run --name dndvault -v ${VOLUME}:/config \
+--network dnd-net \
+--restart always -d karmanet/dndvault:latest
+```
+
+Let me know if you have any troubles with the above on the support discord server.  Cheers!
+
+### Permissions required for bot
 
 If you plan on deploying your own copy of the D&D Vault (you don't need to, you can [invite the existing bot by clicking here](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)), invite the bot to your server using these permissions.
 
@@ -341,6 +410,12 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 ## Notes
 
 **_This section can be safely ignored, it's my scratchpad ..._**
+
+### run nodemon
+
+to quickly restart node while developing
+
+`nodemon`
 
 ### create change log for release
 
@@ -362,23 +437,6 @@ docker build --target test ./
 {guildID: '785567026512527390'}
 ```
 
-### discordjs
-
-retrieve a guild member:
-
-```nodejs
-let memberGuild = await client.guilds.fetch(guildConfig.guildID);
-let guildMember = await memberGuild.members.fetch(msg.member.id);
-```
-
-example urls that can be linked:
-
-```html
-https://discordapp.com/channels/745694606372503773/790521190032474112/795807490545549353
-
-https://discordapp.com/channels/785567026512527390
-```
-
 ### Bot Commands for testing
 
 ```sh
@@ -386,13 +444,12 @@ https://discordapp.com/channels/785567026512527390
 
 Mission Description/Goal: Your initiation. Are you ready?
 OR
-Harpy Rescue - https://discord.com/channels/787645782269624340/787645782832578576/796641944196349973
+Harpy Rescue - https://example.com
 @Robin - Day
 
 Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue): 50/50 Rp/Combat
-@LVLone @LVL2 @LVL3 @LVL4 @LVL5
+@Tester
 ```
-
 
 ### Test Bot Invite
 
