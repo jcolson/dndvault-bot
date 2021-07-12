@@ -95,9 +95,18 @@
 
 [Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.8...HEAD)
 
+**Implemented enhancements:**
+
+- Feature: Additional option in events to limit event creation to Approval role. [\#339](https://github.com/jcolson/dndvault-bot/issues/339)
+- Add documentation in how to run the bot privately [\#333](https://github.com/jcolson/dndvault-bot/issues/333)
+
 **Fixed bugs:**
 
 - bug: if an channelForEvents channel that is invalid is setup, recurring events will fail [\#329](https://github.com/jcolson/dndvault-bot/issues/329)
+
+**Closed issues:**
+
+- Consolidate config commands to a single command [\#340](https://github.com/jcolson/dndvault-bot/issues/340)
 
 ## [1.5.8](https://github.com/jcolson/dndvault-bot/tree/1.5.8) (2021-07-02)
 
