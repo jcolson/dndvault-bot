@@ -617,6 +617,11 @@ global.COMMANDS = {
             "required": false,
             "type": 7 // channel
         }, {
+            "name": "eventrequireapprover",
+            "description": "Require approver to create & edit events.",
+            "required": false,
+            "type": 5 // boolean
+        }, {
             "name": "eventchannel",
             "description": "Channel to send all events to.",
             "required": false,
@@ -1015,36 +1020,6 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.timezone.name:
                         users.handleTimezone(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configApproval.name:
-                        config.handleConfigApproval(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configStandby.name:
-                        config.handleConfigStandby(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configEventchannel.name:
-                        config.handleConfigEventChannel(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configPollchannel.name:
-                        config.handleConfigPollChannel(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configEventplancat.name:
-                        config.handleConfigEventPlanCat(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configEventchandays.name:
-                        config.handleConfigEventPlanChanRemoveDays(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configPrefix.name:
-                        config.handleConfigPrefix(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configArole.name:
-                        config.handleConfigArole(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configProle.name:
-                        config.handleConfigProle(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configCampaign.name:
-                        config.handleConfigCampaign(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.config.name:
                         config.handleConfig(msg, msgParms, guildConfig);

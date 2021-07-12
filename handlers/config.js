@@ -109,11 +109,16 @@ async function configeventchannel(param, guild, guildConfig) {
 
 }
 
+async function configeventrequireapprover(param, guild, guildConfig) {
+    console.debug(`configeventrequireapprover:`, param);
+    guildConfig.eventRequireApprover = utils.isTrue(param.value);
+    return guildConfig;
+}
+
 async function configeventstandby(param, guild, guildConfig) {
     console.debug(`configeventstandby:`, param);
     guildConfig.enableStandbyQueuing = utils.isTrue(param.value);
     return guildConfig;
-
 }
 
 async function configchannelcategory(param, guild, guildConfig) {
@@ -221,6 +226,7 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Poll Channel', value: channelForPolls.name, inline: true },
         { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
         { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true },
+        { name: 'Event Require Approver', value: guildConfig.eventRequireApprover, inline: true },
         { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing, inline: true }
     );
     return configEmbed;
@@ -437,3 +443,4 @@ exports.configchanneldays = configchanneldays;
 exports.configcharacterapproval = configcharacterapproval;
 exports.configcampaign = configcampaign;
 exports.configprefix = configprefix;
+exports.configeventrequireapprover = configeventrequireapprover;
