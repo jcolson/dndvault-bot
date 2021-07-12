@@ -388,6 +388,15 @@ function isTrue(value) {
 }
 
 /**
+ * determine if object is string
+ * @param {Object} x
+ * @returns
+ */
+function isString(x) {
+    return Object.prototype.toString.call(x) === "[object String]"
+}
+
+/**
  * ensure that the bot has proper permissions in the channel
  * @param {Message} msg
  * @param {Array} addtlPermsToCheck (optional)
@@ -656,6 +665,7 @@ exports.appendStringsForEmbedChanges = appendStringsForEmbedChanges;
 exports.trimAndElipsiseStringArray = trimAndElipsiseStringArray;
 exports.checkChannelPermissions = checkChannelPermissions;
 exports.isTrue = isTrue;
+exports.isString = isString;
 exports.getDiscordUrl = getDiscordUrl;
 exports.clientWsReply = clientWsReply;
 exports.COLORS = COLORS;
