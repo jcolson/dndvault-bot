@@ -11,18 +11,117 @@ const { MessageEmbed } = require('discord.js');
  * @param {GuildModel} guildConfig
  */
 async function handleConfig(msg, msgParms, guildConfig) {
-    if (msgParms.length == 0) {
-        try {
+    try {
+        if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
+            console.debug(`handleConfig:`, msgParms);
+            for (param of msgParms) {
+                // check to see if param passed is part of config options before dynamically calling function
+                for (option of COMMANDS.config.options) {
+                    if (option.name == param.name) {
+                        console.debug(`handleConfig: COMMAND: ${param.name}`);
+                        guildConfig = await this[`config${param.name}`](param, msg.guild, guildConfig);
+                    }
+                }
+            }
+            await guildConfig.save();
+            GuildCache.set(msg.guild.id, guildConfig);
             utils.sendDirectOrFallbackToChannelEmbeds(await embedForConfig(msg.guild, guildConfig), msg);
-        } catch (error) {
-            console.error("handleConfig:", error);
-            utils.sendDirectOrFallbackToChannelError(error, msg);
+            utils.deleteMessage(msg);
+        } else {
+            throw new Error(`Please ask an \`approver role\` to configure.`);
         }
-    } else {
-
+    } catch (error) {
+        console.error("handleConfig:", error);
+        await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
 
+async function configreset(param, guild, guildConfig) {
+    console.debug(`configreset: `);
+    guildConfig = await configprole({ name: 'prole', value: guild.roles.everyone.id }, guild, guildConfig);
+    guildConfig = await configarole({ name: 'arole', value: guild.roles.everyone.id }, guild, guildConfig);
+    guildConfig = await configpollchannel({ name: 'pollchannel', value: undefined }, guild, guildConfig);
+    guildConfig = await configeventchannel({ name: 'eventchannel', value: undefined }, guild, guildConfig);
+    guildConfig = await configeventstandby({ name: 'eventstandby', value: undefined }, guild, guildConfig);
+    guildConfig = await configchannelcategory({ name: 'channelcategory', value: undefined }, guild, guildConfig);
+    guildConfig = await configchanneldays({ name: 'channeldays', value: undefined }, guild, guildConfig);
+    guildConfig = await configcharacterapproval({ name: 'characterapproval', value: undefined }, guild, guildConfig);
+    guildConfig = await configcampaign({ name: 'campaign', value: undefined }, guild, guildConfig);
+    guildConfig = await configprefix({ name: 'prefix', value: undefined }, guild, guildConfig);
+    return guildConfig;
+}
+
+async function configprole(param, guild, guildConfig) {
+    console.debug(`configprole:`, param);
+    let configProle = await getRoleForIdTagOrName(guild, param.value);
+    if (configProle) {
+        guildConfig.prole = configProle.id;
+    } else {
+        throw new Error(`could not locate the role for: ${param.value}`);
+    }
+    return guildConfig;
+
+}
+
+async function configarole(param, guild, guildConfig) {
+    console.debug(`configarole:`, param);
+    let configProle = await getRoleForIdTagOrName(guild, param.value);
+    if (configProle) {
+        guildConfig.arole = configProle.id;
+    } else {
+        throw new Error(`could not locate the role for: ${param.value}`);
+    }
+    return guildConfig;
+
+}
+
+async function configpollchannel(param, guild, guildConfig) {
+    console.debug(`configpollchannel: `);
+    return guildConfig;
+
+}
+
+async function configeventchannel(param, guild, guildConfig) {
+    console.debug(`configeventchannel: `);
+    return guildConfig;
+
+}
+
+async function configeventstandby(param, guild, guildConfig) {
+    console.debug(`configeventstandby: `);
+    return guildConfig;
+
+}
+
+async function configchannelcategory(param, guild, guildConfig) {
+    console.debug(`configchannelcategory: `);
+    return guildConfig;
+
+}
+
+async function configchanneldays(param, guild, guildConfig) {
+    console.debug(`configchanneldays: `);
+    return guildConfig;
+
+}
+
+async function configcharacterapproval(param, guild, guildConfig) {
+    console.debug(`configcharacterapproval: `);
+    return guildConfig;
+
+}
+
+async function configcampaign(param, guild, guildConfig) {
+    console.debug(`configcampaign: `);
+    return guildConfig;
+
+}
+
+async function configprefix(param, guild, guildConfig) {
+    console.debug(`configprefix: `);
+    return guildConfig;
+
+}
 /**
  * create embed to display current configuration
  * @param {Guild} guild
@@ -596,3 +695,14 @@ exports.handleConfigEventPlanChanRemoveDays = handleConfigEventPlanChanRemoveDay
 exports.handleStats = handleStats;
 exports.handleKick = handleKick;
 exports.bc_handleKick = bc_handleKick;
+exports.configreset = configreset;
+exports.configprole = configprole;
+exports.configarole = configarole;
+exports.configpollchannel = configpollchannel;
+exports.configeventchannel = configeventchannel;
+exports.configeventstandby = configeventstandby;
+exports.configchannelcategory = configchannelcategory;
+exports.configchanneldays = configchanneldays;
+exports.configcharacterapproval = configcharacterapproval;
+exports.configcampaign = configcampaign;
+exports.configprefix = configprefix;
