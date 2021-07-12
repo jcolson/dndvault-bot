@@ -21,7 +21,7 @@ const SESSION_PLANNING_PERMS = ['MANAGE_CHANNELS', 'MANAGE_ROLES'];
 async function handleEventCreate(msg, msgParms, guildConfig) {
     let eventChannelID = guildConfig.channelForEvents ? guildConfig.channelForEvents : msg.channel.id;
     try {
-        let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, msgParms, msg);
+        let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
         if (eventCreateResult) {
             utils.deleteMessage(msg);
         } else {
@@ -47,20 +47,23 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
  * @param {Message} msg optional, pass if there was an original message for the event creation
  * @returns
  */
-async function bc_eventCreate(currUserId, channelIDForEvent, guildID, msgParms, msg) {
+async function bc_eventCreate(currUserId, channelIDForEvent, guildID, guildApprovalRole, eventRequireApprover, msgParms, msg) {
     try {
         let theGuild = client.guilds.cache.get(guildID);
         if (theGuild) {
+            let guildMember = await theGuild.members.fetch(currUserId);
             let currUser = await UserModel.findOne({ userID: currUserId, guildID: guildID });
             if (!currUser || !currUser.timezone) {
                 throw new Error('Please set your timezone first using `/timezone [YOUR TIMEZONE]`!');
-            } else {
+            } else if (!eventRequireApprover || (eventRequireApprover && await users.hasRoleOrIsAdmin(guildMember, guildApprovalRole))) {
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser);
                 await validatedEvent.save();
                 let eventChannel = await theGuild.channels.resolve(channelIDForEvent);
                 let sentMessage = await eventShow(theGuild, eventChannel, validatedEvent._id);
                 await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Create ${utils.EMOJIS.SHIELD}`, value: `<@${currUserId}> - created event successfully.`, inline: true }], msg ? msg : sentMessage, await client.users.resolve(currUserId), false, sentMessage.url);
                 return true;
+            } else {
+                throw new Error('Please have an `approver` create this event.')
             }
         } else {
             console.info('events.bc_eventCreate: unknown guild on this shard, ignoring');
@@ -89,7 +92,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         if (!eventIDparam) {
             throw new Error('Please check the format of your `event edit` command');
         }
-        let eventEditResult = await bc_eventEdit(eventIDparam.value, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, msgParms, msg);
+        let eventEditResult = await bc_eventEdit(eventIDparam.value, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
         if (eventEditResult) {
             utils.deleteMessage(msg);
         } else {
@@ -112,7 +115,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
  * @param {Message} msg optional, pass if a message was used to create event
  * @returns
  */
-async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, msgParms, msg) {
+async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventRequireApprover, msgParms, msg) {
     try {
         // check and make sure that this client is servicing this guild (broadcast safe)
         let theGuild = client.guilds.cache.get(guildID);
@@ -134,6 +137,9 @@ async function bc_eventEdit(eventID, currUserId, channelIDForEvent, guildID, gui
                 // console.debug(`bc_eventEdit:currUserId: ${currUserId} guildMember:`, guildMember);
                 if (!await users.hasRoleOrIsAdmin(guildMember, guildApprovalRole) && currUserId != existingEvent.userID) {
                     throw new Error(`Please have <@${existingEvent.userID}> edit, or ask an <@&${guildApprovalRole}> to edit.`);
+                }
+                if (eventRequireApprover && !await users.hasRoleOrIsAdmin(guildMember, guildApprovalRole)) {
+                    throw new Error('Please have an `approver` edit this event.')
                 }
                 let validatedEvent = await validateEvent(msgParms, guildID, currUser, existingEvent);
                 //since we're editing the event, we'll re-remind users
