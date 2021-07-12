@@ -705,7 +705,63 @@ global.COMMANDS = {
     "config": {
         "name": "config",
         "description": "Show the configuration for your server",
-        "slash": true
+        "slash": true,
+        "options": [{
+            "name": "reset",
+            "description": "Reset config to defaults. (prefix/arole/prole/default channels/etc)",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "prole",
+            "description": "Role to set as player role.",
+            "required": false,
+            "type": 9 // 8 role, 9 mentionable
+        }, {
+            "name": "arole",
+            "description": "Role to set as approver role.",
+            "required": false,
+            "type": 9 // 8 role, 9 mentionable
+        }, {
+            "name": "poll_channel",
+            "description": "Channel to send all polls to.",
+            "required": false,
+            "type": 7 // channel
+        }, {
+            "name": "event_channel",
+            "description": "Channel to send all events to.",
+            "required": false,
+            "type": 7 // channel
+        }, {
+            "name": "event_standby",
+            "description": "Does your server support standby queuing on events?",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "channel_category",
+            "description": "Channel Category to autocreate event planning channels in.",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "channel_days",
+            "description": "The number of days after an event that the planning channel should be removed",
+            "required": false,
+            "type": 4 // Integer
+        }, {
+            "name": "character_approval",
+            "description": "Configure if character registration and updates require arole approval?",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "campaign",
+            "description": "Configure if required that a user have matching character for event's campaigns when signing up",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "prefix",
+            "description": "New prefix to use for all commands, don't forget what you use!",
+            "required": false,
+            "type": 3
+        }]
     },
     "insult": {
         "name": "insult",

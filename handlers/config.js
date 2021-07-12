@@ -2,6 +2,7 @@ const GuildModel = require('../models/Guild');
 const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
 const events = require('../handlers/events.js');
+const { MessageEmbed } = require('discord.js');
 
 /**
  * Show the configuration for your server
@@ -10,64 +11,77 @@ const events = require('../handlers/events.js');
  * @param {GuildModel} guildConfig
  */
 async function handleConfig(msg, msgParms, guildConfig) {
-    try {
-        let channelForEvents = {};
-        let channelForPolls = {};
-        let approverRoleName;
-        let playerRoleName;
-        let eventPlanCat = {};
+    if (msgParms.length == 0) {
         try {
-            if (guildConfig.channelForEvents) {
-                channelForEvents = await msg.guild.channels.resolve(guildConfig.channelForEvents);
-                // channelForEvents = await (new Channel(msg.client, { id: guildConfig.channelForEvents })).fetch();
-            }
+            utils.sendDirectOrFallbackToChannelEmbeds(await embedForConfig(msg.guild, guildConfig), msg);
         } catch (error) {
-            console.error(`handleConfig: could not resolve channel for events: ${guildConfig.channelForEvents}`, error);
+            console.error("handleConfig:", error);
+            utils.sendDirectOrFallbackToChannelError(error, msg);
         }
-        try {
-            if (guildConfig.channelForPolls) {
-                // channelForPolls = await (new Channel(msg.client, { id: guildConfig.channelForPolls })).fetch();
-                channelForPolls = await msg.guild.channels.resolve(guildConfig.channelForPolls);
-            }
-        } catch (error) {
-            console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForEvents}`, error);
-        }
-        try {
-            approverRoleName = (await utils.retrieveRoleForID(msg.guild, guildConfig.arole)).name;
-        } catch (error) {
-            console.error(`handleConfig: could not retrieve role for id: ${guildConfig.arole}`, error);
-        }
-        try {
-            playerRoleName = (await utils.retrieveRoleForID(msg.guild, guildConfig.prole)).name;
-        } catch (error) {
-            console.error(`handleConfig: could not retrieve role for id: ${guildConfig.prole}`, error);
-        }
-        try {
-            if (guildConfig.eventPlanCat) {
-                eventPlanCat = await msg.guild.channels.resolve(guildConfig.eventPlanCat);
-            }
-        } catch (error) {
-            console.error(`handleConfig: could not retrieve role for id: ${guildConfig.eventPlanCat}`, error);
-        }
-        await utils.sendDirectOrFallbackToChannel(
-            [{ name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
-            { name: 'Prefix', value: guildConfig.prefix, inline: true },
-            { name: 'Approver Role', value: approverRoleName, inline: true },
-            { name: 'Player Role', value: playerRoleName, inline: true },
-            { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
-            { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent, inline: true },
-            { name: 'Event Channel', value: channelForEvents.name, inline: true },
-            { name: 'Poll Channel', value: channelForPolls.name, inline: true },
-            { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
-            { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true },
-            { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing, inline: true }
-            ],
-            msg);
-        utils.deleteMessage(msg);
-    } catch (error) {
-        console.error("handleConfig:", error);
-        await utils.sendDirectOrFallbackToChannelError(error, msg);
+    } else {
+
     }
+}
+
+/**
+ * create embed to display current configuration
+ * @param {Guild} guild
+ * @param {GuildModel} guildConfig
+ * @returns {MessageEmbed}
+ */
+async function embedForConfig(guild, guildConfig) {
+    let channelForEvents = {};
+    let channelForPolls = {};
+    let approverRoleName;
+    let playerRoleName;
+    let eventPlanCat = {};
+    try {
+        if (guildConfig.channelForEvents) {
+            channelForEvents = await guild.channels.resolve(guildConfig.channelForEvents);
+            // channelForEvents = await (new Channel(msg.client, { id: guildConfig.channelForEvents })).fetch();
+        }
+    } catch (error) {
+        console.error(`handleConfig: could not resolve channel for events: ${guildConfig.channelForEvents}`, error);
+    }
+    try {
+        if (guildConfig.channelForPolls) {
+            // channelForPolls = await (new Channel(msg.client, { id: guildConfig.channelForPolls })).fetch();
+            channelForPolls = await guild.channels.resolve(guildConfig.channelForPolls);
+        }
+    } catch (error) {
+        console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForEvents}`, error);
+    }
+    try {
+        approverRoleName = (await utils.retrieveRoleForID(guild, guildConfig.arole)).name;
+    } catch (error) {
+        console.error(`handleConfig: could not retrieve role for id: ${guildConfig.arole}`, error);
+    }
+    try {
+        playerRoleName = (await utils.retrieveRoleForID(guild, guildConfig.prole)).name;
+    } catch (error) {
+        console.error(`handleConfig: could not retrieve role for id: ${guildConfig.prole}`, error);
+    }
+    try {
+        if (guildConfig.eventPlanCat) {
+            eventPlanCat = await guild.channels.resolve(guildConfig.eventPlanCat);
+        }
+    } catch (error) {
+        console.error(`handleConfig: could not retrieve role for id: ${guildConfig.eventPlanCat}`, error);
+    }
+    let configEmbed = new MessageEmbed().addFields(
+        { name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
+        { name: 'Prefix', value: guildConfig.prefix, inline: true },
+        { name: 'Approver Role', value: approverRoleName, inline: true },
+        { name: 'Player Role', value: playerRoleName, inline: true },
+        { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
+        { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent, inline: true },
+        { name: 'Event Channel', value: channelForEvents.name, inline: true },
+        { name: 'Poll Channel', value: channelForPolls.name, inline: true },
+        { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
+        { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true },
+        { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing, inline: true }
+    );
+    return configEmbed;
 }
 
 /**
@@ -245,7 +259,7 @@ async function getGuildConfig(guildID) {
  * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
- async function handleConfigStandby(msg, msgParms, guildConfig) {
+async function handleConfigStandby(msg, msgParms, guildConfig) {
     try {
         if (msgParms.length == 0 || msgParms[0].value === '') {
             throw new Error(`Not enough parameters, must pass at least one.`);

@@ -544,6 +544,9 @@ function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfte
                     //no options for either, it's a match
                     console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:NO OPTIONS`);
                     return true;
+                } else if ((!c.options && command.options) || (c.options && !command.options)) {
+                    console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:*NO* MATCH, new options or options removed`);
+                    return false;
                 } else {
                     for (const regOpt of command.options) {
                         let optMatched = false;
