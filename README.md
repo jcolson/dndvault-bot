@@ -184,24 +184,25 @@ In order to see the new slash commands and their accompanying options and descri
 - /roll_stats - roll for D&D 5E stat block
 - /insult - generates a random insult for Vicious Mockery
 - /event_attendance - produces a report of players signup attendance for events
-- /event_create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] {!campaign [CAMPAIGN]} !desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
-- /event_edit [MISSION_ID] !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [MISSION_DESC_REGION_PLAYSTYLE] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
+- /event_create [MISSION_TITLE] [@DMGM_USER_NAME] [AT_TIME] [FOR_DURATION_HOURS] [ON_DATE] [WITH_NUMBER_PLAYER_SLOTS] {[CAMPAIGN]} [MISSION_DESCRIPTION] - creates an event PROPOSAL that users can sign up for
+- /event_edit [MISSION_ID] [MISSION_TITLE] [@DMGM_USER_NAME] [AT_TIME] [FOR_DURATION_HOURS] [ON_DATE] [WITH_NUMBER_PLAYER_SLOTS] {[CAMPAIGN]} [MISSION_DESCRIPTION] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
 - /event_show [MISSION_ID] - replace the posting for an event (for instance if it got deleted by accident)
 - /event_remove [MISSION_ID] - removes mission event
 - /event_list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
 - /event_list proposed - list all future PROPOSED events
 - /event_list deployed - list all future DEPLOYED events
-- /config - show BOT config
-- /config_arole [@ROLE] - modify approver role (allows user to approve characters)
-- /config_prole [@ROLE] - modify player role (allows user to use bot)
-- /config_prefix [NEW_PREFIX] - modify the command prefix
-- /config_approval [BOOLEAN] - does character registration and updates require arole approval?
-- /config_campaign [BOOLEAN] - require that a user have matching character for event's campaigns
-- /config_pollchannel [#CHANNEL] - send all polls to this channel
-- /config_eventchannel [#CHANNEL] - send all events to this channel
-- /config_eventplancat [channel_category] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
-- /config_eventchandays [channel_days] - Configure how many days after an event planning channel should be removed
-- /config_standby [BOOLEAN] - Does your server support standby queuing on events?
+- /config [RESET_BOOLEAN] [@PLAYER_ROLE] [@APPROVER_ROLE] [#POLL_CHANNEL] [#EVENT_CHANNEL] [EVENT_STANDBY_BOOLEAN] [EVENT_PLANNING_CHANNEL_CATEGORY] [EVENT_PLANNING_CHANNEL_DAYS] [CHARACTER_APPROVAL_BOOLEAN] [CAMPAIGN_BOOLEAN] [NEW_PREFIX] - show/edit BOT config
+  - [RESET_BOOLEAN] - reset config to defaults
+  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
+  - [@PLAYER_ROLE] - modify player role (allows user to use bot)
+  - [NEW_PREFIX] - modify the command prefix
+  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
+  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [#POLL_CHANNEL] - send all polls to this channel
+  - [#EVENT_CHANNEL] - send all events to this channel
+  - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning channel should be removed
+  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
 ```
 
 ### Old Command Descriptions
@@ -254,18 +255,19 @@ In order to see the new slash commands and their accompanying options and descri
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
   - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
   - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign
-- [x] config - show BOT config
-  - [x] {no args} - show config
-  - [x] arole [@ROLE] - modify approver role (allows user to approve characters)
-  - [x] prole [@ROLE] - modify player role (allows user to use bot)
-  - [x] prefix [NEW_PREFIX] - modify the command prefix
-  - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
-  - [x] campaign [BOOLEAN] - require that a user have matching character for event's campaigns
-  - [x] pollchannel [#CHANNEL] - send all polls to this channel
-  - [x] eventchannel [#CHANNEL] - send all events to this channel
-  - [x] eventplancat [channel_category] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
-  - [x] eventchandays [channel_days] - Configure how many days after an event planning channel should be removed
-  - [x] standby [BOOLEAN] - Does your server support standby queuing on events?
+- [x] config !reset [RESET_BOOLEAN] !prole [@PLAYER_ROLE] !arole [@APPROVER_ROLE] !pollchannel [#POLL_CHANNEL] !eventchannel [#EVENT_CHANNEL] !eventstandby [EVENT_STANDBY_BOOLEAN] !channelcategory [EVENT_PLANNING_CHANNEL_CATEGORY] !channeldays [EVENT_PLANNING_CHANNEL_DAYS] !characterapproval [CHARACTER_APPROVAL_BOOLEAN] !campaign [CAMPAIGN_BOOLEAN] !prefix [NEW_PREFIX] - show/edit BOT config
+  - {no args} - show config
+  - [RESET_BOOLEAN] - reset config to defaults
+  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
+  - [@PLAYER_ROLE] - modify player role (allows user to use bot)
+  - [NEW_PREFIX] - modify the command prefix
+  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
+  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [#POLL_CHANNEL] - send all polls to this channel
+  - [#EVENT_CHANNEL] - send all events to this channel
+  - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning channel should be removed
+  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
 ```
 
 ## Example character workflow with the BOT
