@@ -28,12 +28,13 @@ DND Vault Table of Contents
     - [list characters](#list-characters)
     - [changes in character updates](#changes-in-character-updates)
     - [config of server for guild](#config-of-server-for-guild)
-    - [permissions required for bot](#permissions-required-for-bot)
+  - [Run the bot yourself](#run-the-bot-yourself)
+    - [Permissions required for bot](#permissions-required-for-bot)
   - [Notes](#notes)
+    - [run nodemon](#run-nodemon)
     - [create change log for release](#create-change-log-for-release)
     - [Test via docker container](#test-via-docker-container)
     - [Mongodb queries](#mongodb-queries)
-    - [discordjs](#discordjs)
     - [Bot Commands for testing](#bot-commands-for-testing)
     - [Test Bot Invite](#test-bot-invite)
 
@@ -183,24 +184,25 @@ In order to see the new slash commands and their accompanying options and descri
 - /roll_stats - roll for D&D 5E stat block
 - /insult - generates a random insult for Vicious Mockery
 - /event_attendance - produces a report of players signup attendance for events
-- /event_create !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] {!campaign [CAMPAIGN]} !desc [MISSION_DESC_REGION_PLAYSTYLE] - creates an event PROPOSAL that users can sign up for
-- /event_edit [MISSION_ID] !title [MISSION_TITLE] !dmgm [@USER_NAME] !at [TIME] !for [DURATION_HOURS] !on [DATE] !with [NUMBER_PLAYER_SLOTS] !campaign [CAMPAIGN] !desc [MISSION_DESC_REGION_PLAYSTYLE] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
+- /event_create [MISSION_TITLE] [@DMGM_USER_NAME] [AT_TIME] [FOR_DURATION_HOURS] [ON_DATE] [WITH_NUMBER_PLAYER_SLOTS] {[CAMPAIGN]} [MISSION_DESCRIPTION] - creates an event PROPOSAL that users can sign up for
+- /event_edit [MISSION_ID] [MISSION_TITLE] [@DMGM_USER_NAME] [AT_TIME] [FOR_DURATION_HOURS] [ON_DATE] [WITH_NUMBER_PLAYER_SLOTS] {[CAMPAIGN]} [MISSION_DESCRIPTION] - edits an existing event PROPOSAL that users can sign up for - everything is optional for a partial edit
 - /event_show [MISSION_ID] - replace the posting for an event (for instance if it got deleted by accident)
 - /event_remove [MISSION_ID] - removes mission event
 - /event_list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
 - /event_list proposed - list all future PROPOSED events
 - /event_list deployed - list all future DEPLOYED events
-- /config - show BOT config
-- /config_arole [@ROLE] - modify approver role (allows user to approve characters)
-- /config_prole [@ROLE] - modify player role (allows user to use bot)
-- /config_prefix [NEW_PREFIX] - modify the command prefix
-- /config_approval [BOOLEAN] - does character registration and updates require arole approval?
-- /config_campaign [BOOLEAN] - require that a user have matching character for event's campaigns
-- /config_pollchannel [#CHANNEL] - send all polls to this channel
-- /config_eventchannel [#CHANNEL] - send all events to this channel
-- /config_eventplancat [channel_category] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
-- /config_eventchandays [channel_days] - Configure how many days after an event planning channel should be removed
-- /config_standby [BOOLEAN] - Does your server support standby queuing on events?
+- /config [RESET_BOOLEAN] [@PLAYER_ROLE] [@APPROVER_ROLE] [#POLL_CHANNEL] [#EVENT_CHANNEL] [EVENT_STANDBY_BOOLEAN] [EVENT_PLANNING_CHANNEL_CATEGORY] [EVENT_PLANNING_CHANNEL_DAYS] [CHARACTER_APPROVAL_BOOLEAN] [CAMPAIGN_BOOLEAN] [NEW_PREFIX] - show/edit BOT config
+  - [RESET_BOOLEAN] - reset config to defaults
+  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
+  - [@PLAYER_ROLE] - modify player role (allows user to use bot)
+  - [NEW_PREFIX] - modify the command prefix
+  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
+  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [#POLL_CHANNEL] - send all polls to this channel
+  - [#EVENT_CHANNEL] - send all events to this channel
+  - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning channel should be removed
+  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
 ```
 
 ### Old Command Descriptions
@@ -253,18 +255,19 @@ In order to see the new slash commands and their accompanying options and descri
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
   - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
   - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign
-- [x] config - show BOT config
-  - [x] {no args} - show config
-  - [x] arole [@ROLE] - modify approver role (allows user to approve characters)
-  - [x] prole [@ROLE] - modify player role (allows user to use bot)
-  - [x] prefix [NEW_PREFIX] - modify the command prefix
-  - [x] approval [BOOLEAN] - does character registration and updates require arole approval?
-  - [x] campaign [BOOLEAN] - require that a user have matching character for event's campaigns
-  - [x] pollchannel [#CHANNEL] - send all polls to this channel
-  - [x] eventchannel [#CHANNEL] - send all events to this channel
-  - [x] eventplancat [channel_category] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
-  - [x] eventchandays [channel_days] - Configure how many days after an event planning channel should be removed
-  - [x] standby [BOOLEAN] - Does your server support standby queuing on events?
+- [x] config !reset [RESET_BOOLEAN] !prole [@PLAYER_ROLE] !arole [@APPROVER_ROLE] !pollchannel [#POLL_CHANNEL] !eventchannel [#EVENT_CHANNEL] !eventstandby [EVENT_STANDBY_BOOLEAN] !channelcategory [EVENT_PLANNING_CHANNEL_CATEGORY] !channeldays [EVENT_PLANNING_CHANNEL_DAYS] !characterapproval [CHARACTER_APPROVAL_BOOLEAN] !campaign [CAMPAIGN_BOOLEAN] !prefix [NEW_PREFIX] - show/edit BOT config
+  - {no args} - show config
+  - [RESET_BOOLEAN] - reset config to defaults
+  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
+  - [@PLAYER_ROLE] - modify player role (allows user to use bot)
+  - [NEW_PREFIX] - modify the command prefix
+  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
+  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [#POLL_CHANNEL] - send all polls to this channel
+  - [#EVENT_CHANNEL] - send all events to this channel
+  - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning channel should be removed
+  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
 ```
 
 ## Example character workflow with the BOT
@@ -332,7 +335,75 @@ all the while anyone on the server can 'view' any user's character ...
 
 ![config](docs/images/config.png)
 
-### permissions required for bot
+## Run the bot yourself
+
+If you would like to run your own instance of the D&D Vault Bot instead of using the one that is hosted for the community, it's open source, so **have at it**!!
+
+The first thing that is required is an instance of mongodb.  The easiest way to bring up mongo, is to use [docker](https://www.docker.com/products/docker-desktop).
+
+Below is a few docker commands (meant to be run via linux/unix/macos shell).  In order for it to work, you need to do the following:
+
+- install DOCKER!
+- create a directory in which mongo data will be stored on your host system, the one referenced below is `/home/user/dnd-mongo`.  Once you create that directory, replace the `VOLUME=`, below, with your full directory name.
+- create a text file called `mongoadmin` in the mongo data directory that you just created.  place the password that you want the mongo db admin to be/use in that file.
+- create a directory with the SAME NAME as the data directory above, but add `-init` to it.  create a file called `1-create-user.js` in that directory.  that file should contain the below, replace `xxxxxxxxxx` with the password you wish the bot to use to connect to mongo.
+
+```js
+db.createUser(
+   {
+     user: "dnduser",
+     pwd: "xxxxxxxxxx",
+     roles: [
+        {
+            role: "readWrite",
+            db: "dnd"
+        }
+     ]
+   }
+)
+```
+
+- create a docker network for mongo and dnd-vault to use.  Use this command to do that: `docker network create dnd-net`
+- After all the above is complete, run the below command to create and run your mongodb container for the dndvault bot.
+
+```sh
+export VOLUME=/home/user/dnd-mongo
+docker run -d --network dnd-net --name dnd-mongo \
+    --restart always \
+    -p 27017:27017 \
+    --ulimit nofile=64000:64000 \
+    -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+    -e MONGO_INITDB_DATABASE=dnd \
+    -e MONGO_INITDB_ROOT_PASSWORD_FILE=/data/db/mongoadmin \
+    -v ${VOLUME}:/data/db \
+    -v ${VOLUME}-init:/docker-entrypoint-initdb.d \
+    mongo:4.4.3-bionic
+```
+
+- now that mongdb is running, let's run the bot!  Create a directory for the dndvault bot config, and replace the `VOLUME=`, below, with that directory.
+- create a file called config.json and copy [this example config](https://github.com/jcolson/dndvault-bot/blob/master/config_example.json) file into it.
+  - Replace `token` with your discord bot token.
+  - Replace `mongoServer` with `dnd-mongo`
+  - Replace `mongoUser` with `dnduser` (from your `1-create-user.js` script that you created above)
+  - Replace `mongoPass` with your `1-create-user.js` password that you created above
+  - Replace `adminUser` with your discord id (this is so you don't accidentally lock yourself out of the bot config)
+  - Remove `debugGuild`
+  - Replace `key` with your discord bot key for oauth support on the web
+  - Replace `secret` with your discord bot secret key for oauth support on web
+  - Replace `inviteURL` with your discord bot's invite url
+- You are now ready to run the bot, execute the below (remember to replace the `VOLUME=` with your own bot config directory that you made above)!
+
+```sh
+docker pull karmanet/dndvault && \
+export VOLUME=/home/user/dndvault && \
+docker run --name dndvault -v ${VOLUME}:/config \
+--network dnd-net \
+--restart always -d karmanet/dndvault:latest
+```
+
+Let me know if you have any troubles with the above on the support discord server.  Cheers!
+
+### Permissions required for bot
 
 If you plan on deploying your own copy of the D&D Vault (you don't need to, you can [invite the existing bot by clicking here](https://discord.com/api/oauth2/authorize?client_id=792843392664993833&permissions=223296&scope=bot)), invite the bot to your server using these permissions.
 
@@ -341,6 +412,12 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 ## Notes
 
 **_This section can be safely ignored, it's my scratchpad ..._**
+
+### run nodemon
+
+to quickly restart node while developing
+
+`nodemon`
 
 ### create change log for release
 
@@ -362,23 +439,6 @@ docker build --target test ./
 {guildID: '785567026512527390'}
 ```
 
-### discordjs
-
-retrieve a guild member:
-
-```nodejs
-let memberGuild = await client.guilds.fetch(guildConfig.guildID);
-let guildMember = await memberGuild.members.fetch(msg.member.id);
-```
-
-example urls that can be linked:
-
-```html
-https://discordapp.com/channels/745694606372503773/790521190032474112/795807490545549353
-
-https://discordapp.com/channels/785567026512527390
-```
-
 ### Bot Commands for testing
 
 ```sh
@@ -386,13 +446,12 @@ https://discordapp.com/channels/785567026512527390
 
 Mission Description/Goal: Your initiation. Are you ready?
 OR
-Harpy Rescue - https://discord.com/channels/787645782269624340/787645782832578576/796641944196349973
+Harpy Rescue - https://example.com
 @Robin - Day
 
 Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue): 50/50 Rp/Combat
-@LVLone @LVL2 @LVL3 @LVL4 @LVL5
+@Tester
 ```
-
 
 ### Test Bot Invite
 

@@ -49,6 +49,10 @@ const Guild = Schema({
     },
     "eventPlanDays": {
         type: Number
+    },
+    "eventRequireApprover": {
+        type: "Boolean",
+        default: false
     }
 })
 module.exports = model('Guild', Guild);

@@ -324,6 +324,7 @@ let server = app
                         '${channelIDForEvent}',
                         '${request.session.guildConfig.guildID}',
                         '${request.session.guildConfig.arole}',
+                        '${request.session.guildConfig.eventRequireApprover}',
                         '${eventString}');`
                     );
                 } else {
@@ -335,7 +336,9 @@ let server = app
                         ('${request.session.discordMe.id}',
                         '${request.session.grant.dynamic.channel}',
                         '${timezoneToSet}',
-                        '${request.session.guildConfig.guildID}');`
+                        '${request.session.guildConfig.guildID}',
+                        '${request.session.guildConfig.arole}',
+                        '${request.session.guildConfig.eventRequireApprover}');`
                     );
                 }
             }

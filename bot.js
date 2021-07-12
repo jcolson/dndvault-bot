@@ -592,120 +592,71 @@ global.COMMANDS = {
             "type": 3
         }]
     },
-    "configApproval": {
-        "name": "config_approval",
-        "description": "Configure if character registration and updates require arole approval?",
-        "slash": true,
-        "options": [{
-            "name": "true_or_false",
-            "description": "True or False",
-            "required": true,
-            "type": 5 // boolean
-        }]
-    },
-    "configStandby": {
-        "name": "config_standby",
-        "description": "Does your server support standby queuing on events?",
-        "slash": true,
-        "options": [{
-            "name": "true_or_false",
-            "description": "True or False",
-            "required": true,
-            "type": 5 // boolean
-        }]
-    },
-    "configEventchannel": {
-        "name": "config_eventchannel",
-        "description": "Configure what channel to send all events to",
-        "slash": true,
-        "options": [{
-            "name": "event_channel",
-            "description": "Channel to send all events to, `unset` by not setting this value.",
-            "required": false,
-            "type": 7 // channel
-        }]
-    },
-    "configPollchannel": {
-        "name": "config_pollchannel",
-        "description": "Configure what channel to send all polls to",
-        "slash": true,
-        "options": [{
-            "name": "poll_channel",
-            "description": "Channel to send all polls to, `unset` by not setting this value.",
-            "required": false,
-            "type": 7 // channel
-        }]
-    },
-    "configEventplancat": {
-        "name": "config_eventplancat",
-        "description": "Configure what channel category to autocreate event planning channels in",
-        "slash": true,
-        "options": [{
-            "name": "channel_category",
-            "description": "Channel Category to autocreate event planning channels in, `unset` by not setting this value.",
-            "required": false,
-            "type": 3
-        }]
-    },
-    "configEventchandays": {
-        "name": "config_eventchandays",
-        "description": "Configure how many days after an event planning channel should be removed",
-        "slash": true,
-        "options": [{
-            "name": "channel_days",
-            "description": "The number of days after an event that the planning channel should be removed",
-            "required": true,
-            "type": 4 // Integer
-        }]
-    },
-    "configPrefix": {
-        "name": "config_prefix",
-        "description": "Configure/modify the command prefix",
-        "slash": true,
-        "options": [{
-            "name": "prefix",
-            "description": "New prefix to use for all commands, don't forget what you use! `unset` by not setting this value.",
-            "required": false,
-            "type": 3
-        }]
-    },
-    "configArole": {
-        "name": "config_arole",
-        "description": "Modify approver role (allows user to approve characters)",
-        "slash": true,
-        "options": [{
-            "name": "arole",
-            "description": "Role to set as approver role.  set to @everyone by leaving by not setting this value",
-            "required": false,
-            "type": 8 // 8 role, 9 mentionable
-        }]
-    },
-    "configProle": {
-        "name": "config_prole",
-        "description": "Modify player role (allows user to use bot)",
-        "slash": true,
-        "options": [{
-            "name": "prole",
-            "description": "Role to set as player role.  set to @everyone by leaving by not setting this value",
-            "required": false,
-            "type": 8 // 8 role, 9 mentionable
-        }]
-    },
-    "configCampaign": {
-        "name": "config_campaign",
-        "description": "Configure if required that a user have matching character for event's campaigns when signing up",
-        "slash": true,
-        "options": [{
-            "name": "true_or_false",
-            "description": "True or False",
-            "required": true,
-            "type": 5 // boolean
-        }]
-    },
     "config": {
         "name": "config",
         "description": "Show the configuration for your server",
-        "slash": true
+        "slash": true,
+        "options": [{
+            "name": "reset",
+            "description": "Reset config to defaults. (prefix/arole/prole/default channels/etc)",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "prole",
+            "description": "Role to set as player role.",
+            "required": false,
+            "type": 9 // 8 role, 9 mentionable
+        }, {
+            "name": "arole",
+            "description": "Role to set as approver role.",
+            "required": false,
+            "type": 9 // 8 role, 9 mentionable
+        }, {
+            "name": "pollchannel",
+            "description": "Channel to send all polls to.",
+            "required": false,
+            "type": 7 // channel
+        }, {
+            "name": "eventrequireapprover",
+            "description": "Require approver to create & edit events.",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "eventchannel",
+            "description": "Channel to send all events to.",
+            "required": false,
+            "type": 7 // channel
+        }, {
+            "name": "eventstandby",
+            "description": "Does your server support standby queuing on events?",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "channelcategory",
+            "description": "Channel Category to autocreate event planning channels in.",
+            "required": false,
+            "type": 3
+        }, {
+            "name": "channeldays",
+            "description": "The number of days after an event that the planning channel should be removed",
+            "required": false,
+            "type": 4 // Integer
+        }, {
+            "name": "characterapproval",
+            "description": "Configure if character registration and updates require arole approval?",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "campaign",
+            "description": "Configure if required that a user have matching character for event's campaigns when signing up",
+            "required": false,
+            "type": 5 // boolean
+        }, {
+            "name": "prefix",
+            "description": "New prefix to use for all commands, don't forget what you use!",
+            "required": false,
+            "type": 3
+        }]
     },
     "insult": {
         "name": "insult",
@@ -1069,36 +1020,6 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                         break;
                     case COMMANDS.timezone.name:
                         users.handleTimezone(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configApproval.name:
-                        config.handleConfigApproval(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configStandby.name:
-                        config.handleConfigStandby(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configEventchannel.name:
-                        config.handleConfigEventChannel(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configPollchannel.name:
-                        config.handleConfigPollChannel(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configEventplancat.name:
-                        config.handleConfigEventPlanCat(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configEventchandays.name:
-                        config.handleConfigEventPlanChanRemoveDays(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configPrefix.name:
-                        config.handleConfigPrefix(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configArole.name:
-                        config.handleConfigArole(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configProle.name:
-                        config.handleConfigProle(msg, msgParms, guildConfig);
-                        break;
-                    case COMMANDS.configCampaign.name:
-                        config.handleConfigCampaign(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.config.name:
                         config.handleConfig(msg, msgParms, guildConfig);
