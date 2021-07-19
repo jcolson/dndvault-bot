@@ -1173,7 +1173,7 @@ process.on('uncaughtException', async (error) => {
 async function cleanShutdown(callProcessExit) {
     try {
         console.log('Closing out shard resources...');
-        calendarReminderCron.destroy();
+        calendarReminderCron.stop();
         console.log('Scheduled calendar recuring destroyed.');
         client.destroy();
         console.log('Discord client destroyed.');
