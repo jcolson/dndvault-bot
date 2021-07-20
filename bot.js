@@ -808,6 +808,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
             } catch (error) {
                 console.error(`messageReactionAdd:caught exception handling reaction`, error);
                 await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
+                // we got an exception, let's make sure to remove this user's reaction
+                await reaction.users.remove(user.id);
             }
         }
     }

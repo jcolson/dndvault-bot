@@ -331,7 +331,7 @@ async function handleEventShow(msg, msgParms, guildConfig) {
     try {
         const eventID = msgParms[0].value;
         if (!await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
-            throw new Error(`Please ask an \`approver role\` to re-show this event if needed, it should be available [here](${getLinkForEvent(showEvent)}).`);
+            throw new Error(`Please ask an \`approver role\` to re-show this event if needed.`);
         }
         let sentMessage = await eventShow(msg.guild, msg.channel, eventID);
         utils.deleteMessage(msg);
@@ -946,44 +946,46 @@ function formatJustTime(theDate) {
 
 async function handleReactionAdd(reaction, user, guildConfig) {
     try {
+        const member = await reaction.message.guild.member(user);
+        if (!await users.hasRoleOrIsAdmin(member, guildConfig.prole)) {
+            //, <@&${guildConfig.prole}>,
+            throw new Error(`Please ensure that you are a member of the player role before attempting to interact.`);
+        }
         // console.debug(`${reaction.count} user(s) have given the same reaction to this message!`);
         let eventForMessage = await EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
         if (!eventForMessage) {
             console.info('handleReactionAdd: Did not find event for reaction.');
         }
         if (reaction.emoji?.name == utils.EMOJIS.CHECK && eventForMessage) {
-            // console.debug(eventForMessage);
             await attendeeAdd(reaction.message, user, eventForMessage, guildConfig);
-            await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.X && eventForMessage) {
-            // console.debug(eventForMessage);
             await attendeeRemove(reaction.message, user, eventForMessage, guildConfig);
-            await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.PLAY && eventForMessage) {
-            // console.debug(eventForMessage);
             await deployEvent(reaction, user, eventForMessage, guildConfig);
-            await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.CLOCK && eventForMessage) {
-            // console.debug(eventForMessage);
             await convertTimeForUser(reaction, user, eventForMessage, guildConfig);
-            await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.EDIT && eventForMessage) {
-            // console.debug(eventForMessage);
             await utils.sendDirectOrFallbackToChannel({ name: `Edit Event Helper`, value: `Copy/Paste the following message into the appropriate channel on your server to start the event edit command.` }, reaction.message, user);
             await utils.sendSimpleDirectOrFallbackToChannel(`\`/event_edit event_id:${eventForMessage.id}\``, reaction.message, user);
-            await reaction.users.remove(user.id);
         } else if (reaction.emoji?.name == utils.EMOJIS.TRASH && eventForMessage) {
             let memberUser = await reaction.message.guild.members.resolve(user.id);
             let deleteMessage = await removeEvent(reaction.message.guild, memberUser, eventForMessage?._id, guildConfig, reaction.message);
             await utils.sendDirectOrFallbackToChannel(deleteMessage, reaction.message, user);
-            await reaction.users.remove(user.id);
         } else {
             console.log(`handleReactionAdd: EventFromDb: ${eventForMessage ? true : false} Reaction: ${reaction.emoji?.name}`);
         }
     } catch (error) {
         console.error('handleReactionAdd:', error);
         await utils.sendDirectOrFallbackToChannelError(error, reaction.message, user);
-        await reaction.users.remove(user.id);
+    } finally {
+        // console.debug(`handleReactionAdd: clean up all reactions, except for bot's`);
+        const reactionUsers = await reaction.users.fetch();
+        for ([_, reactionUser] of reactionUsers) {
+            // console.debug(`handleReactionAdd: guildUser: ${reaction.message.guild.me.id} user:`, reactionUser);
+            if (reactionUser.id != reaction.message.guild.me.id) {
+                await reaction.users.remove(reactionUser.id);
+            }
+        }
     }
 }
 
