@@ -88,9 +88,12 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         if (msgParms.length < 2) {
             throw new Error('Not enough parameters, you need to pass at least one editable parameter.');
         }
-        const eventIDparam = msgParms.find(p => p.name == 'event_id');
+        let eventIDparam = msgParms.find(p => p.name == 'event_id');
         if (!eventIDparam) {
             throw new Error('Please check the format of your `event edit` command');
+        } else {
+            // sometimes event id (from mobile) get's passed with an additional space at the end
+            eventIDparam = eventIDparam.trim();
         }
         let eventEditResult = await bc_eventEdit(eventIDparam.value, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
         if (eventEditResult) {
