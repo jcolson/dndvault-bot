@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [1.6.0 (2021-07-20)](#160-2021-07-20)
   - [1.5.9 (2021-07-12)](#159-2021-07-12)
   - [1.5.8 (2021-07-02)](#158-2021-07-02)
   - [1.5.7 (2021-06-28)](#157-2021-06-28)
@@ -90,6 +91,19 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [1.6.0](https://github.com/jcolson/dndvault-bot/tree/1.6.0) (2021-07-20)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.9...1.6.0)
+
+**Implemented enhancements:**
+
+- replace reactions with buttons in event embeds [\#344](https://github.com/jcolson/dndvault-bot/issues/344)
+
+**Fixed bugs:**
+
+- /event\_edit from mobile \(copy and paste from the edit reaction\) passes an additional space from the android app [\#343](https://github.com/jcolson/dndvault-bot/issues/343)
+- Check reactions and prole [\#338](https://github.com/jcolson/dndvault-bot/issues/338)
 
 ## [1.5.9](https://github.com/jcolson/dndvault-bot/tree/1.5.9) (2021-07-12)
 
