@@ -91,11 +91,9 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         let eventIDparam = msgParms.find(p => p.name == 'event_id');
         if (!eventIDparam) {
             throw new Error('Please check the format of your `event edit` command');
-        } else {
-            // sometimes event id (from mobile) get's passed with an additional space at the end
-            eventIDparam = eventIDparam.trim();
         }
-        let eventEditResult = await bc_eventEdit(eventIDparam.value, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
+        // sometimes event id (from mobile) get's passed with an additional space at the end, so trim()
+        let eventEditResult = await bc_eventEdit(eventIDparam.value.trim(), msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
         if (eventEditResult) {
             utils.deleteMessage(msg);
         } else {
