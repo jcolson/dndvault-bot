@@ -3,6 +3,10 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [Unreleased](#unreleased)
+  - [1.6.3 (2021-07-22)](#163-2021-07-22)
+  - [1.6.2 (2021-07-20)](#162-2021-07-20)
+  - [1.6.1 (2021-07-20)](#161-2021-07-20)
   - [1.6.0 (2021-07-20)](#160-2021-07-20)
   - [1.5.9 (2021-07-12)](#159-2021-07-12)
   - [1.5.8 (2021-07-02)](#158-2021-07-02)
@@ -92,13 +96,37 @@
 
 # Changelog
 
+## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.3...HEAD)
+
+**Closed issues:**
+
+- event\_edit causing error with trim\(\) [\#350](https://github.com/jcolson/dndvault-bot/issues/350)
+
+## [1.6.3](https://github.com/jcolson/dndvault-bot/tree/1.6.3) (2021-07-22)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.2...1.6.3)
+
+**Fixed bugs:**
+
+- luxon upgrade broke timezones [\#348](https://github.com/jcolson/dndvault-bot/issues/348)
+
+## [1.6.2](https://github.com/jcolson/dndvault-bot/tree/1.6.2) (2021-07-20)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.1...1.6.2)
+
+## [1.6.1](https://github.com/jcolson/dndvault-bot/tree/1.6.1) (2021-07-20)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.0...1.6.1)
+
 ## [1.6.0](https://github.com/jcolson/dndvault-bot/tree/1.6.0) (2021-07-20)
 
 [Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.9...1.6.0)
 
 **Implemented enhancements:**
 
-- replace reactions with buttons in event embeds [\#344](https://github.com/jcolson/dndvault-bot/issues/344)
+- replace reactions with buttons in event embeds - duplicate of \#337 [\#344](https://github.com/jcolson/dndvault-bot/issues/344)
 
 **Fixed bugs:**
 
