@@ -69,7 +69,7 @@ async function bc_eventCreate(currUserId, channelIDForEvent, guildID, guildAppro
             console.info('events.bc_eventCreate: unknown guild on this shard, ignoring');
         }
     } catch (error) {
-        console.error('events.bc_eventCreate:', error.message);
+        console.error('events.bc_eventCreate:', error);
         error.message += ` For Channel: ${channelIDForEvent}`;
         throw error;
     }
@@ -91,11 +91,9 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         let eventIDparam = msgParms.find(p => p.name == 'event_id');
         if (!eventIDparam) {
             throw new Error('Please check the format of your `event edit` command');
-        } else {
-            // sometimes event id (from mobile) get's passed with an additional space at the end
-            eventIDparam = eventIDparam.trim();
         }
-        let eventEditResult = await bc_eventEdit(eventIDparam.value, msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
+        // sometimes event id (from mobile) get's passed with an additional space at the end, so trim()
+        let eventEditResult = await bc_eventEdit(eventIDparam.value.trim(), msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
         if (eventEditResult) {
             utils.deleteMessage(msg);
         } else {
@@ -725,16 +723,15 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
 
 function getTimeZoneOffset(timezone) {
     let utcDate = new Date();
-    // console.log('getTimeZoneOffset: %s', userDateString);
+    console.debug('getTimeZoneOffset: timezone %s', timezone);
     let userDateTime = DateTime.fromObject(
         {
             day: utcDate.getDate(),
             month: utcDate.getMonth() + 1,
             year: utcDate.getFullYear(),
             hour: utcDate.getHours(),
-            minute: utcDate.getMinutes(),
-            zone: timezone
-        });
+            minute: utcDate.getMinutes()
+        }, { zone: timezone });
     // console.log('getTimeZoneOffset/DateTime: %s', userDateTime);
     let userDate = userDateTime.toJSDate();
     // console.log('getTimeZoneOffset/userDate: %s', userDate);
