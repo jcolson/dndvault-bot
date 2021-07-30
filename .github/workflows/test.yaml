@@ -1,12 +1,9 @@
-name: ci
+name: test
 
 on:
   push:
     branches:
     - develop
-  pull_request:
-    branches:
-    - docker
 
 jobs:
   buildx:
