@@ -1,4 +1,4 @@
-name: ci
+name: dockerhub
 
 on:
   pull_request:
