@@ -693,13 +693,12 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
             // console.log('GMToriginaleventdate %s', existingEvent.date_time);
             // console.log('usersoriginaleventdate %s', usersOriginalEventDate);
         }
-        //@todo: figure out a way to get the fuzzy parsing per date and per time working
-        let onDate = eon ? eon : formatJustDate(usersOriginalEventDate);
-        let atTime = eat ? eat : formatJustTime(usersOriginalEventDate);
-        let dateTimeStringToParse = `${onDate} at ${atTime}`;
         let refDate = usersOriginalEventDate ? usersOriginalEventDate : getDateInDifferentTimezone(new Date(), currUser.timezone);
+        let onDate = eon ? formatJustDate(parse(eon, refDate)?.start.date()) : formatJustDate(usersOriginalEventDate);
+        let atTime = eat ? formatJustTime(parse(eat, refDate)?.start.date()) : formatJustTime(usersOriginalEventDate);
+        let dateTimeStringToParse = `${onDate} at ${atTime}`;
         //new Date(new Date().toLocaleString("en-US", { timeZone: currUser.timezone }));
-        // console.log('refDate %s then - on %s at %s', refDate, onDate, atTime);
+        //console.debug('refDate %s then - on %s at %s', refDate, onDate, atTime);
         let eventDateParsed = parse(dateTimeStringToParse, refDate, { timezoneOffset: timezoneOffset });
         if (!eventDateParsed) {
             throw new Error(`Could not determine date and time from arguments passed in (date: ${onDate}, time: ${atTime})`);

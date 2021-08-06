@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
-  - [Unreleased](#unreleased)
+  - [1.6.4 (2021-08-06)](#164-2021-08-06)
   - [1.6.3 (2021-07-22)](#163-2021-07-22)
   - [1.6.2 (2021-07-20)](#162-2021-07-20)
   - [1.6.1 (2021-07-20)](#161-2021-07-20)
@@ -96,13 +96,18 @@
 
 # Changelog
 
-## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+## [1.6.4](https://github.com/jcolson/dndvault-bot/tree/1.6.4) (2021-08-06)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.3...HEAD)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.3...1.6.4)
+
+**Fixed bugs:**
+
+- /event\_create doesn't work for 'today' @9pm , says 12:00 am [\#358](https://github.com/jcolson/dndvault-bot/issues/358)
+- event\_edit causing error with trim\(\) [\#350](https://github.com/jcolson/dndvault-bot/issues/350)
 
 **Closed issues:**
 
-- event\_edit causing error with trim\(\) [\#350](https://github.com/jcolson/dndvault-bot/issues/350)
+- investigate fuzzy date logic in event creates and edits [\#260](https://github.com/jcolson/dndvault-bot/issues/260)
 
 ## [1.6.3](https://github.com/jcolson/dndvault-bot/tree/1.6.3) (2021-07-22)
 
@@ -139,16 +144,13 @@
 
 **Implemented enhancements:**
 
+- Consolidate config commands to a single command [\#340](https://github.com/jcolson/dndvault-bot/issues/340)
 - Feature: Additional option in events to limit event creation to Approval role. [\#339](https://github.com/jcolson/dndvault-bot/issues/339)
 - Add documentation in how to run the bot privately [\#333](https://github.com/jcolson/dndvault-bot/issues/333)
 
 **Fixed bugs:**
 
 - bug: if an channelForEvents channel that is invalid is setup, recurring events will fail [\#329](https://github.com/jcolson/dndvault-bot/issues/329)
-
-**Closed issues:**
-
-- Consolidate config commands to a single command [\#340](https://github.com/jcolson/dndvault-bot/issues/340)
 
 ## [1.5.8](https://github.com/jcolson/dndvault-bot/tree/1.5.8) (2021-07-02)
 
@@ -158,7 +160,7 @@
 
 [Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.6...1.5.7)
 
-**Closed issues:**
+**Fixed bugs:**
 
 - polls - exception - title: must be 256 or fewer in length [\#323](https://github.com/jcolson/dndvault-bot/issues/323)
 
@@ -166,9 +168,12 @@
 
 [Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.5.5...1.5.6)
 
-**Closed issues:**
+**Fixed bugs:**
 
 - if a player is on standby, the event will still show on their calendar [\#320](https://github.com/jcolson/dndvault-bot/issues/320)
+
+**Closed issues:**
+
 - eventShow throws exception when called from recurEvents [\#317](https://github.com/jcolson/dndvault-bot/issues/317)
 
 ## [1.5.5](https://github.com/jcolson/dndvault-bot/tree/1.5.5) (2021-06-27)
