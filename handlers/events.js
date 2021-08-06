@@ -676,7 +676,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         throw new Error('You must include a date for your event.');
     } else if ((!eat && !existingEvent?.date_time) || eat === null) {
         throw new Error('You must include a time for your event.');
-    } else if ((!ewith && !existingEvent?.number_player_slots && ewith != 0) || ewith === null) {
+    } else if ((!ewith && !existingEvent?.number_player_slots && ewith != 0 && existingEvent?.number_player_slots != 0) || ewith === null) {
         throw new Error('You must include a number of player slots for your event.');
     } else if ((!edesc && !existingEvent?.description) || edesc === null) {
         throw new Error('You must include a description for your event.');
@@ -1301,7 +1301,9 @@ async function sendReminders(client) {
                     usersToNotify.push(theEvent.dm);
                 }
                 for (attendee of theEvent.attendees) {
-                    usersToNotify.push(attendee.userID);
+                    if (!attendee.standby) {
+                        usersToNotify.push(attendee.userID);
+                    }
                 }
                 usersToNotify = [...new Set(usersToNotify)];
                 console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
