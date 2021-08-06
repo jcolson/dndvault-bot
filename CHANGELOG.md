@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [1.6.6 (2021-08-06)](#166-2021-08-06)
+  - [1.6.5 (2021-08-06)](#165-2021-08-06)
   - [1.6.4 (2021-08-06)](#164-2021-08-06)
   - [1.6.3 (2021-07-22)](#163-2021-07-22)
   - [1.6.2 (2021-07-20)](#162-2021-07-20)
@@ -95,6 +97,23 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [1.6.6](https://github.com/jcolson/dndvault-bot/tree/1.6.6) (2021-08-06)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.5...1.6.6)
+
+**Fixed bugs:**
+
+- reminders are sent for standby attendees [\#365](https://github.com/jcolson/dndvault-bot/issues/365)
+- editing event with 0 attendee slots throws an exception [\#364](https://github.com/jcolson/dndvault-bot/issues/364)
+
+**Closed issues:**
+
+- separation of Sign-Ups vs Attendees for events [\#361](https://github.com/jcolson/dndvault-bot/issues/361)
+
+## [1.6.5](https://github.com/jcolson/dndvault-bot/tree/1.6.5) (2021-08-06)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/1.6.4...1.6.5)
 
 ## [1.6.4](https://github.com/jcolson/dndvault-bot/tree/1.6.4) (2021-08-06)
 
