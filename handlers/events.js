@@ -633,9 +633,12 @@ async function handleEventListDeployed(msg, msgParms, guildConfig) {
  */
 function findParmIfEmptyMakeNull(msgParms, nameToFind) {
     let foundValue = msgParms.find(p => p.name == nameToFind);
+    // console.debug(`findParmIfEmptyMakeNull: ${nameToFind}: ${foundValue?.value}`);
     if (foundValue) {
         foundValue = foundValue.value;
-        if (foundValue == '') {
+        // console.debug('findParmIfEmptyMakeNull: foundValue: ', foundValue);
+        if (foundValue === '') {
+            // console.debug('findParmIfEmptyMakeNull: foundValue == \'\'', foundValue);
             foundValue = null;
         }
     }
@@ -661,7 +664,8 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     edmgm = utils.trimTagsFromId(edmgm);
     let ecampaign = findParmIfEmptyMakeNull(msgParms, 'campaign');
     let erecurEvery = findParmIfEmptyMakeNull(msgParms, 'recur_every');
-
+    // console.debug(`validateEvent: ewith: ${ewith}`);
+    // null's are forced value updates to clear other attributes
     if ((!etitle && !existingEvent?.title) || etitle === null) {
         throw new Error('You must include a title for your event.');
     } else if ((!efor && !existingEvent?.duration_hours) || efor === null) {
@@ -672,7 +676,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         throw new Error('You must include a date for your event.');
     } else if ((!eat && !existingEvent?.date_time) || eat === null) {
         throw new Error('You must include a time for your event.');
-    } else if ((!ewith && !existingEvent?.number_player_slots) || ewith === null) {
+    } else if ((!ewith && !existingEvent?.number_player_slots && ewith != 0) || ewith === null) {
         throw new Error('You must include a number of player slots for your event.');
     } else if ((!edesc && !existingEvent?.description) || edesc === null) {
         throw new Error('You must include a description for your event.');
@@ -713,7 +717,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     validatedEvent.title = etitle === null ? undefined : (etitle ? etitle : validatedEvent.title);
     validatedEvent.dm = edmgm === null ? undefined : (edmgm ? edmgm : validatedEvent.dm);
     validatedEvent.duration_hours = efor === null ? undefined : (efor ? efor : validatedEvent.duration_hours);
-    validatedEvent.number_player_slots = ewith === null ? undefined : (ewith ? ewith : validatedEvent.number_player_slots);
+    validatedEvent.number_player_slots = ewith === null ? undefined : (ewith || ewith == 0 ? ewith : validatedEvent.number_player_slots);
     validatedEvent.campaign = ecampaign === null ? undefined : (ecampaign ? ecampaign : validatedEvent.campaign);
     validatedEvent.description = edesc === null ? undefined : (edesc ? edesc : validatedEvent.description);
     validatedEvent.recurEvery = erecurEvery === null || 0 ? undefined : (erecurEvery ? erecurEvery : validatedEvent.recurEvery);
