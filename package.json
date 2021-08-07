@@ -1,6 +1,6 @@
 {
     "name": "dndvault",
-    "version": "1.6.6",
+    "version": "v1.6.7",
     "description": "D&D Character Vault and Event Management for Discord.",
     "main": "index.js",
     "scripts": {
