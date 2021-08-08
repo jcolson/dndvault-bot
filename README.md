@@ -46,17 +46,13 @@ The most complete Dungeons and Dragons Character Vault, Event Management, Pollin
 
 ## Current build status
 
-- ChangeLog
-[ChangeLog](CHANGELOG.md)
+- [Change Log](CHANGELOG.md)
 
-- Develop Branch
-[![ci](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml/badge.svg?branch=develop)](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml)
+- Develop Branch - Development Tests
+  - [![test](https://github.com/jcolson/dndvault-bot/actions/workflows/test.yaml/badge.svg)](https://github.com/jcolson/dndvault-bot/actions/workflows/test.yaml)
 
-- Docker Branch
-[![ci](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml/badge.svg?branch=docker)](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml)
-
-- Master Branch
-[![ci](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/jcolson/dndvault-bot/actions/workflows/main.yml)
+- Docker Branch - Releases
+  - [![dockerhub](https://github.com/jcolson/dndvault-bot/actions/workflows/dockerhub.yml/badge.svg)](https://github.com/jcolson/dndvault-bot/actions/workflows/dockerhub.yml)
 
 ## Character Vault
 
