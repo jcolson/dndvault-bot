@@ -1,16 +1,14 @@
 {
     "name": "dndvault",
-    "version": "1.6.6",
+    "version": "v1.6.8",
     "description": "D&D Character Vault and Event Management for Discord.",
     "main": "index.js",
     "scripts": {
         "test": "jest",
-        "changelog": "github_changelog_generator --user jcolson --project dndvault-bot -t ${CHANGELOG_GITHUB_TOKEN} --no-pull-requests && doctoc CHANGELOG.md",
         "preinstall": "npx npm-force-resolutions"
     },
     "scriptsComments": {
         "test": "use jest for testing",
-        "changelog": "run this after a tag has been pushed to github",
         "preinstall": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
     },
     "keywords": [],
