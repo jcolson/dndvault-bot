@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.6.8 (2021-08-08)](#v168-2021-08-08)
   - [v1.6.7 (2021-08-07)](#v167-2021-08-07)
   - [1.6.6 (2021-08-06)](#166-2021-08-06)
   - [1.6.5 (2021-08-06)](#165-2021-08-06)
@@ -98,6 +99,10 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.6.8](https://github.com/jcolson/dndvault-bot/tree/v1.6.8) (2021-08-08)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.6.7...v1.6.8)
 
 ## [v1.6.7](https://github.com/jcolson/dndvault-bot/tree/v1.6.7) (2021-08-07)
 
