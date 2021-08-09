@@ -747,6 +747,7 @@ client.once('ready', async () => {
         await events.sendReminders(client);
         await events.recurEvents(client);
         await events.removeOldSessionPlanningChannels(client);
+        await events.removeOldSessionVoiceChannels(client);
     });
 });
 

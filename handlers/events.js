@@ -1410,7 +1410,6 @@ async function recurEvents(client) {
 
 /**
  * removes old session planning channels
- * @TODO will need to do this for voiceChannel as well
  */
 async function removeOldSessionPlanningChannels(client) {
     try {
@@ -1480,6 +1479,77 @@ async function removeOldSessionPlanningChannels(client) {
     }
 }
 
+/**
+ * removes old session voice channels
+ */
+ async function removeOldSessionVoiceChannels(client) {
+    try {
+        let guildsToRemoveChannels = client.guilds.cache.keyArray();
+        // will need a mongo pipeline to figure out which channels to remove
+        const channelsToRemove = await EventModel.aggregate(
+            [{
+                $match: {
+                    $and: [
+                        {
+                            guildID: {
+                                $in: guildsToRemoveChannels
+                            }
+                        },
+                        {
+                            voiceChannel: {
+                                $ne: null
+                            }
+                        }
+                    ]
+                }
+            }, {
+                $lookup: {
+                    from: 'guilds',
+                    localField: 'guildID',
+                    foreignField: 'guildID',
+                    as: 'guildDocs'
+                }
+            }, {
+                $project: {
+                    voiceChannel: 1,
+                    date_time: 1,
+                    guildID: 1,
+                    todayMinusEventPlanDays: {
+                        $toDate: {
+                            $subtract: [Date.now(), {
+                                $multiply: [1000, 3600, 24, {
+                                    '$arrayElemAt': ['$guildDocs.eventPlanDays', 0]
+                                }]
+                            }]
+                        }
+                    },
+                }
+            }, {
+                $match: {
+                    $expr: {
+                        $lt: ['$date_time', '$todayMinusEventPlanDays']
+                    }
+                }
+            }]
+        );
+        console.info("removeOldSessionVoiceChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRemoveChannels.length);
+        for (row of channelsToRemove) {
+            try {
+                let existingEvent = await EventModel.findById(row._id);
+                existingEvent.voiceChannel = undefined;
+                await existingEvent.save();
+                let guild = await client.guilds.fetch(row.guildID);
+                let voiceChannel = await guild.channels.resolve(row.voiceChannel);
+                await voiceChannel.delete();
+            } catch (error) {
+                console.error(`Could not remove an old session voice channel (${row.voiceChannel}) for event: ${row._id}.`, error);
+            }
+        }
+    } catch (error) {
+        console.error("removeOldSessionVoiceChannels: ", error);
+    }
+}
+
 exports.handleEventCreate = handleEventCreate;
 exports.handleEventShow = handleEventShow;
 exports.handleEventEdit = handleEventEdit;
@@ -1495,6 +1565,7 @@ exports.getLinkForEvent = getLinkForEvent;
 exports.sendReminders = sendReminders;
 exports.recurEvents = recurEvents;
 exports.removeOldSessionPlanningChannels = removeOldSessionPlanningChannels;
+exports.removeOldSessionVoiceChannels = removeOldSessionVoiceChannels;
 exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
 exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;

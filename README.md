@@ -197,7 +197,8 @@ In order to see the new slash commands and their accompanying options and descri
   - [#POLL_CHANNEL] - send all polls to this channel
   - [#EVENT_CHANNEL] - send all events to this channel
   - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
-  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning channel should be removed
+  - [EVENT_VOICE_CHANNEL_CATEGORY] - Configure what channel category to autocreate event voice channels in - if this is populated, then an "event voice channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning and voice channels should be removed
   - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
 ```
 
