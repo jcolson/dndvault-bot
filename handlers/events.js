@@ -693,20 +693,17 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         let usersOriginalEventDate;
         if (existingEvent?.date_time) {
             usersOriginalEventDate = getDateInDifferentTimezone(existingEvent.date_time, currUser.timezone);
-            // new Date(existingEvent.date_time.toLocaleString("en-US", { timeZone: currUser.timezone }));
-            // console.log('GMToriginaleventdate %s', existingEvent.date_time);
-            // console.log('usersoriginaleventdate %s', usersOriginalEventDate);
         }
-        //@todo: figure out a way to get the fuzzy parsing per date and per time working
-        let onDate = eon ? eon : formatJustDate(usersOriginalEventDate);
-        let atTime = eat ? eat : formatJustTime(usersOriginalEventDate);
-        let dateTimeStringToParse = `${onDate} at ${atTime}`;
         let refDate = usersOriginalEventDate ? usersOriginalEventDate : getDateInDifferentTimezone(new Date(), currUser.timezone);
-        // let onDate = eon ? formatJustDate(parse(eon, refDate)?.start.date()) : formatJustDate(usersOriginalEventDate);
-        // let atTime = eat ? formatJustTime(parse(eat, refDate)?.start.date()) : formatJustTime(usersOriginalEventDate);
-        // let dateTimeStringToParse = `${onDate} at ${atTime}`;
-        //new Date(new Date().toLocaleString("en-US", { timeZone: currUser.timezone }));
-        //console.debug('refDate %s then - on %s at %s', refDate, onDate, atTime);
+        let onDate = eon ? formatJustDate(parse(eon, refDate)?.start.date()) : formatJustDate(usersOriginalEventDate);
+        // parser thinks times with no colons are years ...  how would it now?  help it out
+        if (eat && !isNaN(eat)) {
+            eat = eat.substring(0, eat.length-2) + ':' + eat.substr(eat.length-2);
+        }
+        // console.debug(`validateEvent: ${parse(eat, refDate)?.start.date()}`);
+        let atTime = eat ? formatJustTime(parse(eat, refDate)?.start.date()) : formatJustTime(usersOriginalEventDate);
+        let dateTimeStringToParse = `${onDate} at ${atTime}`;
+        console.debug('validateEvent: refDate %s then - on %s at %s', refDate, onDate, atTime);
         let eventDateParsed = parse(dateTimeStringToParse, refDate, { timezoneOffset: timezoneOffset });
         if (!eventDateParsed) {
             throw new Error(`Could not determine date and time from arguments passed in (date: ${onDate}, time: ${atTime})`);
