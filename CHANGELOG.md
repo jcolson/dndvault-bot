@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.7.0 (2021-08-09)](#v170-2021-08-09)
   - [v1.6.9 (2021-08-09)](#v169-2021-08-09)
   - [v1.6.8 (2021-08-08)](#v168-2021-08-08)
   - [v1.6.7 (2021-08-07)](#v167-2021-08-07)
@@ -100,6 +101,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.7.0](https://github.com/jcolson/dndvault-bot/tree/v1.7.0) (2021-08-09)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.6.9...v1.7.0)
+
+**Implemented enhancements:**
+
+- enhancement: also add the ability to add a voice channel as well for events \(much like config\_eventplancat\) [\#312](https://github.com/jcolson/dndvault-bot/issues/312)
 
 ## [v1.6.9](https://github.com/jcolson/dndvault-bot/tree/v1.6.9) (2021-08-09)
 
