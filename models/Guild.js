@@ -47,6 +47,9 @@ const Guild = Schema({
     "eventPlanCat": {
         type: "String"
     },
+    "eventVoiceCat": {
+        type: "String"
+    },
     "eventPlanDays": {
         type: Number
     },

@@ -294,7 +294,7 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
     }
     if (existingEvent) {
         try {
-            await maintainPlanningChannel(guild, existingEvent, guildConfig, true);
+            await maintainPlanningChannels(guild, existingEvent, guildConfig, true);
         } catch (error) {
             console.error(`removeEvent: Could not remove associated planning channel for this event ${existingEvent._id}.`, error);
         }
@@ -379,7 +379,7 @@ async function eventShow(guild, msgChannel, eventID) {
             }
         }
         try {
-            await maintainPlanningChannel(guild, showEvent, guildConfig);
+            await maintainPlanningChannels(guild, showEvent, guildConfig);
         } catch (error) {
             console.error(`eventShow: had an issue maintaining planning channel`, error);
         }
@@ -428,6 +428,23 @@ async function eventShow(guild, msgChannel, eventID) {
 }
 
 /**
+ * function to maintain both the voice and text planning channels for an event
+ * 
+ * @param {Guild} guild
+ * @param {EventModel} eventToMaintain
+ * @param {GuildModel} guildConfig
+ * @param {Boolean} removeChannel
+ */
+async function maintainPlanningChannels(guild, eventToMaintain, guildConfig, removeChannel) {
+    if (guildConfig.eventPlanCat) {
+        eventToMaintain.planningChannel = await maintainPlanningChannel(guild, eventToMaintain, eventToMaintain.planningChannel, guildConfig.eventPlanCat, removeChannel, false);
+    }
+    if (guildConfig.eventVoiceCat) {
+        eventToMaintain.voiceChannel = await maintainPlanningChannel(guild, eventToMaintain, eventToMaintain.voiceChannel, guildConfig.eventVoiceCat, removeChannel, true);
+    }
+}
+
+/**
  * function to create planning channel if required for an event
  * also adds players to the channel if required
  * also removes players from the channel if required
@@ -435,21 +452,24 @@ async function eventShow(guild, msgChannel, eventID) {
  *
  * @param {Guild} guild
  * @param {EventModel} eventToMaintain
- * @param {GuildModel} guildConfig
+ * @param {String} eventChannel the event planningChannel or event voiceChannel to maintain
+ * @param {String} guildConfigCategory
  * @param {Boolean} removeChannel
+ * @param {Boolean} isVoiceChannel
+ * @returns {String} eventToMaintain.planningChannel
  */
-async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, removeChannel) {
-    if (guildConfig.eventPlanCat) {
+async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, guildConfigCategory, removeChannel, isVoiceChannel) {
+    if (guildConfigCategory) {
         if (!await guild.me.hasPermission(SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${SESSION_PLANNING_PERMS}`);
         }
         if (removeChannel) {
-            if (eventToMaintain.planningChannel) {
-                console.debug(`maintainPlanningChannel: Removing planning channel (${eventToMaintain.planningChannel}) for event: ${eventToMaintain._id}.`);
-                let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+            if (eventChannel) {
+                console.debug(`maintainPlanningChannel: Removing planning channel (${eventChannel}) for event: ${eventToMaintain._id}.`);
+                let planningChannel = await guild.channels.resolve(eventChannel);
                 if (!planningChannel) {
-                    console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventToMaintain.planningChannel}, so couldn't remove it.`);
-                    eventToMaintain.planningChannel = undefined;
+                    console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventChannel}, so couldn't remove it.`);
+                    eventChannel = undefined;
                 } else {
                     await planningChannel.delete();
                 }
@@ -470,20 +490,20 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
             playersInChannelShouldBe.push(guild.me.id);
             // console.debug(`maintainPlanningChannel: initial list of new players to add`, playersToAdd);
 
-            let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-');
+            let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-').toLowerCase();
             // if there is no channel for this event yet, lets make one
-            if (eventToMaintain.planningChannel) {
-                let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+            if (eventChannel) {
+                let planningChannel = await guild.channels.resolve(eventChannel);
                 // if we couldn't resolve the planning channel, unset it so we recreate it
                 if (!planningChannel) {
-                    console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventToMaintain.planningChannel}, we'll need to recreate it`);
-                    eventToMaintain.planningChannel = undefined;
+                    console.debug(`maintainPlanningChannel: could not resolve the planning channel ${eventChannel}, we'll need to recreate it`);
+                    eventChannel = undefined;
                 }
             }
-            if (!eventToMaintain.planningChannel) {
-                let planCategory = await guild.channels.resolve(guildConfig.eventPlanCat);
+            if (!eventChannel) {
+                let planCategory = await guild.channels.resolve(guildConfigCategory);
                 if (!planCategory) {
-                    throw new Error(`Could not locate event planning category <#${guildConfig.eventPlanCat}>`)
+                    throw new Error(`Could not locate event planning category <#${guildConfigCategory}>`)
                 }
                 let permissionOverwrites = [{
                     id: guild.me.id,
@@ -504,21 +524,22 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
                         console.error(`maintainPlanningChannel: could not add player, ${playerToAdd}, due to error: ${error.message}`);
                     }
                 }
-                let planningChannel = await guild.channels.create(channelNameShouldBe, {
+                let channelParms = {
+                    type: isVoiceChannel ? 'voice' : 'text',
                     parent: planCategory,
                     permissionOverwrites: permissionOverwrites,
-                });
-
-                eventToMaintain.planningChannel = planningChannel.id;
-                console.debug(`maintainPlanningChannel: planning channel id: ${eventToMaintain.planningChannel}`);
+                };
+                console.debug(`maintainPlanningChannel: channelParms:`, channelParms);
+                eventChannel = (await guild.channels.create(channelNameShouldBe, channelParms)).id;
+                console.debug(`maintainPlanningChannel: planning channel id: ${eventChannel}`);
             }
             // ensure planning channel exists
             // now maintain the channel's name (could need to change if title of event changed)
             // now maintain players once we have a channel
-            if (!eventToMaintain.planningChannel) {
+            if (!eventChannel) {
                 throw new Error(`Could not ensure a planning channel for this event`);
             }
-            let planningChannel = await guild.channels.resolve(eventToMaintain.planningChannel);
+            let planningChannel = await guild.channels.resolve(eventChannel);
             console.info(`maintainPlanningChannel: planningChannel resolved `, planningChannel.id);
             if (planningChannel.name != channelNameShouldBe) {
                 console.info(`maintainPlanningChannel: renaming channel from ${planningChannel.name} to ${channelNameShouldBe}`)
@@ -554,6 +575,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, guildConfig, remo
     } else {
         console.debug(`maintainPlanningChannel: no event planning category set, don't need to maintain event planning channels`);
     }
+    return eventChannel;
 }
 
 /**
@@ -698,7 +720,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
         let onDate = eon ? formatJustDate(parse(eon, refDate)?.start.date()) : formatJustDate(usersOriginalEventDate);
         // parser thinks times with no colons are years ...  how would it now?  help it out
         if (eat && !isNaN(eat)) {
-            eat = eat.substring(0, eat.length-2) + ':' + eat.substr(eat.length-2);
+            eat = eat.substring(0, eat.length - 2) + ':' + eat.substr(eat.length - 2);
         }
         // console.debug(`validateEvent: ${parse(eat, refDate)?.start.date()}`);
         let atTime = eat ? formatJustTime(parse(eat, refDate)?.start.date()) : formatJustTime(usersOriginalEventDate);
@@ -1137,7 +1159,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         eventForMessage.deployedByID = user.id;
     }
     try {
-        await maintainPlanningChannel(reaction.message.guild, eventForMessage, guildConfig);
+        await maintainPlanningChannels(reaction.message.guild, eventForMessage, guildConfig);
     } catch (error) {
         console.error(`deployEvent: encountered error maintaining planning channel`, error);
     }
@@ -1232,7 +1254,7 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
         }
     }
     try {
-        await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
+        await maintainPlanningChannels(message.guild, eventForMessage, guildConfig);
     } catch (error) {
         console.error(`attendeeAdd: encountered error maintianing planning channel`, error);
     }
@@ -1270,7 +1292,7 @@ async function attendeeRemove(message, user, eventForMessage, guildConfig) {
     }
     // console.log(eventForMessage);
     try {
-        await maintainPlanningChannel(message.guild, eventForMessage, guildConfig);
+        await maintainPlanningChannels(message.guild, eventForMessage, guildConfig);
     } catch (error) {
         console.error(`attendeeRemove: encountered error maintaining planning channel`, error);
     }
@@ -1388,6 +1410,7 @@ async function recurEvents(client) {
 
 /**
  * removes old session planning channels
+ * @TODO will need to do this for voiceChannel as well
  */
 async function removeOldSessionPlanningChannels(client) {
     try {

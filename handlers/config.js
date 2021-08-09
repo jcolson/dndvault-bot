@@ -49,6 +49,7 @@ async function configreset(param, guild, guildConfig) {
     guildConfig = await configeventchannel({ name: 'eventchannel', value: undefined }, guild, guildConfig);
     guildConfig = await configeventstandby({ name: 'eventstandby', value: false }, guild, guildConfig);
     guildConfig = await configchannelcategory({ name: 'channelcategory', value: undefined }, guild, guildConfig);
+    guildConfig = await configvoicecategory({ name: 'voicecategory', value: undefined }, guild, guildConfig);
     guildConfig = await configchanneldays({ name: 'channeldays', value: DEFAULT_CHANNEL_REMOVE_DAYS }, guild, guildConfig);
     guildConfig = await configcharacterapproval({ name: 'characterapproval', value: false }, guild, guildConfig);
     guildConfig = await configcampaign({ name: 'campaign', value: false }, guild, guildConfig);
@@ -142,6 +143,27 @@ async function configchannelcategory(param, guild, guildConfig) {
     return guildConfig;
 }
 
+async function configvoicecategory(param, guild, guildConfig) {
+    console.debug(`configvoicecategory:`, param);
+    if (param.value) {
+        let catTest = guild.channels.cache.find(c => c.name.toLowerCase() == param.value.toLowerCase() && c.type == "category");
+        if (!catTest) {
+            throw new Error(`Could not locate the channel category: ${param.value}`);
+        }
+        // await utils.checkChannelPermissions({ channel: catTest, guild: msg.guild }, events.SESSION_PLANNING_PERMS);
+        if (!await guild.me.hasPermission(events.SESSION_PLANNING_PERMS)) {
+            throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${events.SESSION_PLANNING_PERMS}`);
+        }
+        guildConfig.eventVoiceCat = catTest.id;
+        if (!guildConfig.eventPlanDays) {
+            guildConfig.eventPlanDays = DEFAULT_CHANNEL_REMOVE_DAYS;
+        }
+    } else {
+        guildConfig.eventVoiceCat = undefined;
+    }
+    return guildConfig;
+}
+
 async function configchanneldays(param, guild, guildConfig) {
     console.debug(`configchanneldays:`, param);
     let days = parseInt(param.value);
@@ -182,6 +204,7 @@ async function embedForConfig(guild, guildConfig) {
     let approverRoleName;
     let playerRoleName;
     let eventPlanCat = { name: 'Not Set' };
+    let eventVoiceCat = { name: 'Not Set' };
     try {
         if (guildConfig.channelForEvents) {
             channelForEvents = await guild.channels.resolve(guildConfig.channelForEvents);
@@ -215,6 +238,13 @@ async function embedForConfig(guild, guildConfig) {
     } catch (error) {
         console.error(`handleConfig: could not retrieve role for id: ${guildConfig.eventPlanCat}`, error);
     }
+    try {
+        if (guildConfig.eventVoiceCat) {
+            eventVoiceCat = await guild.channels.resolve(guildConfig.eventVoiceCat);
+        }
+    } catch (error) {
+        console.error(`handleConfig: could not retrieve role for id: ${guildConfig.eventVoiceCat}`, error);
+    }
     let configEmbed = new MessageEmbed().addFields(
         { name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
         { name: 'Prefix', value: guildConfig.prefix, inline: true },
@@ -225,6 +255,7 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Event Channel', value: channelForEvents.name, inline: true },
         { name: 'Poll Channel', value: channelForPolls.name, inline: true },
         { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
+        { name: 'Event Voice Channel Category', value: eventVoiceCat.name, inline: true },
         { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true },
         { name: 'Event Require Approver', value: guildConfig.eventRequireApprover, inline: true },
         { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing, inline: true }
@@ -439,6 +470,7 @@ exports.configpollchannel = configpollchannel;
 exports.configeventchannel = configeventchannel;
 exports.configeventstandby = configeventstandby;
 exports.configchannelcategory = configchannelcategory;
+exports.configvoicecategory = configvoicecategory;
 exports.configchanneldays = configchanneldays;
 exports.configcharacterapproval = configcharacterapproval;
 exports.configcampaign = configcampaign;

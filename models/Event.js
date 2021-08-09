@@ -76,6 +76,10 @@ const Event = Schema({
     "planningChannel": {
         type: String,
         index: true
+    },
+    "voiceChannel": {
+        type: String,
+        index: true
     }
 }, { optimisticConcurrency: true });
 module.exports = model('Event', Event);
