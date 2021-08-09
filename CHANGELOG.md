@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.7.2 (2021-08-09)](#v172-2021-08-09)
   - [v1.7.1 (2021-08-09)](#v171-2021-08-09)
   - [v1.7.0 (2021-08-09)](#v170-2021-08-09)
   - [v1.6.9 (2021-08-09)](#v169-2021-08-09)
@@ -102,6 +103,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.7.2](https://github.com/jcolson/dndvault-bot/tree/v1.7.2) (2021-08-09)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.7.1...v1.7.2)
+
+**Fixed bugs:**
+
+- sometimes users aren't cached and are failing to be joined to planning channels [\#378](https://github.com/jcolson/dndvault-bot/issues/378)
 
 ## [v1.7.1](https://github.com/jcolson/dndvault-bot/tree/v1.7.1) (2021-08-09)
 
