@@ -846,6 +846,9 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             if (theEvent.planningChannel) {
                 eventEmbed.addFields({ name: 'Event Planning Channel', value: `<#${theEvent.planningChannel}>`, inline: true });
             }
+            if (theEvent.voiceChannel) {
+                eventEmbed.addFields({ name: 'Event Voice Channel', value: `<#${theEvent.voiceChannel}>`, inline: true });
+            }
             eventEmbed.addFields({ name: 'Description', value: `${theEvent.description}`, inline: false });
         }
     }
