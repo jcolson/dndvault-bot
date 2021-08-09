@@ -637,6 +637,11 @@ global.COMMANDS = {
             "required": false,
             "type": 3
         }, {
+            "name": "voicecategory",
+            "description": "Channel Category to autocreate event voice channels in.",
+            "required": false,
+            "type": 3
+        }, {
             "name": "channeldays",
             "description": "The number of days after an event that the planning channel should be removed",
             "required": false,
@@ -742,6 +747,7 @@ client.once('ready', async () => {
         await events.sendReminders(client);
         await events.recurEvents(client);
         await events.removeOldSessionPlanningChannels(client);
+        await events.removeOldSessionVoiceChannels(client);
     });
 });
 
