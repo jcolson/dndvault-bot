@@ -252,7 +252,7 @@ In order to see the new slash commands and their accompanying options and descri
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
   - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
   - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign
-- [x] config !reset [RESET_BOOLEAN] !prole [@PLAYER_ROLE] !arole [@APPROVER_ROLE] !pollchannel [#POLL_CHANNEL] !eventchannel [#EVENT_CHANNEL] !eventstandby [EVENT_STANDBY_BOOLEAN] !channelcategory [EVENT_PLANNING_CHANNEL_CATEGORY] !channeldays [EVENT_PLANNING_CHANNEL_DAYS] !characterapproval [CHARACTER_APPROVAL_BOOLEAN] !campaign [CAMPAIGN_BOOLEAN] !prefix [NEW_PREFIX] - show/edit BOT config
+- [x] config !reset [RESET_BOOLEAN] !prole [@PLAYER_ROLE] !arole [@APPROVER_ROLE] !pollchannel [#POLL_CHANNEL] !eventchannel [#EVENT_CHANNEL] !eventstandby [EVENT_STANDBY_BOOLEAN] !channelcategory [EVENT_PLANNING_CHANNEL_CATEGORY] !voicecategory [EVENT_VOICE_CHANNEL_CATEGORY] !channeldays [EVENT_PLANNING_CHANNEL_DAYS] !characterapproval [CHARACTER_APPROVAL_BOOLEAN] !campaign [CAMPAIGN_BOOLEAN] !prefix [NEW_PREFIX] - show/edit BOT config
   - {no args} - show config
   - [RESET_BOOLEAN] - reset config to defaults
   - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
@@ -263,6 +263,7 @@ In order to see the new slash commands and their accompanying options and descri
   - [#POLL_CHANNEL] - send all polls to this channel
   - [#EVENT_CHANNEL] - send all events to this channel
   - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [EVENT_VOICE_CHANNEL_CATEGORY] - Configure what channel category to autocreate event voice channels in - if this is populated, then an "event voice channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
   - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning channel should be removed
   - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
 ```
