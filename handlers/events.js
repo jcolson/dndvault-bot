@@ -567,7 +567,8 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             console.debug(`maintainPlanningChannel: new players to add`, playersToAdd);
             // console.debug(`maintainPlanningChannel: old players to remove`, playersToRemove);
             for (playerAdd of playersToAdd) {
-                console.debug(`maintainPlanningChannel: adding ${playerAdd}`);
+                console.debug(`maintainPlanningChannel: adding: '${playerAdd}'`, playerAdd);
+                playerAdd = await guild.members.fetch(playerAdd);
                 await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
             }
             // eventToMaintain.save();
@@ -1485,7 +1486,7 @@ async function removeOldSessionPlanningChannels(client) {
 /**
  * removes old session voice channels
  */
- async function removeOldSessionVoiceChannels(client) {
+async function removeOldSessionVoiceChannels(client) {
     try {
         let guildsToRemoveChannels = client.guilds.cache.keyArray();
         // will need a mongo pipeline to figure out which channels to remove
