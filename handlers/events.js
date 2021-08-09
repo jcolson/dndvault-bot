@@ -484,7 +484,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             if (eventToMaintain.dm) {
                 playersToAdd.push(eventToMaintain.dm);
             }
-            playersToAdd.push(eventToMaintain.userID);
+            // playersToAdd.push(eventToMaintain.userID);
             playersToAdd = [...new Set(playersToAdd)];
             let playersInChannelShouldBe = [...new Set(playersToAdd)];
             playersInChannelShouldBe.push(guild.me.id);
