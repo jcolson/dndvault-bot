@@ -834,7 +834,7 @@ client.on('interactionCreate', async (interaction) => {
     // const { name, options } = interaction.data;
     const command = interaction.commandName;
     try {
-        // console.debug("INTERACTION_CREATE:", interaction);
+        console.debug("interactionCreate:", interaction);
         if (interaction.guildId) {
             let guild = await client.guilds.resolve(interaction.guildId);
             msg.guild = guild;
@@ -843,20 +843,17 @@ client.on('interactionCreate', async (interaction) => {
             let channel = await client.channels.resolve(interaction.channelId);
             msg.channel = channel;
         }
-        if (interaction.member) {
-            let member = new GuildMember(client, interaction.member, msg.guild);
-            msg.member = member;
-            msg.author = member.user;
-        }
         if (interaction.user) {
-            let user = new User(client, interaction.user);
-            msg.author = user;
+            msg.author = interaction.user;
+            if (msg.guild) {
+                msg.member = await msg.guild.members.fetch(interaction.user);
+            }
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
         await handleCommandExec(guildConfig, command, msg, interaction.options.data);
     } catch (error) {
-        console.error(`clientOnINTERACTION_CREATE: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
+        console.error(`clientOninteractionCreate: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });

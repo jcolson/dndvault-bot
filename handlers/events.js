@@ -554,7 +554,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                 }
                 console.debug(`maintainPlanningChannel: COMPLETED renaming channel from ${planningChannel.name} to ${channelNameShouldBe}`)
             }
-            for (let [memberKey, permOverwrite] of planningChannel.permissionOverwrites) {
+            for (let [memberKey, permOverwrite] of planningChannel.permissionOverwrites.cache) {
                 // console.debug(`maintainPlanningChannel: existing permissionOverwrites key ${memberKey}:`, permOverwrite);
                 if (permOverwrite.type == 'member') {
                     let addIDidx = playersToAdd.findIndex((userID) => { return userID == memberKey });
@@ -573,7 +573,8 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             for (playerAdd of playersToAdd) {
                 console.debug(`maintainPlanningChannel: adding: '${playerAdd}'`, playerAdd);
                 playerAdd = await guild.members.fetch(playerAdd);
-                await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
+                await planningChannel.permissionOverwrites.create(playerAdd, { VIEW_CHANNEL: true }, { type: 1 });
+                // await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
             }
             // eventToMaintain.save();
         }
@@ -977,7 +978,7 @@ function formatJustTime(theDate) {
 
 async function handleReactionAdd(reaction, user, guildConfig) {
     try {
-        const member = await reaction.message.guild.member(user);
+        const member = await reaction.message.guild.members.fetch(user);
         if (!await users.hasRoleOrIsAdmin(member, guildConfig.prole)) {
             //, <@&${guildConfig.prole}>,
             throw new Error(`Please ensure that you are a member of the player role before attempting to interact.`);
