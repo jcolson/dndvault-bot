@@ -136,10 +136,11 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             if (reaction.message.embeds.length > 0 && !multAnswer) {
                 for (aReaction of reaction.message.reactions.cache.values()) {
                     if (aReaction.emoji.name != reaction.emoji.name) {
-                        if (aReaction.users.cache.array().length == 0) {
+                        if (aReaction.users.cache.size == 0) {
                             await aReaction.users.fetch();
                         }
-                        for (aUser of aReaction.users.cache.array()) {
+                        for (let [key, aUser] of aReaction.users.cache) {
+                        // for (aUser of aReaction.users.cache.array()) {
                             if (aUser.id == user.id) {
                                 aReaction.users.remove(user.id);
                             }
