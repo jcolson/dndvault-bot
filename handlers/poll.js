@@ -25,7 +25,7 @@ async function handlePoll(msg, msgParms, guildConfig) {
         if (guildConfig.channelForPolls) {
             pollChannel = await msg.guild.channels.resolve(guildConfig.channelForPolls);
         }
-        let sentMessage = await pollChannel.send(embedForPoll(msg, thePoll, allowMultiple));
+        let sentMessage = await pollChannel.send({ embeds: [embedForPoll(msg, thePoll, allowMultiple)] });
         for (let i = 0; i < thePoll.choices.length; i++) {
             sentMessage.react(thePoll.emojis[i]);
         }

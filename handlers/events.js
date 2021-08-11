@@ -385,7 +385,10 @@ async function eventShow(guild, msgChannel, eventID) {
         }
         const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let rolesToPing = utils.parseAllTagsFromString(showEvent.description);
-        sentMessage = await eventChannel.send(`${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`, embedEvent);
+        sentMessage = await eventChannel.send({
+            content: `${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`,
+            embeds: [embedEvent]
+        });
         if (showEvent.channelID && showEvent.messageID) {
             try {
                 // remove old event message
@@ -410,11 +413,12 @@ async function eventShow(guild, msgChannel, eventID) {
         if (showEvent.planningChannel) {
             try {
                 let planningChannel = await guild.channels.resolve(showEvent.planningChannel);
-                // await planningChannel.send(await embedForEvent(guild, [showEvent], 'Planning Channel', false));
-                await planningChannel.send(new MessageEmbed()
-                    .setColor(utils.COLORS.BLUE)
-                    .setThumbnail(guild.iconURL())
-                    .addField(`Event Planning Channel For`, `${getEmbedLinkForEvent(showEvent)}`));
+                await planningChannel.send({
+                    embeds: [new MessageEmbed()
+                        .setColor(utils.COLORS.BLUE)
+                        .setThumbnail(guild.iconURL())
+                        .addField(`Event Planning Channel For`, `${getEmbedLinkForEvent(showEvent)}`)]
+                });
             } catch (error) {
                 console.error(`eventShow: had an issue sending event embed to planning channel`, error);
             }
@@ -460,7 +464,7 @@ async function maintainPlanningChannels(guild, eventToMaintain, guildConfig, rem
  */
 async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, guildConfigCategory, removeChannel, isVoiceChannel) {
     if (guildConfigCategory) {
-        if (!await guild.me.hasPermission(SESSION_PLANNING_PERMS)) {
+        if (!await guild.me.permissions.has(SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${SESSION_PLANNING_PERMS}`);
         }
         if (removeChannel) {
@@ -1307,7 +1311,7 @@ async function attendeeRemove(message, user, eventForMessage, guildConfig) {
 async function sendReminders(client) {
     try {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
-        let guildsToRemind = client.guilds.cache.keyArray();
+        let guildsToRemind = Array.from(client.guilds.cache.keys());
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
         console.log("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
         for (theEvent of eventsToRemind) {
@@ -1357,7 +1361,7 @@ async function recurEvents(client) {
     try {
         // assume '1' hours after the event start time is a comfortable time to schedule a recurrent
         let toDate = new Date(new Date().getTime() - (1 * 1000 * 60 * 60));
-        let guildsToRecur = client.guilds.cache.keyArray();
+        let guildsToRecur = Array.from(client.guilds.cache.keys());
         let eventsToRecur = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, date_time: { $lt: toDate }, guildID: { $in: guildsToRecur } });
         console.log("recurEvents: for %d events until %s for %d guilds", eventsToRecur.length, toDate, guildsToRecur.length);
         for (theEvent of eventsToRecur) {
@@ -1417,7 +1421,7 @@ async function recurEvents(client) {
  */
 async function removeOldSessionPlanningChannels(client) {
     try {
-        let guildsToRemoveChannels = client.guilds.cache.keyArray();
+        let guildsToRemoveChannels = Array.from(client.guilds.cache.keys());
         // will need a mongo pipeline to figure out which channels to remove
         const channelsToRemove = await EventModel.aggregate(
             [{
@@ -1488,7 +1492,7 @@ async function removeOldSessionPlanningChannels(client) {
  */
 async function removeOldSessionVoiceChannels(client) {
     try {
-        let guildsToRemoveChannels = client.guilds.cache.keyArray();
+        let guildsToRemoveChannels = Array.from(client.guilds.cache.keys());
         // will need a mongo pipeline to figure out which channels to remove
         const channelsToRemove = await EventModel.aggregate(
             [{

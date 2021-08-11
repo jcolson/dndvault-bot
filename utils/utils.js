@@ -1,4 +1,4 @@
-const { MessageEmbed, APIMessage } = require("discord.js");
+const { MessageEmbed, MessagePayload } = require("discord.js");
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
@@ -126,16 +126,17 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 // if it's an interaction (slash command) and there is only 1 embed, then just reply with it
                 if (msg?.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
-                        clientWsReply(msg.interaction, embed);
+                        // clientWsReply(msg.interaction, embed);
+                        await msg.interaction.reply({ embeds: [embed] });
                     }
                     // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
                 } else {
                     for (let embed of embedsArray) {
                         if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
                             console.error(`sendDirectOrFallbackToChannelEmbeds: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}, original message:`, msg?.interaction ? msg.interaction.data?.options : msg?.content);
-                            sentMessage = await user.send(MESSAGE_TOO_LARGE_RESPONSE);
+                            sentMessage = await user.send({ content: MESSAGE_TOO_LARGE_RESPONSE });
                         } else {
-                            sentMessage = await user.send(embed);
+                            sentMessage = await user.send({ embeds: [embed] });
                         }
                     }
                 }
@@ -149,7 +150,8 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 let channel = locateChannelForMessageSend(msg.guild ? msg.guild : msg.interaction?.guild, msg.channel ? msg.channel : msg.interaction?.channel);
                 if (msg.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
-                        clientWsReply(msg.interaction, embed);
+                        // clientWsReply(msg.interaction, embed);
+                        await msg.interaction.reply({ embeds: [embed] });
                     }
                     messageSent = true;
                     // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
@@ -158,9 +160,9 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                         embed.addFields({ name: `Responding To`, value: `<@${user.id}>`, inline: false });
                         if (lengthOfEmbed(embed) > MAX_EMBED_SIZE) {
                             console.error(`sendDirectOrFallbackToChannelEmbeds: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}, original message:`, msg.interaction ? msg.interaction.data?.options : msg.content);
-                            sentMessage = await channel.send(MESSAGE_TOO_LARGE_RESPONSE);
+                            sentMessage = await channel.send({ content: MESSAGE_TOO_LARGE_RESPONSE });
                         } else {
-                            sentMessage = await channel.send(embed);
+                            sentMessage = await channel.send({ embeds: [embed] });
                         }
                     }
                     messageSent = true;
@@ -181,13 +183,15 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                 .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
-            clientWsReply(msg.interaction, interactionEmbed);
+            // clientWsReply(msg.interaction, interactionEmbed);
+            await msg.interaction.reply({ embeds: [interactionEmbed] });
         } else if (!messageSent && msg?.interaction && commsErrorMessage) {
             let interactionEmbed = new MessageEmbed()
                 .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(COLORS.RED)
                 .addField('Response', commsErrorMessage);
-            clientWsReply(msg.interaction, interactionEmbed);
+            // clientWsReply(msg.interaction, interactionEmbed);
+            await msg.interaction.reply({ embeds: [interactionEmbed] });
         }
         if (!messageSent) {
             throw new Error('No channel or DM method to send message.');
@@ -206,11 +210,11 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
 async function sendSimpleDirectOrFallbackToChannel(content, msg, user) {
     let sentMessage;
     try {
-        sentMessage = await user.send(content);
+        sentMessage = await user.send({ content: content });
     } catch (error) {
         console.error('could not send via DC; trying channel', error);
         try {
-            sentMessage = await msg.channel.send(content);
+            sentMessage = await msg.channel.send({ content: content });
         } catch (error) {
             console.error('could not send via DC or channel', error);
         }
@@ -470,55 +474,6 @@ function parseAllTagsFromString(mentions) {
     return matches;
 }
 
-
-/**
- * sending messages for websockets
- */
-async function clientWsReply(interaction, replyMessage) {
-    try {
-        letdata = {
-            content: replyMessage,
-        }
-        //check for embeds
-        if (typeof replyMessage === 'object') {
-            if (lengthOfEmbed(replyMessage) > MAX_EMBED_SIZE) {
-                console.error(`clientWsReply: ${lengthOfEmbed(embed)} - ${MESSAGE_TOO_LARGE_RESPONSE}`, interaction.data?.options);
-                data = {
-                    content: MESSAGE_TOO_LARGE_RESPONSE
-                }
-            } else {
-                data = await createAPIMessage(interaction, replyMessage);
-            }
-        }
-        await client.api.interactions(interaction.id, interaction.token).callback.post({
-            data: {
-                type: 4,
-                data: data
-            }
-        });
-    } catch (error) {
-        console.error('Caught error while trying to send WsReply', error);
-    }
-}
-
-/**
- * Create APIMessage for interaction embeds
- * @param {*} interaction
- * @param {*} content
- * @returns
- */
-async function createAPIMessage(interaction, content) {
-    const channel = await client.channels.fetch(interaction.channel_id);
-    if (channel) {
-        const { data, files } = await APIMessage.create(channel, content).resolveData().resolveFiles();
-        return { ...data, files };
-    } else {
-        console.error(`interaction`, interaction);
-        throw new Error(`channel did not resolve for interaction.channel_id: ${interaction.channel_id}`);
-    }
-
-}
-
 /**
  * remove all data for a guild
  * @param {Guild} guild
@@ -636,8 +591,8 @@ function locateChannelForMessageSend(guild, channel) {
         (channel.type !== 'text' ||
             !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']))) {
         // console.debug('finding another channel');
-        if (guild.systemChannelID) {
-            channel = guild.channels.resolve(guild.systemChannelID);
+        if (guild.systemChannelId) {
+            channel = guild.channels.resolve(guild.systemChannelId);
         }
         if (!channel || channel.type !== 'text' ||
             !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES'])) {
@@ -667,7 +622,6 @@ exports.checkChannelPermissions = checkChannelPermissions;
 exports.isTrue = isTrue;
 exports.isString = isString;
 exports.getDiscordUrl = getDiscordUrl;
-exports.clientWsReply = clientWsReply;
 exports.COLORS = COLORS;
 exports.EMOJIS = EMOJIS;
 exports.EMPTY_FIELD = EMPTY_FIELD;
