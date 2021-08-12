@@ -588,17 +588,17 @@ function parseIntOrMakeZero(intToParse) {
  */
 function locateChannelForMessageSend(guild, channel) {
     if (!channel ||
-        (channel.type !== 'text' ||
+        (channel.type !== 'GUILD_TEXT' ||
             !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']))) {
         // console.debug('finding another channel');
         if (guild.systemChannelId) {
             channel = guild.channels.resolve(guild.systemChannelId);
         }
-        if (!channel || channel.type !== 'text' ||
+        if (!channel || channel.type !== 'GUILD_TEXT' ||
             !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES'])) {
             channel = guild.channels.cache.find(c => {
                 // console.debug(`${c.name} - ${c.type} - ${c.permissionsFor(guild.me).has('VIEW_CHANNEL')} - ${c.permissionsFor(guild.me).has('SEND_MESSAGES')}`);
-                return (c.type == 'text' && c.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']));
+                return (c.type == 'GUILD_TEXT' && c.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']));
             });
         }
     }
