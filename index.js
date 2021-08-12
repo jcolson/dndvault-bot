@@ -324,29 +324,49 @@ let server = app
                     let eventString = '';
 
                     //eventID, currUserId, channelIDForEvent, guildID, guildApprovalRole, eventString
-                    status = await manager.broadcastEval(
-                        `this.dnd_users.bc_eventEdit
-                        ('${request.body._id}',
-                        '${request.session.discordMe.id}',
-                        '${channelIDForEvent}',
-                        '${request.session.guildConfig.guildID}',
-                        '${request.session.guildConfig.arole}',
-                        '${request.session.guildConfig.eventRequireApprover}',
-                        '${eventString}');`
-                    );
+                    status = await manager.broadcastEval(async (client, { bodyId, discordMeId, channelIDForEvent, guildId, arole, eventRequireApprover, eventString }) => {
+                        await client.dnd_users.bc_eventEdit(
+                            bodyId,
+                            discordMeId,
+                            channelIDForEvent,
+                            guildId,
+                            arole,
+                            eventRequireApprover,
+                            eventString)
+                    }, {
+                        context: {
+                            bodyId: request.body._id,
+                            discordMeId: request.session.discordMe.id,
+                            channelIDForEvent: channelIDForEvent,
+                            guildId: request.session.guildConfig.guildID,
+                            arole: request.session.guildConfig.arole,
+                            eventRequireApprover: request.session.guildConfig.eventRequireApprover,
+                            eventString: eventString,
+                        }
+                    });
                 } else {
                     // @todo implement create
                     console.log(`HTTP: new event, no _id`);
                     //currUserId, channelIDForEvent, guildID, eventString
-                    status = await manager.broadcastEval(
-                        `this.dnd_users.bc_eventCreate
-                        ('${request.session.discordMe.id}',
-                        '${request.session.grant.dynamic.channel}',
-                        '${timezoneToSet}',
-                        '${request.session.guildConfig.guildID}',
-                        '${request.session.guildConfig.arole}',
-                        '${request.session.guildConfig.eventRequireApprover}');`
-                    );
+                    status = await manager.broadcastEval(async (client, { discordMeId, channelIDForEvent, timezoneToSet, guildId, arole, eventRequireApprover }) => {
+                        await client.dnd_users.bc_eventCreate(
+                            discordMeId,
+                            channelIDForEvent,
+                            timezoneToSet,
+                            guildId,
+                            arole,
+                            eventRequireApprover
+                        )
+                    }, {
+                        context: {
+                            discordMeId: request.session.discordMe.id,
+                            channelIDForEvent: request.session.grant.dynamic.channel,
+                            timezoneToSet: timezoneToSet,
+                            guildId: request.session.guildConfig.guildID,
+                            arole: request.session.guildConfig.arole,
+                            eventRequireApprover: request.session.guildConfig.eventRequireApprover,
+                        }
+                    });
                 }
             }
             response.json({ status: status });
