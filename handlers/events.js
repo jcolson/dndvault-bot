@@ -1315,7 +1315,7 @@ async function sendReminders(client) {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
         let guildsToRemind = Array.from(client.guilds.cache.keys());
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
-        console.log("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
+        console.debug("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
         for (theEvent of eventsToRemind) {
             try {
                 theEvent.reminderSent = new Date();
@@ -1326,6 +1326,9 @@ async function sendReminders(client) {
                     continue;
                 }
                 let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
+                if (!theEvent.channelID || !theEvent.messageID){
+                    throw new Error(`sendReminders: this event (${theEvent.id}) is malformed, there is no channelID or messageID, skipping.`);
+                }
                 let channel = new TextChannel(guild, { id: theEvent.channelID });
                 let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
                 let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
