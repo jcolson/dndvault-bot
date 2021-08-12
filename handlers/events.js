@@ -306,7 +306,7 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
             eventMessage = await (
                 await guild.channels.resolve(channelId)
             ).messages.fetch(messageId);
-            await eventMessage.edit(await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id));
+            await eventMessage.edit({ embeds: await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id) });
             await eventMessage.reactions.removeAll();
         } catch (error) {
             console.error(`removeEvent: Could not locate event message, it may have been removed already ... event removed without removing the associated message embed`);
@@ -1173,7 +1173,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         console.error(`deployEvent: encountered error maintaining planning channel`, error);
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true));
+    await reaction.message.edit({ embeds: await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true) });
 }
 
 /**
@@ -1268,7 +1268,7 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
         console.error(`attendeeAdd: encountered error maintianing planning channel`, error);
     }
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
+    await message.edit({ embeds: await embedForEvent(message.guild, [eventForMessage], undefined, true) });
 }
 
 /**
@@ -1306,7 +1306,7 @@ async function attendeeRemove(message, user, eventForMessage, guildConfig) {
         console.error(`attendeeRemove: encountered error maintaining planning channel`, error);
     }
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
+    await message.edit({ embeds: await embedForEvent(message.guild, [eventForMessage], undefined, true) });
 }
 
 async function sendReminders(client) {
