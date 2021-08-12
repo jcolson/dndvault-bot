@@ -249,13 +249,20 @@ let server = app
                 // console.log(request.session.discordMe);
                 // console.log(requestUrl);
                 const timezoneToSet = requestUrl.searchParams.get('timezone');
-                let status = await manager.broadcastEval(
-                    `this.dnd_users.bc_setUsersTimezone
-                        ('${request.session.discordMe.id}',
-                        '${request.session.channelID}',
-                        '${timezoneToSet}',
-                        '${request.session.guildConfig.guildID}');`
-                );
+                let status = await manager.broadcastEval(async (client, { discordMeId, channelId, timezoneToSet, guildId }) => {
+                    return await client.dnd_users.bc_setUsersTimezone(
+                        discordMeId,
+                        channelId,
+                        timezoneToSet,
+                        guildId);
+                }, {
+                    context: {
+                        discordMeId: request.session.discordMe.id,
+                        channelId: request.session.channelID,
+                        timezoneToSet: timezoneToSet,
+                        guildId: request.session.guildConfig.guildID
+                    }
+                });
                 console.log(`HTTP: users.bc_setUsersTimezone response: ${status.includes(true)}`);
                 response.json({ status: status.includes(true) });
             } else {
