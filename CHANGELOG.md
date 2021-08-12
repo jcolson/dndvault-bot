@@ -3,6 +3,11 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.8.4 (2021-08-12)](#v184-2021-08-12)
+  - [v1.8.3 (2021-08-12)](#v183-2021-08-12)
+  - [v1.8.2 (2021-08-12)](#v182-2021-08-12)
+  - [v1.8.1 (2021-08-12)](#v181-2021-08-12)
+  - [v1.8.0 (2021-08-12)](#v180-2021-08-12)
   - [v1.7.2 (2021-08-09)](#v172-2021-08-09)
   - [v1.7.1 (2021-08-09)](#v171-2021-08-09)
   - [v1.7.0 (2021-08-09)](#v170-2021-08-09)
@@ -103,6 +108,56 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.8.4](https://github.com/jcolson/dndvault-bot/tree/v1.8.4) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.3...v1.8.4)
+
+## [v1.8.3](https://github.com/jcolson/dndvault-bot/tree/v1.8.3) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.2...v1.8.3)
+
+**Implemented enhancements:**
+
+- enhancement - event voice channels, configurable to not limit to the party signed up for the event [\#386](https://github.com/jcolson/dndvault-bot/issues/386)
+
+**Fixed bugs:**
+
+- unnecessarily renaming channels due to character replacement at the end/beginning ... trim them [\#385](https://github.com/jcolson/dndvault-bot/issues/385)
+
+## [v1.8.2](https://github.com/jcolson/dndvault-bot/tree/v1.8.2) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.1...v1.8.2)
+
+**Fixed bugs:**
+
+- another sharding issue ... on web module [\#392](https://github.com/jcolson/dndvault-bot/issues/392)
+- stats command getting `SHARDING_INVALID_EVAL_BROADCAST` [\#391](https://github.com/jcolson/dndvault-bot/issues/391)
+
+**Closed issues:**
+
+- handle malformed events cleaner in sendreminders [\#393](https://github.com/jcolson/dndvault-bot/issues/393)
+
+## [v1.8.1](https://github.com/jcolson/dndvault-bot/tree/v1.8.1) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.0...v1.8.1)
+
+**Fixed bugs:**
+
+- discordjs v13 bug - on old prefix commands, finding channel to respond is failing [\#389](https://github.com/jcolson/dndvault-bot/issues/389)
+
+## [v1.8.0](https://github.com/jcolson/dndvault-bot/tree/v1.8.0) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.7.2...v1.8.0)
+
+**Implemented enhancements:**
+
+- update to discord.js v13 [\#383](https://github.com/jcolson/dndvault-bot/issues/383)
+
+**Fixed bugs:**
+
+- Dm couldn't join audio chat [\#384](https://github.com/jcolson/dndvault-bot/issues/384)
+- the creator of an event shouldn't be defaulted to the planning channel for the event [\#381](https://github.com/jcolson/dndvault-bot/issues/381)
 
 ## [v1.7.2](https://github.com/jcolson/dndvault-bot/tree/v1.7.2) (2021-08-09)
 

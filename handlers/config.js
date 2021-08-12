@@ -20,7 +20,7 @@ async function handleConfig(msg, msgParms, guildConfig) {
                 // check to see if param passed is part of config options before dynamically calling function
                 for (option of COMMANDS.config.options) {
                     if (option.name == param.name) {
-                        // console.debug(`handleConfig: COMMAND: ${param.name}`);
+                        console.debug(`handleConfig: COMMAND: ${param.name}`);
                         if (utils.isString(param.value) && param.value?.trim() == '') {
                             param.value = undefined;
                         }
@@ -50,6 +50,7 @@ async function configreset(param, guild, guildConfig) {
     guildConfig = await configeventstandby({ name: 'eventstandby', value: false }, guild, guildConfig);
     guildConfig = await configchannelcategory({ name: 'channelcategory', value: undefined }, guild, guildConfig);
     guildConfig = await configvoicecategory({ name: 'voicecategory', value: undefined }, guild, guildConfig);
+    guildConfig = await configvoiceperms({ name: 'voiceperms', value: 'attendees' }, guild, guildConfig);
     guildConfig = await configchanneldays({ name: 'channeldays', value: DEFAULT_CHANNEL_REMOVE_DAYS }, guild, guildConfig);
     guildConfig = await configcharacterapproval({ name: 'characterapproval', value: false }, guild, guildConfig);
     guildConfig = await configcampaign({ name: 'campaign', value: false }, guild, guildConfig);
@@ -130,7 +131,7 @@ async function configchannelcategory(param, guild, guildConfig) {
             throw new Error(`Could not locate the channel category: ${param.value}`);
         }
         // await utils.checkChannelPermissions({ channel: catTest, guild: msg.guild }, events.SESSION_PLANNING_PERMS);
-        if (!await guild.me.hasPermission(events.SESSION_PLANNING_PERMS)) {
+        if (!await guild.me.permissions.has(events.SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${events.SESSION_PLANNING_PERMS}`);
         }
         guildConfig.eventPlanCat = catTest.id;
@@ -151,7 +152,7 @@ async function configvoicecategory(param, guild, guildConfig) {
             throw new Error(`Could not locate the channel category: ${param.value}`);
         }
         // await utils.checkChannelPermissions({ channel: catTest, guild: msg.guild }, events.SESSION_PLANNING_PERMS);
-        if (!await guild.me.hasPermission(events.SESSION_PLANNING_PERMS)) {
+        if (!await guild.me.permissions.has(events.SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${events.SESSION_PLANNING_PERMS}`);
         }
         guildConfig.eventVoiceCat = catTest.id;
@@ -160,6 +161,16 @@ async function configvoicecategory(param, guild, guildConfig) {
         }
     } else {
         guildConfig.eventVoiceCat = undefined;
+    }
+    return guildConfig;
+}
+
+async function configvoiceperms(param, guild, guildConfig) {
+    console.debug(`configvoiceperms:`, param);
+    if (param.value) {
+        guildConfig.eventVoicePerms = param.value;
+    } else {
+        guildConfig.eventVoicePerms = 'attendees';
     }
     return guildConfig;
 }
@@ -201,8 +212,9 @@ async function configprefix(param, guild, guildConfig) {
 async function embedForConfig(guild, guildConfig) {
     let channelForEvents = { name: 'Not Set' };
     let channelForPolls = { name: 'Not Set' };
-    let approverRoleName;
-    let playerRoleName;
+    let approverRoleName = 'Not Set';
+    let playerRoleName = 'Not Set';
+    let eventVoicePerms = guildConfig.eventVoicePerms ? guildConfig.eventVoicePerms : 'Not Set';
     let eventPlanCat = { name: 'Not Set' };
     let eventVoiceCat = { name: 'Not Set' };
     try {
@@ -250,15 +262,16 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Prefix', value: guildConfig.prefix, inline: true },
         { name: 'Approver Role', value: approverRoleName, inline: true },
         { name: 'Player Role', value: playerRoleName, inline: true },
-        { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
-        { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent, inline: true },
+        { name: 'Approval Required', value: guildConfig.requireCharacterApproval.toString(), inline: true },
+        { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent.toString(), inline: true },
         { name: 'Event Channel', value: channelForEvents.name, inline: true },
         { name: 'Poll Channel', value: channelForPolls.name, inline: true },
         { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
         { name: 'Event Voice Channel Category', value: eventVoiceCat.name, inline: true },
-        { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true },
-        { name: 'Event Require Approver', value: guildConfig.eventRequireApprover, inline: true },
-        { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing, inline: true }
+        { name: 'Event Voice Permissions', value: eventVoicePerms, inline: true },
+        { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays.toString(), inline: true },
+        { name: 'Event Require Approver', value: guildConfig.eventRequireApprover.toString(), inline: true },
+        { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing.toString(), inline: true }
     );
     return configEmbed;
 }
@@ -369,20 +382,31 @@ async function confirmGuildConfig(guild) {
 async function handleStats(msg) {
     try {
         if (msg.author.id == Config.adminUser) {
-            let totalGuilds = (await msg.client.shard.fetchClientValues('guilds.cache.size'))
-                .reduce((acc, guildCount) => acc + guildCount, 0);;
-            let totalMembers = (await msg.client.shard.broadcastEval('this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)'))
-                .reduce((acc, memberCount) => acc + memberCount, 0);
+            let totalGuildArray = await msg.client.shard.fetchClientValues('guilds.cache.size');
+            // console.debug(`handleStats: guild counts per shard: `, totalGuildArray);
+            let totalGuilds = totalGuildArray.reduce((accumulator, guildCount) => {
+                return accumulator + guildCount;
+            });
+            // console.debug(`handleStats: guild counts total: `, totalGuilds);
+            let totalMembers = (await msg.client.shard.broadcastEval((client) => {
+                let totalMemberCount = 0;
+                client.guilds.cache.reduce((guildName, guild) => {
+                    // console.debug(`handleStats: ${acc}`, guild);
+                    totalMemberCount += guild.memberCount;
+                });
+                return totalMemberCount;
+            }));
             await utils.sendDirectOrFallbackToChannel([
-                { name: 'Server count', value: totalGuilds, inline: true },
-                { name: 'Member count', value: totalMembers, inline: true },
-                { name: 'Shard count', value: msg.client.shard.count, inline: true },
+                { name: 'Server count', value: totalGuilds.toString(), inline: true },
+                { name: 'Member count', value: totalMembers.toString(), inline: true },
+                { name: 'Shard count', value: msg.client.shard.count.toString(), inline: true },
                 { name: 'Uptime', value: getUptime(), inline: true },
                 { name: 'BOT Version', value: vaultVersion, inline: true }
             ], msg);
             utils.deleteMessage(msg);
         }
     } catch (error) {
+        console.error(`handleStats:`, error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 }
@@ -471,6 +495,7 @@ exports.configeventchannel = configeventchannel;
 exports.configeventstandby = configeventstandby;
 exports.configchannelcategory = configchannelcategory;
 exports.configvoicecategory = configvoicecategory;
+exports.configvoiceperms = configvoiceperms;
 exports.configchanneldays = configchanneldays;
 exports.configcharacterapproval = configcharacterapproval;
 exports.configcampaign = configcampaign;

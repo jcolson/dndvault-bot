@@ -1438,8 +1438,6 @@ async function handleApprove(msg, msgParms, guildConfig) {
             let charToApprove = await CharModel.findOne({ id: charIdToApprove, guildID: msg.guild.id, approvalStatus: false });
             if (typeof charToApprove === 'undefined' || !charToApprove) {
                 throw new Error(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`)
-                // await msg.channel.send(`<@${msg.member.id}>, an unapproved "${charIdToApprove}" could not be located.`);
-                // await msg.delete();
             } else {
                 // console.log('char: ' + charToApprove);
                 charToApprove.approvalStatus = true;

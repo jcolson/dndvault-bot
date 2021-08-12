@@ -42,7 +42,7 @@ DND Vault Table of Contents
 
 # D&D Vault Discord BOT
 
-The most complete Dungeons and Dragons Character Vault, Event Management, Polling and Dice Roller for your Discord server!
+The most complete Dungeons and Dragons ( DnD ) Event Management, Character Vault, Polling and Dice Roller for your West Marches discord server!
 
 ## Current build status
 
