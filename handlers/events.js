@@ -1,7 +1,7 @@
 const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
-const { MessageEmbed, Message, User, Guild, TextChannel, GuildMember } = require('discord.js');
+const { MessageEmbed, Message, User, Guild, TextChannel, GuildMember, Permissions } = require('discord.js');
 const { parse } = require('@holistics/date-parser');
 const { DateTime } = require('luxon');
 const { Types } = require('mongoose');
@@ -414,12 +414,14 @@ async function eventShow(guild, msgChannel, eventID) {
         if (showEvent.planningChannel) {
             try {
                 let planningChannel = await guild.channels.resolve(showEvent.planningChannel);
-                await planningChannel.send({
+                await planningChannel.bulkDelete((await planningChannel.messages.fetchPinned()).filter(m => m.author.id == guild.me.id));
+                let messageSent = await planningChannel.send({
                     embeds: [new MessageEmbed()
                         .setColor(utils.COLORS.BLUE)
                         .setThumbnail(guild.iconURL())
                         .addField(`Event Planning Channel For`, `${getEmbedLinkForEvent(showEvent)}`)]
                 });
+                await messageSent.pin();
             } catch (error) {
                 console.error(`eventShow: had an issue sending event embed to planning channel`, error);
             }
@@ -442,10 +444,10 @@ async function eventShow(guild, msgChannel, eventID) {
  */
 async function maintainPlanningChannels(guild, eventToMaintain, guildConfig, removeChannel) {
     if (guildConfig.eventPlanCat) {
-        eventToMaintain.planningChannel = await maintainPlanningChannel(guild, eventToMaintain, eventToMaintain.planningChannel, guildConfig.eventPlanCat, removeChannel, false);
+        eventToMaintain.planningChannel = await maintainPlanningChannel(guild, eventToMaintain, eventToMaintain.planningChannel, guildConfig.eventPlanCat, 'attendees', removeChannel, false);
     }
     if (guildConfig.eventVoiceCat) {
-        eventToMaintain.voiceChannel = await maintainPlanningChannel(guild, eventToMaintain, eventToMaintain.voiceChannel, guildConfig.eventVoiceCat, removeChannel, true);
+        eventToMaintain.voiceChannel = await maintainPlanningChannel(guild, eventToMaintain, eventToMaintain.voiceChannel, guildConfig.eventVoiceCat, guildConfig.eventVoicePerms, removeChannel, true);
     }
 }
 
@@ -463,7 +465,7 @@ async function maintainPlanningChannels(guild, eventToMaintain, guildConfig, rem
  * @param {Boolean} isVoiceChannel
  * @returns {String} eventToMaintain.planningChannel
  */
-async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, guildConfigCategory, removeChannel, isVoiceChannel) {
+async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, guildConfigCategory, eventVoicePerms, removeChannel, isVoiceChannel) {
     if (guildConfigCategory) {
         if (!await guild.me.permissions.has(SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${SESSION_PLANNING_PERMS}`);
@@ -495,7 +497,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             playersInChannelShouldBe.push(guild.me.id);
             // console.debug(`maintainPlanningChannel: initial list of new players to add`, playersToAdd);
 
-            let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-').toLowerCase();
+            let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
             // if there is no channel for this event yet, lets make one
             if (eventChannel) {
                 let planningChannel = await guild.channels.resolve(eventChannel);
@@ -512,10 +514,14 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                 }
                 let permissionOverwrites = [{
                     id: guild.me.id,
-                    allow: ['VIEW_CHANNEL'],
+                    allow: [Permissions.FLAGS.VIEW_CHANNEL],
                 }, {
                     id: guild.roles.everyone,
-                    deny: ['VIEW_CHANNEL'],
+                    deny: (eventVoicePerms != 'everyone_listen' && eventVoicePerms != 'everyone_speak') ?
+                        [Permissions.FLAGS.VIEW_CHANNEL] :
+                        (eventVoicePerms == 'everyone_listen') ?
+                            [Permissions.FLAGS.SPEAK] :
+                            [],
                 }];
                 for (let playerToAdd of playersToAdd) {
                     try {
@@ -523,7 +529,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                         console.debug(`maintainPlanningChannel: player to add perms: ${playerToAdd}`);
                         permissionOverwrites.push({
                             id: playerMember.id,
-                            allow: ['VIEW_CHANNEL'],
+                            allow: [Permissions.FLAGS.VIEW_CHANNEL],
                         });
                     } catch (error) {
                         console.error(`maintainPlanningChannel: could not add player, ${playerToAdd}, due to error: ${error.message}`);
@@ -1326,7 +1332,7 @@ async function sendReminders(client) {
                     continue;
                 }
                 let guild = await (new Guild(client, { id: theEvent.guildID })).fetch();
-                if (!theEvent.channelID || !theEvent.messageID){
+                if (!theEvent.channelID || !theEvent.messageID) {
                     throw new Error(`sendReminders: this event (${theEvent.id}) is malformed, there is no channelID or messageID, skipping.`);
                 }
                 let channel = new TextChannel(guild, { id: theEvent.channelID });
