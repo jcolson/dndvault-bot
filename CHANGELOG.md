@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.8.0 (2021-08-12)](#v180-2021-08-12)
   - [v1.7.2 (2021-08-09)](#v172-2021-08-09)
   - [v1.7.1 (2021-08-09)](#v171-2021-08-09)
   - [v1.7.0 (2021-08-09)](#v170-2021-08-09)
@@ -103,6 +104,19 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.8.0](https://github.com/jcolson/dndvault-bot/tree/v1.8.0) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.7.2...v1.8.0)
+
+**Implemented enhancements:**
+
+- update to discord.js v13 [\#383](https://github.com/jcolson/dndvault-bot/issues/383)
+
+**Fixed bugs:**
+
+- Dm couldn't join audio chat [\#384](https://github.com/jcolson/dndvault-bot/issues/384)
+- the creator of an event shouldn't be defaulted to the planning channel for the event [\#381](https://github.com/jcolson/dndvault-bot/issues/381)
 
 ## [v1.7.2](https://github.com/jcolson/dndvault-bot/tree/v1.7.2) (2021-08-09)
 
