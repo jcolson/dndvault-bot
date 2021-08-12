@@ -16,7 +16,10 @@ async function handlePoll(msg, msgParms, guildConfig) {
     let pollChannel = msg.channel;
     try {
         let allowMultiple = msgParms.find(p => p.name == 'allow_multiple');
-        if (allowMultiple) {
+        if (allowMultiple !== null && allowMultiple !== undefined) {
+            // msgparms is not mutable, create a copy
+            msgParms = msgParms.slice();
+            // console.debug(`handlePoll: `, msgParms);
             // second element removed (allow_multiple), so that this works with the old ! commands
             msgParms.splice(1, 1);
         }
@@ -140,7 +143,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                             await aReaction.users.fetch();
                         }
                         for (let [key, aUser] of aReaction.users.cache) {
-                        // for (aUser of aReaction.users.cache.array()) {
+                            // for (aUser of aReaction.users.cache.array()) {
                             if (aUser.id == user.id) {
                                 aReaction.users.remove(user.id);
                             }

@@ -383,11 +383,12 @@ async function eventShow(guild, msgChannel, eventID) {
         } catch (error) {
             console.error(`eventShow: had an issue maintaining planning channel`, error);
         }
-        const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
+        let embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let rolesToPing = utils.parseAllTagsFromString(showEvent.description);
+        // console.debug(`eventShow:`, embedEvent);
         sentMessage = await eventChannel.send({
-            content: `${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`,
-            embeds: [embedEvent]
+            content: `${rolesToPing ? 'Attention: ' + rolesToPing.toString() : utils.EMPTY_FIELD}`,
+            embeds: embedEvent
         });
         if (showEvent.channelID && showEvent.messageID) {
             try {
@@ -529,11 +530,11 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                     }
                 }
                 let channelParms = {
-                    type: isVoiceChannel ? 'voice' : 'text',
+                    type: isVoiceChannel ? 'GUILD_VOICE' : 'GUILD_TEXT',
                     parent: planCategory,
                     permissionOverwrites: permissionOverwrites,
                 };
-                console.debug(`maintainPlanningChannel: channelParms:`, channelParms);
+                // console.debug(`maintainPlanningChannel: channelParms:`, channelParms);
                 eventChannel = (await guild.channels.create(channelNameShouldBe, channelParms)).id;
                 console.debug(`maintainPlanningChannel: planning channel id: ${eventChannel}`);
             }
@@ -796,7 +797,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
         .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${guild?.id}`)
-        // .setDescription(description)
+        // .setDescription('test')
         .setThumbnail(guild.iconURL());
     let i = 0;
     for (let theEvent of eventArray) {
@@ -807,7 +808,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             i = 0;
         }
         let messageTitleAndUrl = isShow
-            ? `${theEvent._id}`
+            ? `${theEvent._id.toString()}`
             : `${getEmbedLinkForEvent(theEvent)}`;
         if (removedBy) {
             eventEmbed.setColor(utils.COLORS.RED);
