@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.8.1 (2021-08-12)](#v181-2021-08-12)
   - [v1.8.0 (2021-08-12)](#v180-2021-08-12)
   - [v1.7.2 (2021-08-09)](#v172-2021-08-09)
   - [v1.7.1 (2021-08-09)](#v171-2021-08-09)
@@ -104,6 +105,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.8.1](https://github.com/jcolson/dndvault-bot/tree/v1.8.1) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.0...v1.8.1)
+
+**Fixed bugs:**
+
+- discordjs v13 bug - on old prefix commands, finding channel to respond is failing [\#389](https://github.com/jcolson/dndvault-bot/issues/389)
 
 ## [v1.8.0](https://github.com/jcolson/dndvault-bot/tree/v1.8.0) (2021-08-12)
 
