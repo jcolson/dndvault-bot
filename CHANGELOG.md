@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.8.2 (2021-08-12)](#v182-2021-08-12)
   - [v1.8.1 (2021-08-12)](#v181-2021-08-12)
   - [v1.8.0 (2021-08-12)](#v180-2021-08-12)
   - [v1.7.2 (2021-08-09)](#v172-2021-08-09)
@@ -105,6 +106,19 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.8.2](https://github.com/jcolson/dndvault-bot/tree/v1.8.2) (2021-08-12)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.1...v1.8.2)
+
+**Fixed bugs:**
+
+- another sharding issue ... on web module [\#392](https://github.com/jcolson/dndvault-bot/issues/392)
+- stats command getting `SHARDING_INVALID_EVAL_BROADCAST` [\#391](https://github.com/jcolson/dndvault-bot/issues/391)
+
+**Closed issues:**
+
+- handle malformed events cleaner in sendreminders [\#393](https://github.com/jcolson/dndvault-bot/issues/393)
 
 ## [v1.8.1](https://github.com/jcolson/dndvault-bot/tree/v1.8.1) (2021-08-12)
 
