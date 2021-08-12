@@ -20,7 +20,7 @@ async function handleConfig(msg, msgParms, guildConfig) {
                 // check to see if param passed is part of config options before dynamically calling function
                 for (option of COMMANDS.config.options) {
                     if (option.name == param.name) {
-                        // console.debug(`handleConfig: COMMAND: ${param.name}`);
+                        console.debug(`handleConfig: COMMAND: ${param.name}`);
                         if (utils.isString(param.value) && param.value?.trim() == '') {
                             param.value = undefined;
                         }
@@ -50,6 +50,7 @@ async function configreset(param, guild, guildConfig) {
     guildConfig = await configeventstandby({ name: 'eventstandby', value: false }, guild, guildConfig);
     guildConfig = await configchannelcategory({ name: 'channelcategory', value: undefined }, guild, guildConfig);
     guildConfig = await configvoicecategory({ name: 'voicecategory', value: undefined }, guild, guildConfig);
+    guildConfig = await configvoiceperms({ name: 'voiceperms', value: 'attendees' }, guild, guildConfig);
     guildConfig = await configchanneldays({ name: 'channeldays', value: DEFAULT_CHANNEL_REMOVE_DAYS }, guild, guildConfig);
     guildConfig = await configcharacterapproval({ name: 'characterapproval', value: false }, guild, guildConfig);
     guildConfig = await configcampaign({ name: 'campaign', value: false }, guild, guildConfig);
@@ -164,6 +165,16 @@ async function configvoicecategory(param, guild, guildConfig) {
     return guildConfig;
 }
 
+async function configvoiceperms(param, guild, guildConfig) {
+    console.debug(`configvoiceperms:`, param);
+    if (param.value) {
+        guildConfig.eventVoicePerms = param.value;
+    } else {
+        guildConfig.eventVoicePerms = 'attendees';
+    }
+    return guildConfig;
+}
+
 async function configchanneldays(param, guild, guildConfig) {
     console.debug(`configchanneldays:`, param);
     let days = parseInt(param.value);
@@ -201,8 +212,9 @@ async function configprefix(param, guild, guildConfig) {
 async function embedForConfig(guild, guildConfig) {
     let channelForEvents = { name: 'Not Set' };
     let channelForPolls = { name: 'Not Set' };
-    let approverRoleName;
-    let playerRoleName;
+    let approverRoleName = 'Not Set';
+    let playerRoleName = 'Not Set';
+    let eventVoicePerms = guildConfig.eventVoicePerms ? guildConfig.eventVoicePerms : 'Not Set';
     let eventPlanCat = { name: 'Not Set' };
     let eventVoiceCat = { name: 'Not Set' };
     try {
@@ -256,6 +268,7 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Poll Channel', value: channelForPolls.name, inline: true },
         { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
         { name: 'Event Voice Channel Category', value: eventVoiceCat.name, inline: true },
+        { name: 'Event Voice Permissions', value: eventVoicePerms, inline: true },
         { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays.toString(), inline: true },
         { name: 'Event Require Approver', value: guildConfig.eventRequireApprover.toString(), inline: true },
         { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing.toString(), inline: true }
@@ -482,6 +495,7 @@ exports.configeventchannel = configeventchannel;
 exports.configeventstandby = configeventstandby;
 exports.configchannelcategory = configchannelcategory;
 exports.configvoicecategory = configvoicecategory;
+exports.configvoiceperms = configvoiceperms;
 exports.configchanneldays = configchanneldays;
 exports.configcharacterapproval = configcharacterapproval;
 exports.configcampaign = configcampaign;

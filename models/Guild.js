@@ -50,6 +50,10 @@ const Guild = Schema({
     "eventVoiceCat": {
         type: "String"
     },
+    "eventVoicePerms": {
+        type: "String",
+        default: "attendees"
+    },
     "eventPlanDays": {
         type: Number
     },
