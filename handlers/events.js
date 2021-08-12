@@ -414,12 +414,14 @@ async function eventShow(guild, msgChannel, eventID) {
         if (showEvent.planningChannel) {
             try {
                 let planningChannel = await guild.channels.resolve(showEvent.planningChannel);
-                await planningChannel.send({
+                await planningChannel.bulkDelete((await planningChannel.messages.fetchPinned()).filter(m => m.author.id == guild.me.id));
+                let messageSent = await planningChannel.send({
                     embeds: [new MessageEmbed()
                         .setColor(utils.COLORS.BLUE)
                         .setThumbnail(guild.iconURL())
                         .addField(`Event Planning Channel For`, `${getEmbedLinkForEvent(showEvent)}`)]
                 });
+                await messageSent.pin();
             } catch (error) {
                 console.error(`eventShow: had an issue sending event embed to planning channel`, error);
             }
