@@ -495,7 +495,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             playersInChannelShouldBe.push(guild.me.id);
             // console.debug(`maintainPlanningChannel: initial list of new players to add`, playersToAdd);
 
-            let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-').toLowerCase();
+            let channelNameShouldBe = eventToMaintain.title.substring(0, 90).replace(/[^0-9a-zA-Z]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
             // if there is no channel for this event yet, lets make one
             if (eventChannel) {
                 let planningChannel = await guild.channels.resolve(eventChannel);
