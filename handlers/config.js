@@ -130,7 +130,7 @@ async function configchannelcategory(param, guild, guildConfig) {
             throw new Error(`Could not locate the channel category: ${param.value}`);
         }
         // await utils.checkChannelPermissions({ channel: catTest, guild: msg.guild }, events.SESSION_PLANNING_PERMS);
-        if (!await guild.me.hasPermission(events.SESSION_PLANNING_PERMS)) {
+        if (!await guild.me.permissions.has(events.SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${events.SESSION_PLANNING_PERMS}`);
         }
         guildConfig.eventPlanCat = catTest.id;
@@ -151,7 +151,7 @@ async function configvoicecategory(param, guild, guildConfig) {
             throw new Error(`Could not locate the channel category: ${param.value}`);
         }
         // await utils.checkChannelPermissions({ channel: catTest, guild: msg.guild }, events.SESSION_PLANNING_PERMS);
-        if (!await guild.me.hasPermission(events.SESSION_PLANNING_PERMS)) {
+        if (!await guild.me.permissions.has(events.SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${events.SESSION_PLANNING_PERMS}`);
         }
         guildConfig.eventVoiceCat = catTest.id;
@@ -250,15 +250,15 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Prefix', value: guildConfig.prefix, inline: true },
         { name: 'Approver Role', value: approverRoleName, inline: true },
         { name: 'Player Role', value: playerRoleName, inline: true },
-        { name: 'Approval Required', value: guildConfig.requireCharacterApproval, inline: true },
-        { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent, inline: true },
+        { name: 'Approval Required', value: guildConfig.requireCharacterApproval.toString(), inline: true },
+        { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent.toString(), inline: true },
         { name: 'Event Channel', value: channelForEvents.name, inline: true },
         { name: 'Poll Channel', value: channelForPolls.name, inline: true },
         { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
         { name: 'Event Voice Channel Category', value: eventVoiceCat.name, inline: true },
-        { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays, inline: true },
-        { name: 'Event Require Approver', value: guildConfig.eventRequireApprover, inline: true },
-        { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing, inline: true }
+        { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays.toString(), inline: true },
+        { name: 'Event Require Approver', value: guildConfig.eventRequireApprover.toString(), inline: true },
+        { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing.toString(), inline: true }
     );
     return configEmbed;
 }

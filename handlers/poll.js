@@ -16,7 +16,10 @@ async function handlePoll(msg, msgParms, guildConfig) {
     let pollChannel = msg.channel;
     try {
         let allowMultiple = msgParms.find(p => p.name == 'allow_multiple');
-        if (allowMultiple) {
+        if (allowMultiple !== null && allowMultiple !== undefined) {
+            // msgparms is not mutable, create a copy
+            msgParms = msgParms.slice();
+            // console.debug(`handlePoll: `, msgParms);
             // second element removed (allow_multiple), so that this works with the old ! commands
             msgParms.splice(1, 1);
         }
@@ -25,7 +28,7 @@ async function handlePoll(msg, msgParms, guildConfig) {
         if (guildConfig.channelForPolls) {
             pollChannel = await msg.guild.channels.resolve(guildConfig.channelForPolls);
         }
-        let sentMessage = await pollChannel.send(embedForPoll(msg, thePoll, allowMultiple));
+        let sentMessage = await pollChannel.send({ embeds: [embedForPoll(msg, thePoll, allowMultiple)] });
         for (let i = 0; i < thePoll.choices.length; i++) {
             sentMessage.react(thePoll.emojis[i]);
         }
@@ -136,10 +139,11 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             if (reaction.message.embeds.length > 0 && !multAnswer) {
                 for (aReaction of reaction.message.reactions.cache.values()) {
                     if (aReaction.emoji.name != reaction.emoji.name) {
-                        if (aReaction.users.cache.array().length == 0) {
+                        if (aReaction.users.cache.size == 0) {
                             await aReaction.users.fetch();
                         }
-                        for (aUser of aReaction.users.cache.array()) {
+                        for (let [key, aUser] of aReaction.users.cache) {
+                            // for (aUser of aReaction.users.cache.array()) {
                             if (aUser.id == user.id) {
                                 aReaction.users.remove(user.id);
                             }

@@ -17,7 +17,7 @@ const insult = require('./handlers/insult.js');
 const DEFAULT_CONFIGDIR = __dirname;
 //https://discord.com/developers/docs/topics/gateway#gateway-intents
 // const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES', 'GUILD_PRESENCES'] } });
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] } });
+const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] });
 
 /**
  * scheduled cron for calendar reminders
@@ -760,7 +760,7 @@ client.on("guildCreate", async (guild) => {
         await config.confirmGuildConfig(guild);
         let channel = utils.locateChannelForMessageSend(guild);
         if (channel) {
-            await channel.send('Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me.  Roll initiative!');
+            await channel.send({ content: 'Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me.  Roll initiative!' });
         }
     } catch (error) {
         console.error("guildCreate:", error);
@@ -824,42 +824,50 @@ client.on('messageReactionAdd', async (reaction, user) => {
 /**
  * handle slash command interactions
  */
-client.ws.on('INTERACTION_CREATE', async (interaction) => {
+client.on('interactionCreate', async (interaction) => {
+    // client.ws.on('INTERACTION_CREATE', async (interaction) => {
     let msg = {
         interaction: interaction,
-        url: utils.getDiscordUrl(interaction.guild_id, interaction.channel_id, interaction.id),
+        url: utils.getDiscordUrl(interaction.guildId, interaction.channelId, interaction.id),
     };
-    const { name, options } = interaction.data;
-    const command = name.toLowerCase();
+    // console.debug(`interaction debug: `, interaction);
+    // const { name, options } = interaction.data;
+    const command = interaction.commandName;
     try {
-        // console.debug("INTERACTION_CREATE:", interaction);
-        if (interaction.guild_id) {
-            let guild = await client.guilds.resolve(interaction.guild_id);
-            msg.guild = guild;
-        }
-        if (interaction.channel_id) {
-            let channel = await client.channels.resolve(interaction.channel_id);
+        // console.debug("interactionCreate:", interaction);
+        if (interaction.channelId) {
+            console.debug('interactionCreate: populating channel');
+            let channel = await client.channels.resolve(interaction.channelId);
             msg.channel = channel;
         }
         if (interaction.member) {
-            let member = new GuildMember(client, interaction.member, msg.guild);
-            msg.member = member;
-            msg.author = member.user;
+            console.debug('interactionCreate: populating member & guild');
+            msg.member = interaction.member;
+            msg.guild = interaction.member.guild;
+        }
+        if (!msg.guild && interaction.guildId) {
+            console.debug('interactionCreate: populating guild');
+            let guild = await client.guilds.resolve(interaction.guildId);
+            msg.guild = guild;
         }
         if (interaction.user) {
-            let user = new User(client, interaction.user);
-            msg.author = user;
+            console.debug('interactionCreate: populating author');
+            msg.author = interaction.user;
+            if (!msg.member && msg.guild) {
+                console.debug('interactionCreate: populating member');
+                msg.member = await msg.guild.members.fetch(interaction.user);
+            }
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
         let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
-        await handleCommandExec(guildConfig, command, msg, options);
+        await handleCommandExec(guildConfig, command, msg, interaction.options.data);
     } catch (error) {
-        console.error(`clientOnINTERACTION_CREATE: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
+        console.error(`clientOninteractionCreate: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
 });
 
-client.on('message', async (msg) => {
+client.on('messageCreate', async (msg) => {
     try {
         if (msg.partial) {
             // If the message this was removed the fetching might result in an API error, which we need to handle

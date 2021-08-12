@@ -122,20 +122,23 @@ async function hasRoleOrIsAdmin(member, roleId) {
     // }
     let hasRole = false;
     try {
-        if (member.hasPermission('ADMINISTRATOR') || member.id == Config.adminUser) {
+        // console.debug(`hasRoleOrIsAdmin: member (should be an object):`, member);
+        if (member.permissions.has('ADMINISTRATOR') || member.id == Config.adminUser) {
             hasRole = true;
             console.info(`hasRoleOrIsAdmin: ${member.id}: admin`);
         } else {
-            member.roles.cache.array().forEach((role) => {
+            for (let [key, role] of member.roles.cache) {
+                // (member.roles.cache.values()).forEach((role) => {
                 // console.log('role check: ' + role.id + " : " + roleId);
                 if (role.id == roleId) {
                     hasRole = true;
                 }
-            });
+                // });
+            }
             console.info(`hasRoleOrIsAdmin: ${member.id}: ${hasRole}`);
         }
     } catch (error) {
-        // console.error(`Could not determine user (${member?member.id:member}) role`, error);
+        // console.error(`Could not determine user (${member ? member.id : member}) role`, error);
         throw new Error(`Could not determine user (${member ? member.id : member}) role`);
     }
     return hasRole;

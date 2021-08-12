@@ -306,7 +306,7 @@ async function removeEvent(guild, memberUser, eventID, guildConfig, existingEven
             eventMessage = await (
                 await guild.channels.resolve(channelId)
             ).messages.fetch(messageId);
-            await eventMessage.edit(await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id));
+            await eventMessage.edit({ embeds: await embedForEvent(guild, [existingEvent], undefined, true, memberUser.id) });
             await eventMessage.reactions.removeAll();
         } catch (error) {
             console.error(`removeEvent: Could not locate event message, it may have been removed already ... event removed without removing the associated message embed`);
@@ -383,9 +383,13 @@ async function eventShow(guild, msgChannel, eventID) {
         } catch (error) {
             console.error(`eventShow: had an issue maintaining planning channel`, error);
         }
-        const embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
+        let embedEvent = await embedForEvent(guild, [showEvent], undefined, true);
         let rolesToPing = utils.parseAllTagsFromString(showEvent.description);
-        sentMessage = await eventChannel.send(`${rolesToPing ? 'Attention: ' + rolesToPing.toString() : ''}`, embedEvent);
+        // console.debug(`eventShow:`, embedEvent);
+        sentMessage = await eventChannel.send({
+            content: `${rolesToPing ? 'Attention: ' + rolesToPing.toString() : utils.EMPTY_FIELD}`,
+            embeds: embedEvent
+        });
         if (showEvent.channelID && showEvent.messageID) {
             try {
                 // remove old event message
@@ -410,11 +414,12 @@ async function eventShow(guild, msgChannel, eventID) {
         if (showEvent.planningChannel) {
             try {
                 let planningChannel = await guild.channels.resolve(showEvent.planningChannel);
-                // await planningChannel.send(await embedForEvent(guild, [showEvent], 'Planning Channel', false));
-                await planningChannel.send(new MessageEmbed()
-                    .setColor(utils.COLORS.BLUE)
-                    .setThumbnail(guild.iconURL())
-                    .addField(`Event Planning Channel For`, `${getEmbedLinkForEvent(showEvent)}`));
+                await planningChannel.send({
+                    embeds: [new MessageEmbed()
+                        .setColor(utils.COLORS.BLUE)
+                        .setThumbnail(guild.iconURL())
+                        .addField(`Event Planning Channel For`, `${getEmbedLinkForEvent(showEvent)}`)]
+                });
             } catch (error) {
                 console.error(`eventShow: had an issue sending event embed to planning channel`, error);
             }
@@ -460,7 +465,7 @@ async function maintainPlanningChannels(guild, eventToMaintain, guildConfig, rem
  */
 async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, guildConfigCategory, removeChannel, isVoiceChannel) {
     if (guildConfigCategory) {
-        if (!await guild.me.hasPermission(SESSION_PLANNING_PERMS)) {
+        if (!await guild.me.permissions.has(SESSION_PLANNING_PERMS)) {
             throw new Error(`In order to use Event Planning Category Channels, an administrator must grant the bot these server wide permissions: ${SESSION_PLANNING_PERMS}`);
         }
         if (removeChannel) {
@@ -525,11 +530,11 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                     }
                 }
                 let channelParms = {
-                    type: isVoiceChannel ? 'voice' : 'text',
+                    type: isVoiceChannel ? 'GUILD_VOICE' : 'GUILD_TEXT',
                     parent: planCategory,
                     permissionOverwrites: permissionOverwrites,
                 };
-                console.debug(`maintainPlanningChannel: channelParms:`, channelParms);
+                // console.debug(`maintainPlanningChannel: channelParms:`, channelParms);
                 eventChannel = (await guild.channels.create(channelNameShouldBe, channelParms)).id;
                 console.debug(`maintainPlanningChannel: planning channel id: ${eventChannel}`);
             }
@@ -550,7 +555,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                 }
                 console.debug(`maintainPlanningChannel: COMPLETED renaming channel from ${planningChannel.name} to ${channelNameShouldBe}`)
             }
-            for (let [memberKey, permOverwrite] of planningChannel.permissionOverwrites) {
+            for (let [memberKey, permOverwrite] of planningChannel.permissionOverwrites.cache) {
                 // console.debug(`maintainPlanningChannel: existing permissionOverwrites key ${memberKey}:`, permOverwrite);
                 if (permOverwrite.type == 'member') {
                     let addIDidx = playersToAdd.findIndex((userID) => { return userID == memberKey });
@@ -569,7 +574,8 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             for (playerAdd of playersToAdd) {
                 console.debug(`maintainPlanningChannel: adding: '${playerAdd}'`, playerAdd);
                 playerAdd = await guild.members.fetch(playerAdd);
-                await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
+                await planningChannel.permissionOverwrites.create(playerAdd, { VIEW_CHANNEL: true }, { type: 1 });
+                // await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
             }
             // eventToMaintain.save();
         }
@@ -791,7 +797,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
         .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${guild?.id}`)
-        // .setDescription(description)
+        // .setDescription('test')
         .setThumbnail(guild.iconURL());
     let i = 0;
     for (let theEvent of eventArray) {
@@ -802,7 +808,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             i = 0;
         }
         let messageTitleAndUrl = isShow
-            ? `${theEvent._id}`
+            ? `${theEvent._id.toString()}`
             : `${getEmbedLinkForEvent(theEvent)}`;
         if (removedBy) {
             eventEmbed.setColor(utils.COLORS.RED);
@@ -973,7 +979,7 @@ function formatJustTime(theDate) {
 
 async function handleReactionAdd(reaction, user, guildConfig) {
     try {
-        const member = await reaction.message.guild.member(user);
+        const member = await reaction.message.guild.members.fetch(user);
         if (!await users.hasRoleOrIsAdmin(member, guildConfig.prole)) {
             //, <@&${guildConfig.prole}>,
             throw new Error(`Please ensure that you are a member of the player role before attempting to interact.`);
@@ -1168,7 +1174,7 @@ async function deployEvent(reaction, user, eventForMessage, guildConfig) {
         console.error(`deployEvent: encountered error maintaining planning channel`, error);
     }
     await eventForMessage.save();
-    await reaction.message.edit(await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true));
+    await reaction.message.edit({ embeds: await embedForEvent(reaction.message.guild, [eventForMessage], undefined, true) });
 }
 
 /**
@@ -1263,7 +1269,7 @@ async function attendeeAdd(message, user, eventForMessage, guildConfig) {
         console.error(`attendeeAdd: encountered error maintianing planning channel`, error);
     }
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
+    await message.edit({ embeds: await embedForEvent(message.guild, [eventForMessage], undefined, true) });
 }
 
 /**
@@ -1301,13 +1307,13 @@ async function attendeeRemove(message, user, eventForMessage, guildConfig) {
         console.error(`attendeeRemove: encountered error maintaining planning channel`, error);
     }
     await eventForMessage.save();
-    await message.edit(await embedForEvent(message.guild, [eventForMessage], undefined, true));
+    await message.edit({ embeds: await embedForEvent(message.guild, [eventForMessage], undefined, true) });
 }
 
 async function sendReminders(client) {
     try {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
-        let guildsToRemind = client.guilds.cache.keyArray();
+        let guildsToRemind = Array.from(client.guilds.cache.keys());
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
         console.log("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
         for (theEvent of eventsToRemind) {
@@ -1357,7 +1363,7 @@ async function recurEvents(client) {
     try {
         // assume '1' hours after the event start time is a comfortable time to schedule a recurrent
         let toDate = new Date(new Date().getTime() - (1 * 1000 * 60 * 60));
-        let guildsToRecur = client.guilds.cache.keyArray();
+        let guildsToRecur = Array.from(client.guilds.cache.keys());
         let eventsToRecur = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, date_time: { $lt: toDate }, guildID: { $in: guildsToRecur } });
         console.log("recurEvents: for %d events until %s for %d guilds", eventsToRecur.length, toDate, guildsToRecur.length);
         for (theEvent of eventsToRecur) {
@@ -1417,7 +1423,7 @@ async function recurEvents(client) {
  */
 async function removeOldSessionPlanningChannels(client) {
     try {
-        let guildsToRemoveChannels = client.guilds.cache.keyArray();
+        let guildsToRemoveChannels = Array.from(client.guilds.cache.keys());
         // will need a mongo pipeline to figure out which channels to remove
         const channelsToRemove = await EventModel.aggregate(
             [{
@@ -1488,7 +1494,7 @@ async function removeOldSessionPlanningChannels(client) {
  */
 async function removeOldSessionVoiceChannels(client) {
     try {
-        let guildsToRemoveChannels = client.guilds.cache.keyArray();
+        let guildsToRemoveChannels = Array.from(client.guilds.cache.keys());
         // will need a mongo pipeline to figure out which channels to remove
         const channelsToRemove = await EventModel.aggregate(
             [{
