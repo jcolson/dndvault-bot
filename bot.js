@@ -834,18 +834,27 @@ client.on('interactionCreate', async (interaction) => {
     // const { name, options } = interaction.data;
     const command = interaction.commandName;
     try {
-        console.debug("interactionCreate:", interaction);
-        if (interaction.guildId) {
-            let guild = await client.guilds.resolve(interaction.guildId);
-            msg.guild = guild;
-        }
+        // console.debug("interactionCreate:", interaction);
         if (interaction.channelId) {
+            console.debug('interactionCreate: populating channel');
             let channel = await client.channels.resolve(interaction.channelId);
             msg.channel = channel;
         }
+        if (interaction.member) {
+            console.debug('interactionCreate: populating member & guild');
+            msg.member = interaction.member;
+            msg.guild = interaction.member.guild;
+        }
+        if (!msg.guild && interaction.guildId) {
+            console.debug('interactionCreate: populating guild');
+            let guild = await client.guilds.resolve(interaction.guildId);
+            msg.guild = guild;
+        }
         if (interaction.user) {
+            console.debug('interactionCreate: populating author');
             msg.author = interaction.user;
-            if (msg.guild) {
+            if (!msg.member && msg.guild) {
+                console.debug('interactionCreate: populating member');
                 msg.member = await msg.guild.members.fetch(interaction.user);
             }
         }
