@@ -127,7 +127,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 if (msg?.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
                         // clientWsReply(msg.interaction, embed);
-                        await msg.interaction.reply({ embeds: [embed] });
+                        await msg.interaction.reply({ embeds: [embed], ephemeral: !skipDM });
                     }
                     // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
                 } else {
@@ -151,7 +151,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 if (msg.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
                         // clientWsReply(msg.interaction, embed);
-                        await msg.interaction.reply({ embeds: [embed] });
+                        await msg.interaction.reply({ embeds: [embed], ephemeral: !skipDM });
                     }
                     messageSent = true;
                     // otherwise reply with the array of embeds, directly to user, and then follow up with the ws response to the interaction
