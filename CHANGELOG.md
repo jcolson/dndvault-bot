@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.8.5 (2021-08-13)](#v185-2021-08-13)
   - [v1.8.4 (2021-08-12)](#v184-2021-08-12)
   - [v1.8.3 (2021-08-12)](#v183-2021-08-12)
   - [v1.8.2 (2021-08-12)](#v182-2021-08-12)
@@ -108,6 +109,15 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.8.5](https://github.com/jcolson/dndvault-bot/tree/v1.8.5) (2021-08-13)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.4...v1.8.5)
+
+**Implemented enhancements:**
+
+- calender icon to the event channel as a sticky thing on the top of it. so you dont have to switch forth and back to see who signed up [\#396](https://github.com/jcolson/dndvault-bot/issues/396)
+- add , ephemeral: true for interaction replies where it makes sense [\#382](https://github.com/jcolson/dndvault-bot/issues/382)
 
 ## [v1.8.4](https://github.com/jcolson/dndvault-bot/tree/v1.8.4) (2021-08-12)
 
