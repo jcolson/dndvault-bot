@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.8.6 (2021-08-16)](#v186-2021-08-16)
   - [v1.8.5 (2021-08-13)](#v185-2021-08-13)
   - [v1.8.4 (2021-08-12)](#v184-2021-08-12)
   - [v1.8.3 (2021-08-12)](#v183-2021-08-12)
@@ -109,6 +110,18 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.8.6](https://github.com/jcolson/dndvault-bot/tree/v1.8.6) (2021-08-16)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.5...v1.8.6)
+
+**Implemented enhancements:**
+
+- Add the registered DnDBeyond character link to the created event instead of only showing the Name, Class and Lvl [\#401](https://github.com/jcolson/dndvault-bot/issues/401)
+
+**Fixed bugs:**
+
+- config changes for toString intruduced a bug in undefined for eventPlanDays [\#402](https://github.com/jcolson/dndvault-bot/issues/402)
 
 ## [v1.8.5](https://github.com/jcolson/dndvault-bot/tree/v1.8.5) (2021-08-13)
 

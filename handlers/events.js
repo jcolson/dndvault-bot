@@ -436,7 +436,7 @@ async function eventShow(guild, msgChannel, eventID) {
 
 /**
  * function to maintain both the voice and text planning channels for an event
- * 
+ *
  * @param {Guild} guild
  * @param {EventModel} eventToMaintain
  * @param {GuildModel} guildConfig
@@ -918,7 +918,7 @@ async function getStringForAttendees(event, standbys) {
                 let char = await CharModel.findOne({ guildID: event.guildID, id: attendee.characterID, guildUser: attendee.userID });
                 // console.log('attendee char',char.name);
                 if (char) {
-                    charString = `\n\`w/${characters.stringForCharacterShort(char)}\``;
+                    charString = `\n\`w/\`${characters.stringForCharacterShort(char)}`;
                 }
             }
             attendees += `<@${attendee.userID}>${charString},\n`;

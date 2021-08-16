@@ -1229,7 +1229,7 @@ function stringForCharacterShort(char) {
     char.classes.forEach((theClass) => {
         classes += stringForClassShort(theClass);
     });
-    return `${char.name} the ${classes}`;
+    return `[${char.name} the ${classes}](${char.readonlyUrl})`;
 }
 
 function stringForCampaign(char) {

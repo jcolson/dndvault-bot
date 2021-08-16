@@ -269,7 +269,7 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
         { name: 'Event Voice Channel Category', value: eventVoiceCat.name, inline: true },
         { name: 'Event Voice Permissions', value: eventVoicePerms, inline: true },
-        { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays.toString(), inline: true },
+        { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays ? guildConfig.eventPlanDays.toString() : 'Not Set', inline: true },
         { name: 'Event Require Approver', value: guildConfig.eventRequireApprover.toString(), inline: true },
         { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing.toString(), inline: true }
     );
