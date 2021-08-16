@@ -55,7 +55,8 @@ const Guild = Schema({
         default: "attendees"
     },
     "eventPlanDays": {
-        type: Number
+        type: Number,
+        default: 7
     },
     "eventRequireApprover": {
         type: "Boolean",
