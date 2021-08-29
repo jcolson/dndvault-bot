@@ -1,5 +1,5 @@
 const { MessageEmbed } = require('discord.js');
-const utils = require('../utils/utils');
+const utils = require('../../utils/utils.js');
 
 const BASEURL ='https://discord.com/channels';
 const CHANNELID ='channelID';
