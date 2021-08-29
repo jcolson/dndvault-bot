@@ -109,6 +109,43 @@ test(`checkIfCommandsChanged false`, () => {
     expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(false);
 });
 
+const testCommandsWithOptions = {
+    "help": {
+        "name": "help",
+        "description": "Get help about D&D Vault Bot",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "The Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }]
+    },
+    "show": {
+        "name": "show",
+        "description": "Show a user's character from the vault",
+        "slash": true,
+        "options": [{
+            "name": "character_id",
+            "description": "The Character ID from the `list` command",
+            "required": true,
+            "type": 3
+        }]
+    }
+}
+
+test(`checkIfCommandsChanged if command and not actions or actions but not command`, () => {
+    let testCommandsA1 = JSON.parse(JSON.stringify(testCommands));
+    let testCommandsB1 = JSON.parse(JSON.stringify(testCommandsWithOptions));
+    let testCommandsA = utils.transformCommandsToDiscordFormat(testCommandsA1);
+    let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
+
+    console.debug('testCommandsA-->', testCommandsA);
+    console.debug('testCommandsB-->', testCommandsB);
+
+    expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
+});
+
 test(`checkIfCommandsChanged A true`, () => {
     let testCommandsA1 = JSON.parse(JSON.stringify(testCommands));
     let testCommandsB1 = JSON.parse(JSON.stringify(testCommands));
