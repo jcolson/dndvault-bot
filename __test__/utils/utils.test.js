@@ -69,13 +69,17 @@ test(`isTrue`, () => {
 });
 
 test('lengthOfEmbed', () => {
+    let fields = [{name: 'field1', value: 'value1'},{name: 'field2', value: 'value2'}];
+
     let embed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
         .setTitle(`Review Changes for Character:`)
         .setURL('https://discord.js.org/')
         .setAuthor('D&D Vault')
-        .setDescription('Some Description');
-    expect(utils.lengthOfEmbed(embed)).toBe(77);
+        .setDescription('Some Description')
+        .setFields(fields);
+        
+    expect(utils.lengthOfEmbed(embed)).toBe(101);
 });
 
 const testCommands = {
