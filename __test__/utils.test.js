@@ -134,3 +134,48 @@ test(`checkIfCommandsChanged B true`, () => {
     let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
     expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
 });
+
+test(`strikeThrough test result`, () => {
+    let result = utils.strikeThrough("text to be splited");
+    expect(result).toMatch('t̶e̶x̶t̶ ̶t̶o̶ ̶b̶e̶ ̶s̶p̶l̶i̶t̶e̶d̶');
+});
+
+test(`parseIntOrMakeZero with undefined returns 0`, () => {
+    let result = utils.parseIntOrMakeZero(undefined);
+    expect(result).toBe(0);
+});
+
+test(`parseIntOrMakeZero with null returns 0`, () => {
+    let result = utils.parseIntOrMakeZero(null);
+    expect(result).toBe(0);
+});
+
+test(`parseIntOrMakeZero with unparseable String returns 0`, () => {
+    let result = utils.parseIntOrMakeZero('a');
+    expect(result).toBe(0);
+});
+
+test(`parseIntOrMakeZero with parseable String returns parsed value`, () => {
+    let result = utils.parseIntOrMakeZero('123a');
+    expect(result).toBe(123);
+});
+
+test(`parseIntOrMakeZero with NaN returns 0`, () => {
+    let result = utils.parseIntOrMakeZero(NaN);
+    expect(result).toBe(0);
+});
+
+test(`parseIntOrMakeZero with POSITIVE_INFINITY returns 0`, () => {
+    let result = utils.parseIntOrMakeZero(Number.POSITIVE_INFINITY);
+    expect(result).toBe(0);
+});
+
+test(`parseIntOrMakeZero with NEGATIVE_INFINITY returns 0`, () => {
+    let result = utils.parseIntOrMakeZero(Number.NEGATIVE_INFINITY);
+    expect(result).toBe(0);
+});
+
+test(`parseIntOrMakeZero with 0 returns 0`, () => {
+    let result = utils.parseIntOrMakeZero(0);
+    expect(result).toBe(0);
+});
