@@ -576,8 +576,15 @@ async function deleteMessage(msg) {
     }
 }
 
+/**
+ * Parses the provided variable as an int or returns 0 otherwise.
+ * 
+ * @param {*} intToParse 
+ * @returns 0 is not a number or parseable, number as an int otherwise
+ */
 function parseIntOrMakeZero(intToParse) {
-    return parseInt(intToParse ? intToParse : 0);
+    let result = parseInt(intToParse);
+    return Number.isFinite(result) ? result : 0;
 }
 
 /**
