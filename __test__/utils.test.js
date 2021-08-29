@@ -1,6 +1,11 @@
 const { MessageEmbed } = require('discord.js');
 const utils = require('../utils/utils');
 
+const BASEURL ='https://discord.com/channels';
+const CHANNELID ='channelID';
+const MESSAGEID ='messageId';
+const DEFAULT_GUILDID ='@me';
+
 test('trimTagsFromId with a user tag', () => {
     expect(utils.trimTagsFromId('<@!227562842591723521>')).toBe('227562842591723521');
 });
@@ -178,4 +183,20 @@ test(`parseIntOrMakeZero with NEGATIVE_INFINITY returns 0`, () => {
 test(`parseIntOrMakeZero with 0 returns 0`, () => {
     let result = utils.parseIntOrMakeZero(0);
     expect(result).toBe(0);
+});
+
+test('getDiscordUrlWithUndefinedguildIdToMatchString', () => {
+    let url = utils.getDiscordUrl(undefined, CHANNELID, MESSAGEID);
+    expect(url).toMatch(`${BASEURL}/${DEFAULT_GUILDID}/${CHANNELID}/${MESSAGEID}`);
+});
+
+test('getDiscordUrlWithNullguildIdToMatchString', () => {
+    let url = utils.getDiscordUrl(null, CHANNELID, MESSAGEID);
+    expect(url).toMatch(`${BASEURL}/${DEFAULT_GUILDID}/${CHANNELID}/${MESSAGEID}`);
+});
+
+test('getDiscordUrlWithNotNullguildIdToMatchString', () => {
+    const GUILDID = 'guildId';
+    let url = utils.getDiscordUrl(GUILDID, CHANNELID ,MESSAGEID);
+    expect(url).toMatch(`${BASEURL}/${GUILDID}/${CHANNELID}/${MESSAGEID}`);
 });
