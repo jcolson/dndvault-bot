@@ -1,4 +1,4 @@
-const insult = require('../handlers/insult');
+const insult = require('../../handlers/insult');
 const { testables } = insult;
 
 test('generateRandomInsult', () => {
