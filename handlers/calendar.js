@@ -4,6 +4,12 @@ const config = require('../handlers/config.js');
 const events = require('../handlers/events.js');
 const he = require('he');
 
+const DESCRIPTION = 'DND Vault events from Discord';
+const EOL = '\r\n';
+
+// This calendar uses the ICS calendar format. Formally know as Internet Calendaring and Scheduling Core Object Specification.
+// Defined in: https://www.ietf.org/rfc/rfc2445.txt
+
 /**
  *
  * @param {String} userID
@@ -14,18 +20,18 @@ async function handleCalendarRequest(userID, excludeGuild) {
         throw new Error('No userID passed!');
     }
     const calendarRefreshHours = Config?.calendarICSRefreshHours ? Config?.calendarICSRefreshHours : 12;
-    let returnICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN\r\n';
-    returnICS += `URL:${Config.httpServerURL}/calendar?userID=${userID}\r\n`;
-    returnICS += 'NAME:DND Vault\r\n';
-    returnICS += 'X-WR-CALNAME:DND Vault\r\n';
-    returnICS += 'DESCRIPTION:DND Vault events from Discord\r\n';
-    returnICS += 'X-WR-CALDESC:DND Vault events from Discord\r\n';
-    // returnICS += 'TIMEZONE-ID:Europe/London\r\n';
-    // returnICS += 'X-WR-TIMEZONE:Europe/London\r\n';
-    returnICS += `REFRESH-INTERVAL;VALUE=DURATION:PT${calendarRefreshHours}H\r\n`;
-    returnICS += `X-PUBLISHED-TTL:PT${calendarRefreshHours}H\r\n`;
-    returnICS += 'COLOR:34:50:105\r\n';
-    returnICS += 'CALSCALE:GREGORIAN\r\n';
+    let returnICS = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}`;
+    returnICS += `URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}`;
+    returnICS += `NAME:DND Vault${EOL}`;
+    returnICS += `X-WR-CALNAME:DND Vault${EOL}`;
+    returnICS += `DESCRIPTION:${DESCRIPTION}${EOL}`;
+    returnICS += `X-WR-CALDESC:${DESCRIPTION}${EOL}`;
+    // returnICS += `TIMEZONE-ID:Europe/London${EOL}`;
+    // returnICS += `X-WR-TIMEZONE:Europe/London${EOL}`;
+    returnICS += `REFRESH-INTERVAL;VALUE=DURATION:PT${calendarRefreshHours}H${EOL}`;
+    returnICS += `X-PUBLISHED-TTL:PT${calendarRefreshHours}H${EOL}`;
+    returnICS += `COLOR:34:50:105${EOL}`;
+    returnICS += `CALSCALE:GREGORIAN${EOL}`;
     let cutOffDate = new Date();
     cutOffDate.setDate(cutOffDate.getDate() - 365);
     let userEvents = await EventModel.find({
@@ -45,23 +51,23 @@ async function handleCalendarRequest(userID, excludeGuild) {
                 }
             }
             let guildConfig = await config.getGuildConfig(currEvent.guildID);
-            returnICS += 'BEGIN:VEVENT\r\n';
+            returnICS += `BEGIN:VEVENT${EOL}`;
             let endDate = new Date(currEvent.date_time);
             endDate.setTime(endDate.getTime() + (currEvent.duration_hours * 60 * 60 * 1000));
-            returnICS += `DTEND:${getICSdateFormat(endDate)}\r\n`;
-            returnICS += `UID:${currEvent._id}\r\n`;
-            returnICS += `DTSTAMP:${getICSdateFormat(new Date())}\r\n`;
-            returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}\r\n`;
+            returnICS += `DTEND:${getICSdateFormat(endDate)}${EOL}`;
+            returnICS += `UID:${currEvent._id}${EOL}`;
+            returnICS += `DTSTAMP:${getICSdateFormat(new Date())}${EOL}`;
+            returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}${EOL}`;
             // seems like X-ALT-DESC doesn't really work any more
-            // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>\r\n`;
-            returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}\r\n`;
-            returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}\r\n`;
-            returnICS += `SUMMARY:${utils.EMOJIS.DAGGER}${encodeStringICS(currEvent.title)} ${userAttendee?.standby ? `[${utils.EMOJIS.HOURGLASS}STANDBY]` : ''}[${currEvent.deployedByID ? utils.EMOJIS.CHECK : utils.EMOJIS.X}DEPLOYED] (${encodeStringICS(guildConfig.name)})\r\n`;
-            returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}\r\n`;
-            returnICS += `END:VEVENT\r\n`;
+            // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>${EOL}`;
+            returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}${EOL}`;
+            returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}${EOL}`;
+            returnICS += `SUMMARY:${utils.EMOJIS.DAGGER}${encodeStringICS(currEvent.title)} ${userAttendee?.standby ? `[${utils.EMOJIS.HOURGLASS}STANDBY]` : ''}[${currEvent.deployedByID ? utils.EMOJIS.CHECK : utils.EMOJIS.X}DEPLOYED] (${encodeStringICS(guildConfig.name)})${EOL}`;
+            returnICS += `DTSTART:${getICSdateFormat(currEvent.date_time)}${EOL}`;
+            returnICS += `END:VEVENT${EOL}`;
         }
     }
-    returnICS += 'END:VCALENDAR\r\n';
+    returnICS += 'END:VCALENDAR${EOL}';
     return returnICS;
 }
 
@@ -114,3 +120,5 @@ END:VCALENDAR
  */
 
 exports.handleCalendarRequest = handleCalendarRequest;
+exports.encodeStringICS = encodeStringICS;
+exports.getICSdateFormat = getICSdateFormat;
