@@ -51,6 +51,7 @@ The most complete Dungeons and Dragons ( DnD ) Event Management, Character Vault
 - [Change Log](CHANGELOG.md)
 
 - Develop Branch - Development Tests
+  - [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
   - [![test](https://github.com/jcolson/dndvault-bot/actions/workflows/test.yaml/badge.svg)](https://github.com/jcolson/dndvault-bot/actions/workflows/test.yaml)
 
 - Docker Branch - Releases
