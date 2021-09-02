@@ -27,7 +27,7 @@ repos:
         # entry: echo && docker build --target test .
   - repo: local
     hooks:
-      - id: npm-test
+      - id: npm-dockertest
         name: Run node tests
         language: system
         entry: npm run dockertest
