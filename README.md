@@ -31,7 +31,7 @@ DND Vault Table of Contents
   - [Run the bot yourself](#run-the-bot-yourself)
     - [Permissions required for bot](#permissions-required-for-bot)
   - [Developer contributions](#developer-contributions)
-    - [per-commit](#per-commit)
+    - [pre-commit](#pre-commit)
     - [run nodemon](#run-nodemon)
   - [Notes](#notes)
     - [create change log for release](#create-change-log-for-release)
@@ -418,9 +418,13 @@ My workflow is very simple.
 - From development I will tag a release and then PR it to the docker branch, where a docker image is generated and published via the github workflow.
 - From the docker branch docker, I'll PR to the master branch.
 
-### per-commit
+### pre-commit
 
 Please also install [pre-commit](https://pre-commit.com/), as it ensures that any 'pre commit' triggers/checks/tests are run prior to your commits.
+
+If you are pushing something that you really don't need (or want) to do the docker test for:
+
+`SKIP=npm-dockertest git push`
 
 ### run nodemon
 
