@@ -21,7 +21,7 @@ const EOL = '\r\n';
     }
     const calendarRefreshHours = config?.calendarICSRefreshHours ? config?.calendarICSRefreshHours : 12;
     let returnICS = `BEGIN:VCALENDAR${EOL}`;
-    
+
     returnICS += `VERSION:2.0${EOL}`;
     returnICS += `PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}`;
     returnICS += `URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}`;
@@ -45,7 +45,7 @@ const EOL = '\r\n';
             { date_time: { $gt: cutOffDate } }
         ]
     });
-     
+
     // console.log(events);
     for (currEvent of userEvents) {
         if (!excludeGuild.includes(currEvent.guildID)) {

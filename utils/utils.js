@@ -578,8 +578,8 @@ async function deleteMessage(msg) {
 
 /**
  * Parses the provided variable as an int or returns 0 otherwise.
- * 
- * @param {*} intToParse 
+ *
+ * @param {*} intToParse
  * @returns 0 is not a number or parseable, number as an int otherwise
  */
 function parseIntOrMakeZero(intToParse) {

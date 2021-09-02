@@ -78,7 +78,7 @@ test('lengthOfEmbed', () => {
         .setAuthor('D&D Vault')
         .setDescription('Some Description')
         .setFields(fields);
-        
+
     expect(utils.lengthOfEmbed(embed)).toBe(101);
 });
 
