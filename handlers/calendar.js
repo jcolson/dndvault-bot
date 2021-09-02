@@ -1,4 +1,4 @@
-const EventModel = require('../models/Event');
+const EventModel = require('../models/Event.js');
 const utils = require('../utils/utils.js');
 const config = require('../handlers/config.js');
 const events = require('../handlers/events.js');
@@ -15,12 +15,15 @@ const EOL = '\r\n';
  * @param {String} userID
  * @param {Array} excludeGuild
  */
-async function handleCalendarRequest(userID, excludeGuild) {
+ async function handleCalendarRequest(userID, excludeGuild) {
     if (!userID) {
         throw new Error('No userID passed!');
     }
-    const calendarRefreshHours = Config?.calendarICSRefreshHours ? Config?.calendarICSRefreshHours : 12;
-    let returnICS = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}`;
+    const calendarRefreshHours = config?.calendarICSRefreshHours ? config?.calendarICSRefreshHours : 12;
+    let returnICS = `BEGIN:VCALENDAR${EOL}`;
+    
+    returnICS += `VERSION:2.0${EOL}`;
+    returnICS += `PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}`;
     returnICS += `URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}`;
     returnICS += `NAME:DND Vault${EOL}`;
     returnICS += `X-WR-CALNAME:DND Vault${EOL}`;
@@ -34,6 +37,7 @@ async function handleCalendarRequest(userID, excludeGuild) {
     returnICS += `CALSCALE:GREGORIAN${EOL}`;
     let cutOffDate = new Date();
     cutOffDate.setDate(cutOffDate.getDate() - 365);
+
     let userEvents = await EventModel.find({
         $and: [
             //@todo at some point we can remove the <@! check here, as of 1.2.5 we're storing just the ID
@@ -41,6 +45,7 @@ async function handleCalendarRequest(userID, excludeGuild) {
             { date_time: { $gt: cutOffDate } }
         ]
     });
+     
     // console.log(events);
     for (currEvent of userEvents) {
         if (!excludeGuild.includes(currEvent.guildID)) {
@@ -67,7 +72,7 @@ async function handleCalendarRequest(userID, excludeGuild) {
             returnICS += `END:VEVENT${EOL}`;
         }
     }
-    returnICS += 'END:VCALENDAR${EOL}';
+    returnICS += `END:VCALENDAR${EOL}`;
     return returnICS;
 }
 
@@ -122,3 +127,4 @@ END:VCALENDAR
 exports.handleCalendarRequest = handleCalendarRequest;
 exports.encodeStringICS = encodeStringICS;
 exports.getICSdateFormat = getICSdateFormat;
+exports.EOL = EOL;
