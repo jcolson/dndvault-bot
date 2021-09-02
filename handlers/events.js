@@ -566,7 +566,6 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                     }
                     let removeID = playersInChannelShouldBe.find((userID) => { return userID == memberKey });
                     if (!removeID) {
-                        // playersToRemove.push(memberKey);
                         await permOverwrite.delete();
                     }
                 }
@@ -575,11 +574,13 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             // console.debug(`maintainPlanningChannel: old players to remove`, playersToRemove);
             for (playerAdd of playersToAdd) {
                 console.debug(`maintainPlanningChannel: adding: '${playerAdd}'`, playerAdd);
-                playerAdd = await guild.members.fetch(playerAdd);
-                await planningChannel.permissionOverwrites.create(playerAdd, { VIEW_CHANNEL: true }, { type: 1 });
-                // await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
+                try {
+                    guildMemberAdd = await guild.members.fetch(playerAdd);
+                    await planningChannel.permissionOverwrites.create(guildMemberAdd, { VIEW_CHANNEL: true }, { type: 1 });
+                } catch (error) {
+                    console.error(`maintainPlanningChannel: attendee, ${playerAdd}, may no longer be on server, couldn't maintain them for event ${eventToMaintain._id}: ${error.message}`);
+                }
             }
-            // eventToMaintain.save();
         }
     } else {
         console.debug(`maintainPlanningChannel: no event planning category set, don't need to maintain event planning channels`);
