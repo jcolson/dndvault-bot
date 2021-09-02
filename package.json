@@ -5,10 +5,12 @@
     "main": "index.js",
     "scripts": {
         "test": "jest",
+        "dockertest": "docker build --target test ./",
         "preinstall": "npx npm-force-resolutions"
     },
     "scriptsComments": {
         "test": "use jest for testing",
+        "dockertest": "run tests inside docker container",
         "preinstall": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
     },
     "keywords": [],

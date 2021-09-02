@@ -3,8 +3,9 @@ const events = require('../../handlers/events.js');
 const EventModel = require('../../models/Event.js');
 const discordjs = require('discord.js');
 
-const path = require('path');
-global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname + '/../../', './config.json'));
+global.Config = {};
+global.Config.dndVaultIcon = "https://example.com/vaulticon.png";
+global.Config.httpServerURL = "https://example.com";
 
 test('embedForEvent with too long title fields, does not throw exception', async () => {
     const longField = `super long test title test title test title test title test title test title test title test title test title test title test title test title test title
