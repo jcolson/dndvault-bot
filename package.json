@@ -6,12 +6,14 @@
     "scripts": {
         "test": "jest",
         "dockertest": "docker build --target test ./",
-        "preinstall": "npx npm-force-resolutions"
+        "preinstall": "pre-commit install -t pre-commit -t pre-push",
+        "preinstall_old": "npx npm-force-resolutions && pre-commit install -t pre-commit -t pre-push"
     },
     "scriptsComments": {
         "test": "use jest for testing",
         "dockertest": "run tests inside docker container",
-        "preinstall": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
+        "preinstall": "insure that pre-commit hooks are installed",
+        "preinstall_old": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
     },
     "keywords": [],
     "author": "Jay <jay@karma.net> (https://karma.net/)",

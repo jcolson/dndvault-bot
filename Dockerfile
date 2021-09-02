@@ -10,12 +10,14 @@ WORKDIR /usr/src/bot
 
 # Copy and Install our bot
 COPY package.json /usr/src/bot
-#RUN npm install
 
 # Our precious bot
 COPY . /usr/src/bot
 
 FROM base as test
+RUN apk add python3 git
+RUN python3 -m ensurepip
+RUN pip3 install pre-commit
 RUN npm ci
 RUN npm run test __test__
 
