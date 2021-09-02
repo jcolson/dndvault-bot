@@ -31,10 +31,6 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
         console.error('handleEventCreate:', error.message);
         await utils.sendDirectOrFallbackToChannelError(error, msg, undefined, undefined, undefined,
             [{ name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }]);
-        // await utils.sendDirectOrFallbackToChannel([
-        //     { name: 'Event Create Error', value: `${error.message}` },
-        //     { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
-        // ], msg);
     }
 }
 
@@ -780,10 +776,11 @@ function getTimeZoneOffset(timezone) {
 /**
  * returns the MessageEmbed(s) for an array of events passed
  *
- * @param {String} guildIconURL
- * @param {EventModel[]} charArray
+ * @param {Guild} guild
+ * @param {EventModel[]} eventArray
  * @param {String} title
  * @param {Boolean} isShow
+ * @param {String} removedBy
  *
  * @returns {MessageEmbed[]}
  */
@@ -800,7 +797,8 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
     }
     let eventEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
+        // trim the title to 1024 including the emojis and spaces
+        .setTitle(`${utils.EMOJIS.DAGGER} ${title.substring(0, 1024 - utils.EMOJIS.DAGGER.length - utils.EMOJIS.SHIELD.length - 2)} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${guild?.id}`)
         // .setDescription('test')
@@ -862,7 +860,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             if (theEvent.voiceChannel) {
                 eventEmbed.addFields({ name: 'Event Voice Channel', value: `<#${theEvent.voiceChannel}>`, inline: true });
             }
-            eventEmbed.addFields({ name: 'Description', value: `${theEvent.description}`, inline: false });
+            eventEmbed.addFields({ name: 'Description', value: `${theEvent.description.substring(0, 1024)}`, inline: false });
         }
     }
     if (isShow && !removedBy) {
@@ -1588,3 +1586,5 @@ exports.removeOldSessionVoiceChannels = removeOldSessionVoiceChannels;
 exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
 exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;
+//for testing
+exports.embedForEvent = embedForEvent;
