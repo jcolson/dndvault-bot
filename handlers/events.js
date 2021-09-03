@@ -826,10 +826,12 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
         if (theEvent.dm) {
             principals += `\nDMGM:\n<@${theEvent.dm}>`;
         }
+        let epochEventDateTime = Math.floor(theEvent.date_time / 1000);
+        // console.debug(`embedForEvent: epoch date: ${epochEventDateTime}`);
         eventEmbed.addFields(
             { name: `${isShow ? '' : utils.EMOJIS.DAGGER}ID`, value: messageTitleAndUrl, inline: isShow },
             { name: 'Principals', value: principals, inline: true },
-            { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs${theEvent.recurEvery ? `, ${utils.EMOJIS.REPEAT}every ${theEvent.recurEvery} day(s)` : ``}`, inline: true }
+            { name: 'Date and Time', value: `<t:${epochEventDateTime}:f> (<t:${epochEventDateTime}:R>)\nfor ${theEvent.duration_hours} hrs${theEvent.recurEvery ? `, ${utils.EMOJIS.REPEAT}every ${theEvent.recurEvery} day(s)` : ``}`, inline: true }
         );
         if (!isShow) {
             eventEmbed.addFields({ name: `Attendees`, value: `${stringForAttendeesLength(theEvent)}`, inline: true },);
@@ -1130,15 +1132,16 @@ function embedForEventAttendance(attendanceRows, title, guildIconURL) {
 async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
     let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
     let fieldsToSend = [];
+    let epochEventDateTime = Math.floor(eventForMessage.date_time / 1000);
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
-            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id})`, inline: true },
+            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id})\n\nEvent in Discord time: <t:${epochEventDateTime}:f> (<t:${epochEventDateTime}:R>)`, inline: true },
             { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&D Vault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     } else {
         let usersTimeString = formatDateInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
-            { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
+            { name: 'Converted Time', value: `${userModel.timezone}: ${usersTimeString}\nDiscord time: <t:${epochEventDateTime}:f> (<t:${epochEventDateTime}:R>)`, inline: true },
             { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&D Vault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     }
