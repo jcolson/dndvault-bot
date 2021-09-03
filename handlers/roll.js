@@ -36,7 +36,7 @@ function embedsForDiceRoll(notation, rollitValut, total) {
     const FIELDS_PER_EMBED = 4;
     let diceRollEmbedArray = [];
     let embedFields = [];
-    let fieldName = utils.EMOJIS.DICE + notation.substring(0, 253) + utils.EMOJIS.DICE;
+    let fieldName = utils.EMOJIS.DICE + notation.substring(0, 256 - utils.EMOJIS.DICE.length - utils.EMOJIS.DICE.length) + utils.EMOJIS.DICE;
     // ensure that if the result is larger than 1000 chars we split it up in different discord embed fields
     for (let i = 0; i < rollitValut.length; i += EMBED_FIELD_MAX) {
         const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + EMBED_FIELD_MAX));
@@ -50,6 +50,12 @@ function embedsForDiceRoll(notation, rollitValut, total) {
             );
             embedFields = [];
         }
+    }
+    if (diceRollEmbedArray.length > 2) {
+        let continuationEmbed = new MessageEmbed()
+            .setColor(utils.COLORS.RED)
+            .addFields({ name: fieldName, value: `\`... sooooo many dice! ...\`` });
+        diceRollEmbedArray.splice(1, diceRollEmbedArray.length - 2, continuationEmbed);
     }
     diceRollEmbedArray[diceRollEmbedArray.length - 1].addFields({ name: 'Total', value: `\`${total}\`` });
     return diceRollEmbedArray;

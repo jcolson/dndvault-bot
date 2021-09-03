@@ -30,8 +30,10 @@ DND Vault Table of Contents
     - [config of server for guild](#config-of-server-for-guild)
   - [Run the bot yourself](#run-the-bot-yourself)
     - [Permissions required for bot](#permissions-required-for-bot)
-  - [Notes](#notes)
+  - [Developer contributions](#developer-contributions)
+    - [pre-commit](#pre-commit)
     - [run nodemon](#run-nodemon)
+  - [Notes](#notes)
     - [create change log for release](#create-change-log-for-release)
     - [Test via docker container](#test-via-docker-container)
     - [Mongodb queries](#mongodb-queries)
@@ -49,6 +51,7 @@ The most complete Dungeons and Dragons ( DnD ) Event Management, Character Vault
 - [Change Log](CHANGELOG.md)
 
 - Develop Branch - Development Tests
+  - [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
   - [![test](https://github.com/jcolson/dndvault-bot/actions/workflows/test.yaml/badge.svg)](https://github.com/jcolson/dndvault-bot/actions/workflows/test.yaml)
 
 - Docker Branch - Releases
@@ -407,17 +410,35 @@ If you plan on deploying your own copy of the D&D Vault (you don't need to, you 
 
 ![bot_permissions](docs/images/bot_permissions.png)
 
+## Developer contributions
+
+My workflow is very simple.
+
+- I work in the development branch, so if you fork and wish to contribute PR's please submit them to development.
+- From development I will tag a release and then PR it to the docker branch, where a docker image is generated and published via the github workflow.
+- From the docker branch docker, I'll PR to the master branch.
+
+### pre-commit
+
+Please also install [pre-commit](https://pre-commit.com/), as it ensures that any 'pre commit' triggers/checks/tests are run prior to your commits.
+
+If you are pushing something that you really don't need (or want) to do the docker test for:
+
+`SKIP=npm-dockertest git push`
+
+### run nodemon
+
+to quickly restart node while developing - I recommend [nodemon](https://nodemon.io/).
+
+`nodemon`
+
 ## Notes
 
 **_This section can be safely ignored, it's my scratchpad ..._**
 
-### run nodemon
-
-to quickly restart node while developing
-
-`nodemon`
-
 ### create change log for release
+
+i actually use my own github-release.sh script at this point, which includes this step in a release
 
 ```sh
 npm run changelog

@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.8.9 (2021-09-03)](#v189-2021-09-03)
+  - [v1.8.8 (2021-09-03)](#v188-2021-09-03)
   - [v1.8.7 (2021-08-29)](#v187-2021-08-29)
   - [v1.8.6 (2021-08-16)](#v186-2021-08-16)
   - [v1.8.5 (2021-08-13)](#v185-2021-08-13)
@@ -111,6 +113,25 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.8.9](https://github.com/jcolson/dndvault-bot/tree/v1.8.9) (2021-09-03)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.8...v1.8.9)
+
+## [v1.8.8](https://github.com/jcolson/dndvault-bot/tree/v1.8.8) (2021-09-03)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.7...v1.8.8)
+
+**Implemented enhancements:**
+
+- Change date time displayed in events to user date tag [\#412](https://github.com/jcolson/dndvault-bot/issues/412)
+- limit the number of embeds on dice rolls to prevent a user from flooding a channel [\#298](https://github.com/jcolson/dndvault-bot/issues/298)
+
+**Fixed bugs:**
+
+- check field lengths on event creation and edit [\#406](https://github.com/jcolson/dndvault-bot/issues/406)
+- attendeeRemove / attendeeAdd: encountered error maintaining planning channel DiscordAPIError: Unknown Member [\#405](https://github.com/jcolson/dndvault-bot/issues/405)
+- exception occuring in sendReminders [\#299](https://github.com/jcolson/dndvault-bot/issues/299)
 
 ## [v1.8.7](https://github.com/jcolson/dndvault-bot/tree/v1.8.7) (2021-08-29)
 
