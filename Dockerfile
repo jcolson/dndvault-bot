@@ -3,6 +3,9 @@ FROM node:16-alpine as base
 # Install jq for healthcheck
 # RUN apt-get update && apt-get install -y jq
 RUN apk add jq
+RUN apk add python3 git
+RUN python3 -m ensurepip
+RUN pip3 install pre-commit
 
 # Create the directory!
 RUN mkdir -p /usr/src/bot
@@ -15,9 +18,6 @@ COPY package.json /usr/src/bot
 COPY . /usr/src/bot
 
 FROM base as test
-RUN apk add python3 git
-RUN python3 -m ensurepip
-RUN pip3 install pre-commit
 RUN npm ci
 RUN npm run test __test__
 
