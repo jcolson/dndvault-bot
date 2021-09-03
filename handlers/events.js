@@ -31,10 +31,6 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
         console.error('handleEventCreate:', error.message);
         await utils.sendDirectOrFallbackToChannelError(error, msg, undefined, undefined, undefined,
             [{ name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }]);
-        // await utils.sendDirectOrFallbackToChannel([
-        //     { name: 'Event Create Error', value: `${error.message}` },
-        //     { name: 'Timezone Lookup', value: `[Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${msg.guild.id}&channel=${msg.channel.id})` }
-        // ], msg);
     }
 }
 
@@ -570,7 +566,6 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                     }
                     let removeID = playersInChannelShouldBe.find((userID) => { return userID == memberKey });
                     if (!removeID) {
-                        // playersToRemove.push(memberKey);
                         await permOverwrite.delete();
                     }
                 }
@@ -579,11 +574,13 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             // console.debug(`maintainPlanningChannel: old players to remove`, playersToRemove);
             for (playerAdd of playersToAdd) {
                 console.debug(`maintainPlanningChannel: adding: '${playerAdd}'`, playerAdd);
-                playerAdd = await guild.members.fetch(playerAdd);
-                await planningChannel.permissionOverwrites.create(playerAdd, { VIEW_CHANNEL: true }, { type: 1 });
-                // await planningChannel.updateOverwrite(playerAdd, { VIEW_CHANNEL: true });
+                try {
+                    guildMemberAdd = await guild.members.fetch(playerAdd);
+                    await planningChannel.permissionOverwrites.create(guildMemberAdd, { VIEW_CHANNEL: true }, { type: 1 });
+                } catch (error) {
+                    console.error(`maintainPlanningChannel: attendee, ${playerAdd}, may no longer be on server, couldn't maintain them for event ${eventToMaintain._id}: ${error.message}`);
+                }
             }
-            // eventToMaintain.save();
         }
     } else {
         console.debug(`maintainPlanningChannel: no event planning category set, don't need to maintain event planning channels`);
@@ -780,10 +777,11 @@ function getTimeZoneOffset(timezone) {
 /**
  * returns the MessageEmbed(s) for an array of events passed
  *
- * @param {String} guildIconURL
- * @param {EventModel[]} charArray
+ * @param {Guild} guild
+ * @param {EventModel[]} eventArray
  * @param {String} title
  * @param {Boolean} isShow
+ * @param {String} removedBy
  *
  * @returns {MessageEmbed[]}
  */
@@ -800,7 +798,8 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
     }
     let eventEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setTitle(`${utils.EMOJIS.DAGGER} ${title} ${utils.EMOJIS.SHIELD}`)
+        // trim the title to 1024 including the emojis and spaces
+        .setTitle(`${utils.EMOJIS.DAGGER} ${title.substring(0, 1024 - utils.EMOJIS.DAGGER.length - utils.EMOJIS.SHIELD.length - 2)} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
         .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${guild?.id}`)
         // .setDescription('test')
@@ -827,10 +826,12 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
         if (theEvent.dm) {
             principals += `\nDMGM:\n<@${theEvent.dm}>`;
         }
+        let epochEventDateTime = Math.floor(theEvent.date_time / 1000);
+        // console.debug(`embedForEvent: epoch date: ${epochEventDateTime}`);
         eventEmbed.addFields(
             { name: `${isShow ? '' : utils.EMOJIS.DAGGER}ID`, value: messageTitleAndUrl, inline: isShow },
             { name: 'Principals', value: principals, inline: true },
-            { name: 'Date and Time', value: `${formatDate(theEvent.date_time, true)}\nfor ${theEvent.duration_hours} hrs${theEvent.recurEvery ? `, ${utils.EMOJIS.REPEAT}every ${theEvent.recurEvery} day(s)` : ``}`, inline: true }
+            { name: 'Date and Time', value: `<t:${epochEventDateTime}:f> (<t:${epochEventDateTime}:R>)\nfor ${theEvent.duration_hours} hrs${theEvent.recurEvery ? `, ${utils.EMOJIS.REPEAT}every ${theEvent.recurEvery} day(s)` : ``}`, inline: true }
         );
         if (!isShow) {
             eventEmbed.addFields({ name: `Attendees`, value: `${stringForAttendeesLength(theEvent)}`, inline: true },);
@@ -862,7 +863,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
             if (theEvent.voiceChannel) {
                 eventEmbed.addFields({ name: 'Event Voice Channel', value: `<#${theEvent.voiceChannel}>`, inline: true });
             }
-            eventEmbed.addFields({ name: 'Description', value: `${theEvent.description}`, inline: false });
+            eventEmbed.addFields({ name: 'Description', value: `${theEvent.description.substring(0, 1024)}`, inline: false });
         }
     }
     if (isShow && !removedBy) {
@@ -1131,15 +1132,16 @@ function embedForEventAttendance(attendanceRows, title, guildIconURL) {
 async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
     let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
     let fieldsToSend = [];
+    let epochEventDateTime = Math.floor(eventForMessage.date_time / 1000);
     if (!userModel || !userModel.timezone) {
         fieldsToSend = [
-            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id})`, inline: true },
+            { name: 'Timezone not set', value: `<@${user.id}>, you have no Timezone set yet, use \`/timezone Europe/Berlin\`, for example, or [Click Here to Lookup and Set your Timezone](${Config.httpServerURL}/timezones?guildID=${reaction.message.guild.id}&channel=${reaction.message.channel.id})\n\nEvent in Discord time: <t:${epochEventDateTime}:f> (<t:${epochEventDateTime}:R>)`, inline: true },
             { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&D Vault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     } else {
         let usersTimeString = formatDateInDifferentTimezone(eventForMessage.date_time, userModel.timezone);
         fieldsToSend = [
-            { name: 'Converted Time', value: `${usersTimeString} ${userModel.timezone}`, inline: true },
+            { name: 'Converted Time', value: `${userModel.timezone}: ${usersTimeString}\nDiscord time: <t:${epochEventDateTime}:f> (<t:${epochEventDateTime}:R>)`, inline: true },
             { name: 'iCalendar Subscription Info', value: `[Youtube: How To Subscribe to D&D Vault's iCalendar](https://youtu.be/CEnUVG9wGwQ)\n\n[Right click this link and \`Copy Link\`](${Config.httpServerURL}/calendar?userID=${user.id})` }
         ];
     }
@@ -1588,3 +1590,5 @@ exports.removeOldSessionVoiceChannels = removeOldSessionVoiceChannels;
 exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
 exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;
+//for testing
+exports.embedForEvent = embedForEvent;

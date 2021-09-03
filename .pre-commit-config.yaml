@@ -22,5 +22,14 @@ repos:
         name: Run node tests
         language: system
         entry: npm run test __test__
-        # entry: echo
-        # entry: echo && docker build --target test .
+        stages: [commit]
+  - repo: local
+    hooks:
+      - id: npm-dockertest
+        name: Run DOCKER node tests
+        language: system
+        stages: [push]
+        exclude: .*
+        always_run: true
+        entry: docker build --target test .
+        # verbose: true

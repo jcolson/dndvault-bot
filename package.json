@@ -1,15 +1,19 @@
 {
     "name": "dndvault",
-    "version": "v1.8.7",
+    "version": "v1.8.10",
     "description": "D&D Character Vault and Event Management for Discord.",
     "main": "index.js",
     "scripts": {
         "test": "jest",
-        "preinstall": "npx npm-force-resolutions"
+        "dockertest": "docker build --target test ./",
+        "preinstall": "pre-commit install -t pre-commit -t pre-push",
+        "preinstall_old": "npx npm-force-resolutions && pre-commit install -t pre-commit -t pre-push"
     },
     "scriptsComments": {
         "test": "use jest for testing",
-        "preinstall": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
+        "dockertest": "run tests inside docker container",
+        "preinstall": "insure that pre-commit hooks are installed",
+        "preinstall_old": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
     },
     "keywords": [],
     "author": "Jay <jay@karma.net> (https://karma.net/)",

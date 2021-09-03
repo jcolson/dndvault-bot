@@ -401,7 +401,8 @@ async function handleStats(msg) {
                 { name: 'Member count', value: totalMembers.toString(), inline: true },
                 { name: 'Shard count', value: msg.client.shard.count.toString(), inline: true },
                 { name: 'Uptime', value: getUptime(), inline: true },
-                { name: 'BOT Version', value: vaultVersion, inline: true }
+                { name: 'BOT Version', value: vaultVersion, inline: true },
+                { name: 'Node Version', value: process.versions.node, inline: true }
             ], msg);
             utils.deleteMessage(msg);
         }
