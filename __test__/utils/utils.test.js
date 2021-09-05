@@ -140,8 +140,8 @@ test(`checkIfCommandsChanged if command and not actions or actions but not comma
     let testCommandsA = utils.transformCommandsToDiscordFormat(testCommandsA1);
     let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
 
-    console.debug('testCommandsA-->', testCommandsA);
-    console.debug('testCommandsB-->', testCommandsB);
+    //console.debug('testCommandsA-->', testCommandsA);
+    //console.debug('testCommandsB-->', testCommandsB);
 
     expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
 });
