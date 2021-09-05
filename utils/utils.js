@@ -1,8 +1,9 @@
-const { MessageEmbed, MessagePayload } = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
 const GuildModel = require('../models/Guild');
+const config = require('../handlers/config.js');
 
 const MAX_EMBED_SIZE = 5975;
 const MESSAGE_TOO_LARGE_RESPONSE = `Resulting message is too large for discord.`;
@@ -52,7 +53,7 @@ const EMPTY_FIELD = '\u200B';
  */
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank, addtlFields) {
     let embed = new MessageEmbed()
-        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor('D&D Vault', config.dndVaultIcon, `${config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.RED);
     embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
     if (addtlFields) {
@@ -73,7 +74,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
         fields = [fields];
     }
     let embed = new MessageEmbed()
-        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor('D&D Vault', config.dndVaultIcon, `${config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.BLUE);
     for (let field of fields) {
         field.name = typeof field.name !== 'undefined' && '' + field.name != '' ? field.name : 'UNSET';
@@ -180,14 +181,14 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (messageSent && sentMessage && msg?.interaction) {
             let interactionEmbed = new MessageEmbed()
-                .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+                .setAuthor('D&D Vault', config.dndVaultIcon, `${config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                 .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
             // clientWsReply(msg.interaction, interactionEmbed);
             await msg.interaction.reply({ embeds: [interactionEmbed] });
         } else if (!messageSent && msg?.interaction && commsErrorMessage) {
             let interactionEmbed = new MessageEmbed()
-                .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+                .setAuthor('D&D Vault', config.dndVaultIcon, `${config.httpServerURL}/?guildID=${msg.guild?.id}`)
                 .setColor(COLORS.RED)
                 .addField('Response', commsErrorMessage);
             // clientWsReply(msg.interaction, interactionEmbed);
@@ -219,6 +220,7 @@ async function sendSimpleDirectOrFallbackToChannel(content, msg, user) {
             console.error('could not send via DC or channel', error);
         }
     }
+    return sentMessage;
 }
 
 /**
@@ -421,7 +423,7 @@ async function checkChannelPermissions(msg, addtlPermsToCheck) {
     // if (!await botPerms.has(requiredPerms)) {
     //     throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permissions): ${requiredPerms}`);
     // }
-    for (reqPerm of requiredPerms) {
+    for (let reqPerm of requiredPerms) {
         if (!await botPerms.has(reqPerm)) {
             throw new Error(`Server (${msg.guild}) channel (${msg.channel.name}) is missing a Required Permission for the bot to function properly (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}).`);
         }
