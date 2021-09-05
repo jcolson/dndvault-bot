@@ -20,14 +20,14 @@
     "license": "MIT",
     "dependencies": {
         "@holistics/date-parser": "2.10.0",
-        "discord.js": "^13.0.1",
+        "discord.js": "^13.1.0",
         "express": "^4.17.1",
         "express-session": "^1.17.1",
         "grant": "^5.4.9",
         "he": "^1.2.0",
         "log-timestamp": "0.3.0",
-        "luxon": "^2.0.1",
-        "mongoose": "^5.11.8",
+        "luxon": "^2.0.2",
+        "mongoose": "^5.13.8",
         "morgan": "^1.10.0",
         "node-cache": "^5.1.2",
         "node-cron": "^3.0.0",
@@ -38,7 +38,7 @@
         "tzdata": "^1.0.25"
     },
     "devDependencies": {
-        "jest": "^27.0.6"
+        "jest": "^27.1.0"
     },
     "jest": {
         "testEnvironment": "node"

@@ -55,7 +55,7 @@ const EOL = '\r\n';
                     userAttendee = attendee;
                 }
             }
-            let guildConfig = await config.getGuildConfig(currEvent.guildID);
+
             returnICS += `BEGIN:VEVENT${EOL}`;
             let endDate = new Date(currEvent.date_time);
             endDate.setTime(endDate.getTime() + (currEvent.duration_hours * 60 * 60 * 1000));
@@ -63,6 +63,8 @@ const EOL = '\r\n';
             returnICS += `UID:${currEvent._id}${EOL}`;
             returnICS += `DTSTAMP:${getICSdateFormat(new Date())}${EOL}`;
             returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}${EOL}`;
+
+            let guildConfig = await config.getGuildConfig(currEvent.guildID);
             // seems like X-ALT-DESC doesn't really work any more
             // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>${EOL}`;
             returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}${EOL}`;
