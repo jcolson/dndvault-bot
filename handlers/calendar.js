@@ -15,7 +15,7 @@ const EOL = '\r\n';
  * @param {String} userID
  * @param {Array} excludeGuild
  */
- async function handleCalendarRequest(userID, excludeGuild) {
+async function handleCalendarRequest(userID, excludeGuild) {
     if (!userID) {
         throw new Error('No userID passed!');
     }
@@ -127,6 +127,11 @@ END:VCALENDAR
  */
 
 exports.handleCalendarRequest = handleCalendarRequest;
-exports.encodeStringICS = encodeStringICS;
-exports.getICSdateFormat = getICSdateFormat;
-exports.EOL = EOL;
+
+//for testing
+exports.testables = {
+    handleCalendarRequest: handleCalendarRequest,
+    encodeStringICS: encodeStringICS,
+    getICSdateFormat: getICSdateFormat,
+    EOL: EOL,
+};

@@ -1591,4 +1591,6 @@ exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
 exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;
 //for testing
-exports.embedForEvent = embedForEvent;
+exports.testables = {
+    embedForEvent: embedForEvent
+};
