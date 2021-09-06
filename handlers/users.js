@@ -148,3 +148,7 @@ exports.handleTimezone = handleTimezone;
 exports.hasRoleOrIsAdmin = hasRoleOrIsAdmin;
 exports.handleDefault = handleDefault;
 exports.bc_setUsersTimezone = bc_setUsersTimezone;
+
+exports.testables = {
+    isValidTimeZone: isValidTimeZone
+};
