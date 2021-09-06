@@ -87,7 +87,7 @@ const currentEvent = {
     deployedByID: 'id02',
 
     guildID: 'guildId1',
-    attendees: [],
+    attendees: [{ userID: '122', standby: true }, { userID: '123', standby: true }],
     description: 'Original description',
     date_time: new Date('2021-09-15T19:00:00'),
     duration_hours: 4
@@ -130,7 +130,7 @@ test('handleCalendarRequest with valid userId and event returns string', async (
     result = result.replace(/DTSTAMP:.*Z/g, 'DTSTAMP:Z');
     result = result.replace(/DTSTART:.*Z/g, 'DTSTART:Z');
 
-    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT${config.calendarICSRefreshHours}H${EOL}X-PUBLISHED-TTL:PT${config.calendarICSRefreshHours}H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}BEGIN:VEVENT${EOL}DTEND:20210915T230000Z${EOL}UID:id01${EOL}DTSTAMP:Z${EOL}LOCATION:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}DESCRIPTION:Original description${EOL}URL;VALUE=URI:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}SUMMARY:${utils.EMOJIS.DAGGER}title1 [${utils.EMOJIS.CHECK}DEPLOYED] (guildIDCachedValue)${EOL}DTSTART:Z${EOL}END:VEVENT${EOL}END:VCALENDAR${EOL}`;
+    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT${config.calendarICSRefreshHours}H${EOL}X-PUBLISHED-TTL:PT${config.calendarICSRefreshHours}H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}BEGIN:VEVENT${EOL}DTEND:20210915T230000Z${EOL}UID:id01${EOL}DTSTAMP:Z${EOL}LOCATION:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}DESCRIPTION:Original description${EOL}URL;VALUE=URI:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}SUMMARY:${utils.EMOJIS.DAGGER}title1 [${utils.EMOJIS.HOURGLASS}STANDBY][${utils.EMOJIS.CHECK}DEPLOYED] (guildIDCachedValue)${EOL}DTSTART:Z${EOL}END:VEVENT${EOL}END:VCALENDAR${EOL}`;
 
     expect(result).toMatch(expected);
 });
