@@ -1,11 +1,15 @@
 const { MessageEmbed } = require('discord.js');
 const utils = require('../../utils/utils.js');
-const {testables} = utils;
+const { testables } = utils;
 
-const BASEURL ='https://discord.com/channels';
-const CHANNELID ='channelID';
-const MESSAGEID ='messageId';
-const DEFAULT_GUILDID ='@me';
+const BASEURL = 'https://discord.com/channels';
+const CHANNELID = 'channelID';
+const MESSAGEID = 'messageId';
+const DEFAULT_GUILDID = '@me';
+
+global.Config = {};
+global.Config.dndVaultIcon = "https://example.com/vaulticon.png";
+global.Config.httpServerURL = "https://example.com";
 
 test('trimTagsFromId with a user tag', () => {
     expect(testables.trimTagsFromId('<@!227562842591723521>')).toBe('227562842591723521');
@@ -70,7 +74,7 @@ test(`isTrue`, () => {
 });
 
 test('lengthOfEmbed', () => {
-    let fields = [{name: 'field1', value: 'value1'},{name: 'field2', value: 'value2'}];
+    let fields = [{ name: 'field1', value: 'value1' }, { name: 'field2', value: 'value2' }];
 
     let embed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
@@ -239,6 +243,66 @@ test('getDiscordUrlWithNullguildIdToMatchString', () => {
 
 test('getDiscordUrlWithNotNullguildIdToMatchString', () => {
     const GUILDID = 'guildId';
-    let url = testables.getDiscordUrl(GUILDID, CHANNELID ,MESSAGEID);
+    let url = testables.getDiscordUrl(GUILDID, CHANNELID, MESSAGEID);
     expect(url).toMatch(`${BASEURL}/${GUILDID}/${CHANNELID}/${MESSAGEID}`);
+});
+
+test('sendDirectOrFallbackToChannelError', async () => {
+    const ERRORSTRING = 'Bad things happen.';
+    let error = new Error(ERRORSTRING);
+    let msg = {};
+    let user = {};
+    user.send = (content) => { console.info('Content sent: ', content.embeds[0].fields) };
+    let userSendSpy = jest.spyOn(user, 'send');
+    let skipDM = false;
+    let urlToLinkBack = "https://example.com/linkback";
+    let addtlFields = { name: 'test', value: 'test value' };
+    await testables.sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBack, addtlFields);
+    expect(userSendSpy).toHaveBeenCalledWith(expect.objectContaining({
+        embeds: expect.arrayContaining([expect.objectContaining({
+            fields: expect.arrayContaining([expect.objectContaining({
+                name: 'Error',
+                value: expect.stringMatching(new RegExp('.* - ' + ERRORSTRING))
+            })])
+        })])
+    }));
+});
+
+test('sendDirectOrFallbackToChannel', async () => {
+    let msg = {};
+    let user = {};
+    user.send = (content) => { console.info('Content sent: ', content.embeds[0].fields) };
+    let userSendSpy = jest.spyOn(user, 'send');
+    let skipDM = false;
+    let urlToLinkBack = "https://example.com/linkback";
+    let fields = { name: 'test', value: 'test value' };
+    await testables.sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLinkBack);
+    expect(userSendSpy).toHaveBeenCalledWith(expect.objectContaining({
+        embeds: expect.arrayContaining([expect.objectContaining({
+            fields: expect.arrayContaining([expect.objectContaining({
+                name: 'test',
+                value: 'test value',
+            })])
+        })])
+    }));
+});
+
+test('sendSimpleDirectOrFallbackToChannel', async () => {
+    let msg = {};
+    let user = {};
+    user.send = (content) => { console.info('Content sent: ', content) };
+    let userSendSpy = jest.spyOn(user, 'send');
+    await testables.sendSimpleDirectOrFallbackToChannel("This is a test", msg, user);
+    expect(userSendSpy).toHaveBeenCalledWith(expect.objectContaining({
+        content: 'This is a test',
+    }));
+});
+
+test('trimAndElipsiseStringArray', () => {
+    //115
+    const strArrayToTrim = ['testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy'];
+    const totalFinalLength = 99;
+    let resultString = testables.trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength);
+    // console.info(`trimAndElipsiseStringArray: `, resultString);
+    expect(resultString).toHaveLength(totalFinalLength);
 });

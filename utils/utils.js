@@ -1,4 +1,4 @@
-const { MessageEmbed, MessagePayload } = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
@@ -49,8 +49,10 @@ const EMPTY_FIELD = '\u200B';
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
+ * @param {String} urlToLinkBack
+ * @param {Object} addtlFields - additional fields to add to message
  */
-async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank, addtlFields) {
+async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBack, addtlFields) {
     let embed = new MessageEmbed()
         .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.RED);
@@ -58,7 +60,7 @@ async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlT
     if (addtlFields) {
         embed.addFields(addtlFields);
     }
-    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
+    return await sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBack);
 }
 
 /**
@@ -67,8 +69,9 @@ async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlT
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
+ * @param {String} urlToLinkBack
  */
-async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLinkBank) {
+async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLinkBack) {
     if (!Array.isArray(fields)) {
         fields = [fields];
     }
@@ -80,7 +83,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
         field.value = typeof field.value !== 'undefined' && '' + field.value != '' ? field.value : 'UNSET';
     }
     embed.addFields(fields);
-    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
+    return await sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBack);
 }
 
 /**
@@ -89,8 +92,9 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
+ * @param {String} urlToLinkBack
  */
-async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM, urlToLinkBank) {
+async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM, urlToLinkBack) {
     try {
         if (!Array.isArray(embedsArray)) {
             embedsArray = [embedsArray];
@@ -101,8 +105,8 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         if (!user && msg?.author) {
             user = msg.author;
         }
-        if (!urlToLinkBank && msg?.url) {
-            urlToLinkBank = msg.url;
+        if (!urlToLinkBack && msg?.url) {
+            urlToLinkBack = msg.url;
         }
         if (!user) {
             throw new Error('no valid message or user was passed to be able to respond.');
@@ -113,14 +117,14 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         let sentMessage, commsErrorMessage;
         if (user && !skipDM) {
             try {
-                if (urlToLinkBank) {
+                if (urlToLinkBack) {
                     let goBackMessage = '[Go Back To Message]';
                     // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
                     let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
                     // console.debug('sendDirectOrFallbackToChannelEmbeds: ', embedsArray[embedsArray.length - 1].fields);
                     if (!lastFieldValue.startsWith(goBackMessage)) {
                         // console.debug(`last field did not start with ${goBackMessage}`, embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1]);
-                        embedsArray[embedsArray.length - 1].addFields({ name: EMPTY_FIELD, value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
+                        embedsArray[embedsArray.length - 1].addFields({ name: EMPTY_FIELD, value: `${goBackMessage}(${urlToLinkBack})`, inline: false });
                     }
                 }
                 // if it's an interaction (slash command) and there is only 1 embed, then just reply with it
@@ -337,15 +341,17 @@ function stringOfSize(value, size, padChar, padBefore) {
 function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
     let elipses = '\n...';
     let buffer = elipses.length;
-    totalFinalLength = totalFinalLength - buffer;
+    // totalFinalLength = totalFinalLength - buffer;
     let stringToReturn = strArrayToTrim.join('\n');
-    while (stringToReturn.length >= totalFinalLength) {
+    while (stringToReturn.length > totalFinalLength) {
         let lastIndex = stringToReturn.lastIndexOf('\n');
+        // console.debug('trimAndElipsiseStringArray last index', lastIndex);
         if (lastIndex == -1) {
             stringToReturn = stringToReturn.substring(0, totalFinalLength - buffer) + elipses;
         } else {
             stringToReturn = stringToReturn.substring(0, lastIndex);
-            if (stringToReturn.length <= totalFinalLength - buffer) {
+            // console.debug(`trimAndElipsiseStringArray is it less? ${stringToReturn.length} - ${totalFinalLength}`);
+            if (stringToReturn.length <= totalFinalLength) {
                 stringToReturn += elipses;
             }
         }
@@ -651,5 +657,9 @@ exports.testables = {
     checkIfCommandsChanged: checkIfCommandsChanged,
     strikeThrough: strikeThrough,
     parseIntOrMakeZero: parseIntOrMakeZero,
-    getDiscordUrl: getDiscordUrl
+    getDiscordUrl: getDiscordUrl,
+    sendDirectOrFallbackToChannelError: sendDirectOrFallbackToChannelError,
+    sendDirectOrFallbackToChannel: sendDirectOrFallbackToChannel,
+    sendSimpleDirectOrFallbackToChannel: sendSimpleDirectOrFallbackToChannel,
+    trimAndElipsiseStringArray: trimAndElipsiseStringArray,
 };
