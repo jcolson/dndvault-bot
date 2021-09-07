@@ -639,3 +639,17 @@ exports.checkIfCommandsChanged = checkIfCommandsChanged;
 exports.transformCommandsToDiscordFormat = transformCommandsToDiscordFormat;
 exports.strikeThrough = strikeThrough;
 exports.locateChannelForMessageSend = locateChannelForMessageSend;
+
+exports.testables = {
+    trimTagsFromId: trimTagsFromId,
+    parseAllTagsFromString: parseAllTagsFromString,
+    appendStringsForEmbed: appendStringsForEmbed,
+    appendStringsForEmbedChanges: appendStringsForEmbedChanges,
+    isTrue: isTrue,
+    lengthOfEmbed: lengthOfEmbed,
+    transformCommandsToDiscordFormat: transformCommandsToDiscordFormat,
+    checkIfCommandsChanged: checkIfCommandsChanged,
+    strikeThrough: strikeThrough,
+    parseIntOrMakeZero: parseIntOrMakeZero,
+    getDiscordUrl: getDiscordUrl
+};
