@@ -64,9 +64,8 @@ function embedsForDiceRoll(notation, rollitValut, total) {
 /**
  *
  * @param {Message} msg
- * @param {Array} diceParam
  */
-async function handleDiceRollStats(msg, diceParam) {
+async function handleDiceRollStats(msg) {
     try {
         const statsEmbed = new MessageEmbed()
             .setColor(utils.COLORS.GREEN)

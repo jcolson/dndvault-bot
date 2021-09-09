@@ -16,9 +16,9 @@ async function handleConfig(msg, msgParms, guildConfig) {
     try {
         if (await users.hasRoleOrIsAdmin(msg.member, guildConfig.arole)) {
             console.debug(`handleConfig:`, msgParms);
-            for (param of msgParms) {
+            for (let param of msgParms) {
                 // check to see if param passed is part of config options before dynamically calling function
-                for (option of COMMANDS.config.options) {
+                for (let option of COMMANDS.config.options) {
                     if (option.name == param.name) {
                         console.debug(`handleConfig: COMMAND: ${param.name}`);
                         if (utils.isString(param.value) && param.value?.trim() == '') {
@@ -108,7 +108,6 @@ async function configeventchannel(param, guild, guildConfig) {
         guildConfig.channelForEvents = undefined;
     }
     return guildConfig;
-
 }
 
 async function configeventrequireapprover(param, guild, guildConfig) {

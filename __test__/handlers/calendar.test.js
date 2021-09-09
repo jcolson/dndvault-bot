@@ -16,8 +16,8 @@ const SIMPLE_ESCAPABLE_STRING = 'this\nis a multi\r\n<line>\rstring\r\n';
 const SIMPLE_ESCAPED_STRING = 'this\\nis a multi\\n<line>\\nstring\\n';
 const SIMPLE_ENCODED_AND_ESCAPED_STRING = 'this\\nis a multi\\n<line>\\nstring\\n';
 
-const ESCAPABLE_STRING = '\"this\nis \'a\' &multi?\r\n<line>\rstring\r\n\"';
-const ESCAPED_AND_NON_ENCODED_STRING = '\"this\\nis \'a\' &multi?\\n<line>\\nstring\\n\"';
+const ESCAPABLE_STRING = '"this\nis \'a\' &multi?\r\n<line>\rstring\r\n"';
+const ESCAPED_AND_NON_ENCODED_STRING = '"this\\nis \'a\' &multi?\\n<line>\\nstring\\n"';
 const ESCAPED_AND_ENCODED_STRING = '&#x22;this\\nis &#x27;a&#x27; &#x26;multi?\\n&#x3C;line&#x3E;\\nstring\\n&#x22;';
 
 const EOL = testables.EOL;

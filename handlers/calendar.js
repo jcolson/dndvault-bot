@@ -47,10 +47,10 @@ async function handleCalendarRequest(userID, excludeGuild) {
     });
 
     // console.log(events);
-    for (currEvent of userEvents) {
+    for (let currEvent of userEvents) {
         if (!excludeGuild.includes(currEvent.guildID)) {
             let userAttendee;
-            for (attendee of currEvent.attendees) {
+            for (let attendee of currEvent.attendees) {
                 if (attendee.userID == userID) {
                     userAttendee = attendee;
                 }

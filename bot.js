@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const path = require('path');
 const NodeCache = require("node-cache");
-const { Client, GuildMember, User } = require('discord.js');
+const { Client } = require('discord.js');
 const { connect, disconnect } = require('mongoose');
 
 const characters = require('./handlers/characters.js');
@@ -874,7 +874,7 @@ client.on('interactionCreate', async (interaction) => {
             }
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
-        let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
+        //let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
         await handleCommandExec(guildConfig, command, msg, interaction.options.data);
     } catch (error) {
         console.error(`clientOninteractionCreate: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
@@ -1126,7 +1126,7 @@ function parseMessageParms(messageContent, command, prefix) {
     }
     let msgParms = messageContent.substring(commandIndex).trim();
     //parse event format - ignore ! unless beginning of line or preceded by space
-    const regex = /(^\!| \!)(?:(?! \!).)*/g;
+    const regex = /(^!| !)(?:(?! !).)*/g;
     let found = msgParms.match(regex);
     if (found) {
         console.debug('parseMessageParms:', msgParms);

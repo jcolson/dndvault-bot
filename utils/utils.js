@@ -504,7 +504,7 @@ async function removeAllDataForGuild(guild) {
  * @returns {Boolean} true if changed; false if no change
  */
 function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfterThis) {
-    console.info(`checkIfCommandsChanged: ---START COMMAND CHECK---`);
+    //console.info(`checkIfCommandsChanged: ---START COMMAND CHECK---`);
     let registerCommands = false;
     for (const command of registeredCommands) {
         // console.debug("registerCommands: checkForRemove", command.name);
@@ -514,24 +514,24 @@ function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfte
                 // console.debug('command options', command.options);
                 if (!c.options && !command.options) {
                     //no options for either, it's a match
-                    console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:NO OPTIONS`);
+                    //console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:NO OPTIONS`);
                     return true;
                 } else if ((!c.options && command.options) || (c.options && !command.options)) {
-                    console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:*NO* MATCH, new options or options removed`);
+                    //console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:*NO* MATCH, new options or options removed`);
                     return false;
                 } else {
                     for (const regOpt of command.options) {
                         let optMatched = false;
                         for (const toRegOpt of c.options) {
                             if (regOpt.name.toLowerCase() == toRegOpt.name.toLowerCase() && isTrue(regOpt.required) == isTrue(toRegOpt.required)) {
-                                console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:${regOpt.name}:${toRegOpt.name} and req:${regOpt.required}:${toRegOpt.required}`);
+                                //console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:${regOpt.name}:${toRegOpt.name} and req:${regOpt.required}:${toRegOpt.required}`);
                                 optMatched = true;
                                 break;
                             }
                         }
                         if (!optMatched) {
                             //option could not be found, not a match
-                            console.info(`checkIfCommandsChanged: *NO* MATCH ${c.name} -> option:${regOpt.name} and req:${regOpt.required}`);
+                            //console.info(`checkIfCommandsChanged: *NO* MATCH ${c.name} -> option:${regOpt.name} and req:${regOpt.required}`);
                             return false;
                         }
                     }
@@ -549,7 +549,7 @@ function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfte
     }
     // recursively call the other way around
     if (!registerCommands && !stopAfterThis) {
-        console.info(`checkIfCommandsChanged: ---START RECURSE---`);
+        //console.info(`checkIfCommandsChanged: ---START RECURSE---`);
         registerCommands = checkIfCommandsChanged(commandsToRegister, registeredCommands, !stopAfterThis);
     }
     return registerCommands;

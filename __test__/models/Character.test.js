@@ -3,7 +3,7 @@ const Character = require('../../models/Character.js');
 test('Verify default Character constructor', () => {
     const character = new Character();
 
-    console.log('character-->' + character);
+    //console.log('character-->' + character);
 
     expect(character.guildUser).toBe(undefined);
 
