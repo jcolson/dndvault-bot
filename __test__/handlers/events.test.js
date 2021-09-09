@@ -2,6 +2,7 @@ jest.mock('../../models/Event.js');
 const events = require('../../handlers/events.js');
 const EventModel = require('../../models/Event.js');
 const discordjs = require('discord.js');
+const { testables } = events;
 
 global.Config = {};
 global.Config.dndVaultIcon = "https://example.com/vaulticon.png";
@@ -25,7 +26,7 @@ test('embedForEvent with too long title fields, does not throw exception', async
     let eventArray = [event];
     let title = longField;
     let isShow = true;
-    let embeds = await events.embedForEvent(guild, eventArray, title, isShow);
+    let embeds = await testables.embedForEvent(guild, eventArray, title, isShow);
     // console.debug(embeds[0].title.length);
     expect(embeds[0].title.length).toBeLessThanOrEqual(1024);
     for (field of embeds[0].fields) {

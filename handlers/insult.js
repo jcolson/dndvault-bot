@@ -195,6 +195,8 @@ function generateRandomInsult() {
 
 exports.handleInsult = handleInsult;
 
+//for testing
 exports.testables = {
-    generateRandomInsult: generateRandomInsult
-}
+    generateRandomInsult: generateRandomInsult,
+    handleInsult: handleInsult
+};
