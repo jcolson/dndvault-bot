@@ -14,7 +14,7 @@
     "defaultARoleName": "@everyone",
     "defaultPRoleName": "@everyone",
     "dndBeyondUrl": "https://www.dndbeyond.com",
-    "dndBeyondCharServiceUrl": "https://character-service.dndbeyond.com/character/v3/character/",
+    "dndBeyondCharServiceUrl": "https://character-service.dndbeyond.com/character/v5/character/",
     "dndVaultIcon": "https://dndvault.karma.net/images/dndvault_morph.gif",
     "httpServerPort": 8080,
     "httpStaticDir": "./http_root",
