@@ -7,7 +7,7 @@ test('Verify default Character constructor', () => {
 
     console.log('character-->' + character);
 
-    expect(character.apiVersion).toBe('3');
+    expect(character.apiVersion).toBe('5');
 
     expect(character.guildUser).toBe(undefined);
 
@@ -21,29 +21,35 @@ test('Verify default Character constructor', () => {
     expect(character.luckPoints).toBe(undefined);
     expect(character.treasurePoints).toBe(undefined);
     expect(character.readonlyUrl).toBe(undefined);
-    expect(character.avatarUrl).toBe(undefined);
 
-    expect(character.backdropAvatarUrl).toBe(undefined);
-    expect(character.smallBackdropAvatarUrl).toBe(undefined);
-    expect(character.largeBackdropAvatarUrl).toBe(undefined);
-    expect(character.thumbnailBackdropAvatarUrl).toBe(undefined);
+    expect(character.decorations.avatarUrl).toBe(undefined);
+    expect(character.decorations.backdropAvatarUrl).toBe(undefined);
+    expect(character.decorations.smallBackdropAvatarUrl).toBe(undefined);
+    expect(character.decorations.largeBackdropAvatarUrl).toBe(undefined);
+    expect(character.decorations.thumbnailBackdropAvatarUrl).toBe(undefined);
 
     //Check defaultBackdrop initial definition
-    expect(typeof character.defaultBackdrop).not.toBe(undefined);
-    expect(Object.entries(character.defaultBackdrop).length).toBe(4); //Subobject have not been initialized
-    expect(character.defaultBackdrop.backdropAvatarUrl).toBe(undefined);
-    expect(character.defaultBackdrop.smallBackdropAvatarUrl).toBe(undefined);
-    expect(character.defaultBackdrop.largeBackdropAvatarUrl).toBe(undefined);
-    expect(character.defaultBackdrop.thumbnailBackdropAvatarUrl).toBe(undefined);
+    expect(typeof character.decorations.defaultBackdrop).not.toBe(undefined);
+    expect(Object.entries(character.decorations.defaultBackdrop).length).toBe(4); //Subobject have not been initialized
+    expect(character.decorations.defaultBackdrop.backdropAvatarUrl).toBe(undefined);
+    expect(character.decorations.defaultBackdrop.smallBackdropAvatarUrl).toBe(undefined);
+    expect(character.decorations.defaultBackdrop.largeBackdropAvatarUrl).toBe(undefined);
+    expect(character.decorations.defaultBackdrop.thumbnailBackdropAvatarUrl).toBe(undefined);
 
-    expect(character.avatarId).toBe(undefined);
-    expect(character.frameAvatarId).toBe(undefined);
-    expect(character.backdropAvatarId).toBe(undefined);
-    expect(character.smallBackdropAvatarId).toBe(undefined);
-    expect(character.largeBackdropAvatarId).toBe(undefined);
-    expect(character.thumbnailBackdropAvatarId).toBe(undefined);
-    expect(character.themeColorId).toBe(undefined);
-    expect(character.themeColor).toBe(undefined);
+    expect(character.decorations.avatarId).toBe(undefined);
+    expect(character.decorations.portraitDecorationKey).toBe(undefined);
+    expect(character.decorations.frameAvatarDecorationKey).toBe(undefined);
+    expect(character.decorations.frameAvatarId).toBe(undefined);
+    expect(character.decorations.backdropAvatarDecorationKey).toBe(undefined);
+    expect(character.decorations.backdropAvatarId).toBe(undefined);
+    expect(character.decorations.smallBackdropAvatarDecorationKey).toBe(undefined);
+    expect(character.decorations.smallBackdropAvatarId).toBe(undefined);
+    expect(character.decorations.largeBackdropAvatarDecorationKey).toBe(undefined);
+    expect(character.decorations.largeBackdropAvatarId).toBe(undefined);
+    expect(character.decorations.thumbnailBackdropAvatarDecorationKey).toBe(undefined);
+    expect(character.decorations.thumbnailBackdropAvatarId).toBe(undefined);
+    expect(character.decorations.themeColor).toBe(undefined);
+
     expect(character.name).toBe(undefined);
     expect(character.socialName).toBe(undefined);
     expect(character.gender).toBe(undefined);
