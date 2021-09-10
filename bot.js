@@ -14,7 +14,6 @@ const poll = require('./handlers/poll.js');
 const roll = require('./handlers/roll.js');
 const insult = require('./handlers/insult.js');
 
-const DEFAULT_CONFIGDIR = __dirname;
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] });
 
 /**
@@ -29,7 +28,7 @@ Client.prototype.dnd_config = config;
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [shrd:${client.shard.ids}] %s` });
 
 global.vaultVersion = require('./package.json').version;
-global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './config.json'));
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 global.client = client;
 

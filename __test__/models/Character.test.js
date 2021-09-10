@@ -1,9 +1,13 @@
+const path = require('path');
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 const Character = require('../../models/Character.js');
 
 test('Verify default Character constructor', () => {
     const character = new Character();
 
     console.log('character-->' + character);
+
+    expect(character.apiVersion).toBe(Config.dndBeyondCharServiceUrl);
 
     expect(character.guildUser).toBe(undefined);
 

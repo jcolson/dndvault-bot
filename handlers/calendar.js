@@ -19,12 +19,12 @@ async function handleCalendarRequest(userID, excludeGuild) {
     if (!userID) {
         throw new Error('No userID passed!');
     }
-    const calendarRefreshHours = config?.calendarICSRefreshHours ? config?.calendarICSRefreshHours : 12;
+    const calendarRefreshHours = Config?.calendarICSRefreshHours ? Config?.calendarICSRefreshHours : 12;
     let returnICS = `BEGIN:VCALENDAR${EOL}`;
 
     returnICS += `VERSION:2.0${EOL}`;
     returnICS += `PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}`;
-    returnICS += `URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}`;
+    returnICS += `URL:${Config.httpServerURL}/calendar?userID=${userID}${EOL}`;
     returnICS += `NAME:DND Vault${EOL}`;
     returnICS += `X-WR-CALNAME:DND Vault${EOL}`;
     returnICS += `DESCRIPTION:${DESCRIPTION}${EOL}`;

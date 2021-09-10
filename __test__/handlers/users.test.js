@@ -1,3 +1,5 @@
+const path = require('path');
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 const users = require('../../handlers/users.js');
 const { testables } = users;
 

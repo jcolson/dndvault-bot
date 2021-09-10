@@ -12,8 +12,7 @@ const GuildModel = require('./models/Guild');
 const EventModel = require('./models/Event');
 const UserModel = require('./models/User');
 
-const DEFAULT_CONFIGDIR = __dirname;
-global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './config.json'));
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 
 const timezones = require('./handlers/timezones.js');

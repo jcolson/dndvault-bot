@@ -1,6 +1,11 @@
 const { Schema, model } = require('mongoose');
 
 const Character = Schema({
+    "apiVersion": {
+        "type": "String",
+        index: true,
+        default: Config.dndBeyondCharServiceUrl
+    },
     "guildUser": {
         "type": "String",
         index: true
