@@ -4,7 +4,7 @@ const Character = Schema({
     "apiVersion": {
         "type": "String",
         index: true,
-        default: Config.dndBeyondCharServiceUrl
+        default: '3'
     },
     "guildUser": {
         "type": "String",

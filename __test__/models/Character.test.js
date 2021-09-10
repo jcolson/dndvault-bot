@@ -7,7 +7,7 @@ test('Verify default Character constructor', () => {
 
     console.log('character-->' + character);
 
-    expect(character.apiVersion).toBe(Config.dndBeyondCharServiceUrl);
+    expect(character.apiVersion).toBe('3');
 
     expect(character.guildUser).toBe(undefined);
 
