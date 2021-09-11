@@ -1190,7 +1190,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
-                name: `\:dagger: User | Char | ID | Status | Campaign \:shield:`,
+                name: `${utils.EMOJIS.DAGGER} User | Char | ID | Status | Campaign ${utils.EMOJIS.SHIELD}`,
                 value: `<@${char.guildUser}> | ${charNameString} | ${char.id} | ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
