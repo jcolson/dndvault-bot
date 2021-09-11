@@ -1,3 +1,5 @@
+const path = require('path');
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 const { MessageEmbed } = require('discord.js');
 const utils = require('../../utils/utils.js');
 const { testables } = utils;
@@ -6,10 +8,6 @@ const BASEURL = 'https://discord.com/channels';
 const CHANNELID = 'channelID';
 const MESSAGEID = 'messageId';
 const DEFAULT_GUILDID = '@me';
-
-global.Config = {};
-global.Config.dndVaultIcon = "https://example.com/vaulticon.png";
-global.Config.httpServerURL = "https://example.com";
 
 test('trimTagsFromId with a user tag', () => {
     expect(testables.trimTagsFromId('<@!227562842591723521>')).toBe('227562842591723521');

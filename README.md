@@ -33,6 +33,7 @@ DND Vault Table of Contents
   - [Developer contributions](#developer-contributions)
     - [pre-commit](#pre-commit)
     - [run nodemon](#run-nodemon)
+    - [mongo db json to mongoose schema](#mongo-db-json-to-mongoose-schema)
   - [Notes](#notes)
     - [create change log for release](#create-change-log-for-release)
     - [Test via docker container](#test-via-docker-container)
@@ -431,6 +432,10 @@ If you are pushing something that you really don't need (or want) to do the dock
 to quickly restart node while developing - I recommend [nodemon](https://nodemon.io/).
 
 `nodemon`
+
+### mongo db json to mongoose schema
+
+https://transform.tools/json-to-mongoose
 
 ## Notes
 

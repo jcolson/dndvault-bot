@@ -1,3 +1,5 @@
+const path = require('path');
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 const calendar = require('../../handlers/calendar.js');
 const utils = require('../../utils/utils.js');
 
@@ -73,7 +75,7 @@ test('handleCalendarRequest with valid userId and no events returns string', asy
 
     const result = await testables.handleCalendarRequest(userID, excludeGuild);
 
-    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:undefined/calendar?userID=123${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT12H${EOL}X-PUBLISHED-TTL:PT12H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}END:VCALENDAR${EOL}`;
+    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${Config.httpServerURL}/calendar?userID=123${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT12H${EOL}X-PUBLISHED-TTL:PT12H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}END:VCALENDAR${EOL}`;
     expect(result).toMatch(expected);
 });
 
@@ -105,7 +107,7 @@ test('handleCalendarRequest with valid userId and event excluding guild returns 
 
     const result = await testables.handleCalendarRequest(userID, excludeGuild);
 
-    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT${config.calendarICSRefreshHours}H${EOL}X-PUBLISHED-TTL:PT${config.calendarICSRefreshHours}H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}END:VCALENDAR${EOL}`;
+    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${Config.httpServerURL}/calendar?userID=${userID}${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT${Config.calendarICSRefreshHours}H${EOL}X-PUBLISHED-TTL:PT${Config.calendarICSRefreshHours}H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}END:VCALENDAR${EOL}`;
     expect(result).toMatch(expected);
 });
 
@@ -120,17 +122,13 @@ test('handleCalendarRequest with valid userId and event returns string', async (
         return { name: 'guildIDCachedValue' }
     });
 
-    // We redefine the config
-    config.calendarICSRefreshHours = 15;
-    config.httpServerURL = 'http://localhost2';
-
     let result = await testables.handleCalendarRequest(userID, excludeGuild);
 
     //We need to replace the timestamp parts from the result as can not be compared because is generated at runtime.
     result = result.replace(/DTSTAMP:.*Z/g, 'DTSTAMP:Z');
     result = result.replace(/DTSTART:.*Z/g, 'DTSTART:Z');
 
-    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT${config.calendarICSRefreshHours}H${EOL}X-PUBLISHED-TTL:PT${config.calendarICSRefreshHours}H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}BEGIN:VEVENT${EOL}DTEND:20210915T230000Z${EOL}UID:id01${EOL}DTSTAMP:Z${EOL}LOCATION:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}DESCRIPTION:Original description${EOL}URL;VALUE=URI:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}SUMMARY:${utils.EMOJIS.DAGGER}title1 [${utils.EMOJIS.HOURGLASS}STANDBY][${utils.EMOJIS.CHECK}DEPLOYED] (guildIDCachedValue)${EOL}DTSTART:Z${EOL}END:VEVENT${EOL}END:VCALENDAR${EOL}`;
+    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${Config.httpServerURL}/calendar?userID=${userID}${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT${Config.calendarICSRefreshHours}H${EOL}X-PUBLISHED-TTL:PT${Config.calendarICSRefreshHours}H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}BEGIN:VEVENT${EOL}DTEND:20210915T230000Z${EOL}UID:id01${EOL}DTSTAMP:Z${EOL}LOCATION:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}DESCRIPTION:Original description${EOL}URL;VALUE=URI:https://discordapp.com/channels/guildId1/channel1/messageId1${EOL}SUMMARY:${utils.EMOJIS.DAGGER}title1 [${utils.EMOJIS.HOURGLASS}STANDBY][${utils.EMOJIS.CHECK}DEPLOYED] (guildIDCachedValue)${EOL}DTSTART:Z${EOL}END:VEVENT${EOL}END:VCALENDAR${EOL}`;
 
     expect(result).toMatch(expected);
 });
