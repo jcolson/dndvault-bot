@@ -1,4 +1,3 @@
-const { exportFormats } = require('rpg-dice-roller');
 const characters = require('../handlers/characters.js');
 const events = require('../handlers/events.js');
 const help = require('../handlers/help.js');
