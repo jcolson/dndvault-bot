@@ -647,10 +647,10 @@ global.COMMANDS = {
                 {
                     "name": "Attendees Only",
                     "value": "attendees"
-                },{
+                }, {
                     "name": "Everyone Speak",
                     "value": "everyone_speak"
-                },{
+                }, {
                     "name": "Everyone Listen",
                     "value": "everyone_listen"
                 }
@@ -1069,7 +1069,11 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
         }
         // console.debug('handled', handled);
         if (handled) {
-            console.log(`msg processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms)}`);
+            console.info(`msg processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${messageContentLowercase}:${JSON.stringify(msgParms, (key, value) =>
+                typeof value === 'bigint'
+                    ? value.toString()
+                    : value // return everything else unchanged
+            )}`);
         }
     } catch (error) {
         console.error('handleCommandExec: ', error);
@@ -1090,7 +1094,7 @@ function xformArrayToMsgParms(globalCommand, msgParms) {
             msgParms[i].name = globalCommand.options[i].name;
         }
     }
-    console.debug(`xformArrayToMsgParms:`, msgParms);
+    console.debug(`xformArrayToMsgParms: `, msgParms);
 }
 
 /**
@@ -1116,7 +1120,7 @@ function parseMessageParms(messageContent, command, prefix) {
     if (commandIndex == -1) {
         commandIndex = messageContentLowercase.indexOf(command);
         if (commandIndex == -1) {
-            throw new Error(`Command (${command}) parameters could not be parsed: ${messageContent}`);
+            throw new Error(`Command(${command}) parameters could not be parsed: ${messageContent}`);
         } else {
             commandIndex += command.length;
         }
