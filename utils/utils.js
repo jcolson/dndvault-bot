@@ -3,7 +3,6 @@ const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
 const GuildModel = require('../models/Guild');
-const Config = require('../handlers/config.js');
 
 const MAX_EMBED_SIZE = 5975;
 const MESSAGE_TOO_LARGE_RESPONSE = `Resulting message is too large for discord.`;
