@@ -97,7 +97,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
     try {
         console.log('handleReactionAdd...' + reaction.emoji.name);
         let pollAuthor;
-        for (field of reaction.message.embeds[0].fields) {
+        for (let field of reaction.message.embeds[0].fields) {
             if (field.name == POLLSTER_AUTHOR_FIELD_NAME) {
                 pollAuthor = field.value.substring(2, field.value.length - 1);
             }
@@ -111,7 +111,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                 if (reaction.message.embeds.length > 0) {
                     reaction.message.embeds[0].setTitle(`Removed: ${reaction.message.embeds[0].title}`);
                     let resultsString = ``;
-                    for (aReaction of reaction.message.reactions.cache.values()) {
+                    for (let aReaction of reaction.message.reactions.cache.values()) {
                         if (aReaction.emoji.name != utils.EMOJIS.TRASH) {
                             resultsString += `${aReaction.emoji.name}:${aReaction.count}\n`;
                         }
@@ -137,13 +137,13 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             // if this is a multiple answer allowed poll, don't remove previous reactions
             let multAnswer = reaction.message.embeds[0].title && reaction.message.embeds[0].title.endsWith(POLLSTER_MULTIPLE_ALLOWED) ? true : false;
             if (reaction.message.embeds.length > 0 && !multAnswer) {
-                for (aReaction of reaction.message.reactions.cache.values()) {
+                for (let aReaction of reaction.message.reactions.cache.values()) {
                     if (aReaction.emoji.name != reaction.emoji.name) {
                         if (aReaction.users.cache.size == 0) {
                             await aReaction.users.fetch();
                         }
                         for (let [key, aUser] of aReaction.users.cache) {
-                            // for (aUser of aReaction.users.cache.array()) {
+                            // for (let aUser of aReaction.users.cache.array()) {
                             if (aUser.id == user.id) {
                                 aReaction.users.remove(user.id);
                             }

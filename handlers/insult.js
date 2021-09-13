@@ -172,7 +172,7 @@ const COLUMN_3 = [
  * @param {Array} msgParms
  * @param {GuildModel} guildConfig
  */
-async function handleInsult(msg, msgParms, guildConfig) {
+async function handleInsult(msg) {
     try {
         const insult = generateRandomInsult();
         await utils.sendDirectOrFallbackToChannel(
@@ -189,7 +189,7 @@ function generateRandomInsult() {
     const randCol1 = Math.floor(Math.random() * COLUMN_1.length);
     const randCol2 = Math.floor(Math.random() * COLUMN_2.length);
     const randCol3 = Math.floor(Math.random() * COLUMN_3.length);
-    console.debug(`random numbers: ${randCol1}, ${randCol2}, ${randCol3}`);
+    //console.debug(`random numbers: ${randCol1}, ${randCol2}, ${randCol3}`);
     return `Thou ${COLUMN_1[randCol1]} ${COLUMN_2[randCol2]} ${COLUMN_3[randCol3]}!`;
 }
 

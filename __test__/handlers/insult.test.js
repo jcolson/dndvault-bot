@@ -7,16 +7,14 @@ const { testables } = insult;
 
 test('handleInsult', () => {
     let msg = {};
-    let msgParms = {};
-    let guildConfig = {};
     let sendDirectOrFallbackToChannel = jest.spyOn(utils, 'sendDirectOrFallbackToChannel').mockImplementation((embed, msg) => {
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
     });
-    testables.handleInsult(msg, msgParms, guildConfig);
+    testables.handleInsult(msg);
     expect(sendDirectOrFallbackToChannel).toHaveBeenCalledWith(expect.arrayContaining([expect.objectContaining({
         "name": "Vicious Mockery Suggestion",
-        "value": expect.stringMatching(/^Thou [\w-]+ [\w-]+ [\w-]+\!$/)
+        "value": expect.stringMatching(/^Thou [\w-]+ [\w-]+ [\w-]+!$/)
     })]), expect.anything());
     // console.debug(`sendDirectOrFallbackToChannel`, sendDirectOrFallbackToChannel);
 });
@@ -31,5 +29,6 @@ test('handleInsultWithError', () => {
     let sendDirectOrFallbackToChannelError = jest.spyOn(utils, 'sendDirectOrFallbackToChannelError').mockImplementation((embed, msg) => {
     });
     testables.handleInsult(msg, msgParms, guildConfig);
+    expect(sendDirectOrFallbackToChannel).toHaveBeenCalled();
     expect(sendDirectOrFallbackToChannelError).toHaveBeenCalled();
 });

@@ -27,7 +27,7 @@ test('embedForEvent with too long title fields, does not throw exception', async
     let embeds = await testables.embedForEvent(guild, eventArray, title, isShow);
     // console.debug(embeds[0].title.length);
     expect(embeds[0].title.length).toBeLessThanOrEqual(1024);
-    for (field of embeds[0].fields) {
+    for (let field of embeds[0].fields) {
         // console.debug(`field`,field);
         // console.debug(field.value.length);
         expect(field.value.length).toBeLessThanOrEqual(1024);
