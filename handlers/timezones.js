@@ -6,7 +6,7 @@ const luxonValidTimezones = Object.entries(zones)
     .map(([zoneName, v]) => zoneName)
     .filter(tz => DateTime.local().setZone(tz).isValid);
 
-function handleTimezonesDataRequest(requestUrl) {
+function handleTimezonesDataRequest() {
     let timezoneData = {};
     timezoneData.timezones = luxonValidTimezones;
     return timezoneData;

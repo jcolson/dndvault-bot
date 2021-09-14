@@ -12,8 +12,7 @@ const GuildModel = require('./models/Guild');
 const EventModel = require('./models/Event');
 const UserModel = require('./models/User');
 
-const DEFAULT_CONFIGDIR = __dirname;
-global.Config = require(path.resolve(process.env.CONFIGDIR || DEFAULT_CONFIGDIR, './config.json'));
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './config.json'));
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 
 const timezones = require('./handlers/timezones.js');
@@ -171,7 +170,7 @@ let server = app
                     let discordMe = await discordMeResponse.json();
                     if (discordMeResponse.status != 200 || discordMe.error) {
                         throw new Error(`Discord response code; ${discordMeResponse.status} Discord API error: ${discordMe.error}`);
-                    };
+                    }
                     request.session.discordMe = discordMe;
                 }
                 var queryString = Object.keys(request.session.grant.dynamic).map(key => key + '=' + request.session.grant.dynamic[key]).join('&');
@@ -421,7 +420,7 @@ async function cleanShutdown(callProcessExit) {
         console.log('Closing out manager resources...');
         await server.close();
         console.log('Http server closed.');
-        for ([number, shard] of manager.shards) {
+        for (let [number, shard] of manager.shards) {
             if (manager.mode == 'process') {
                 let count = 0;
                 while (shard.process?.exitCode === null) {

@@ -1,29 +1,32 @@
+const path = require('path');
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 const { MessageEmbed } = require('discord.js');
 const utils = require('../../utils/utils.js');
+const { testables } = utils;
 
-const BASEURL ='https://discord.com/channels';
-const CHANNELID ='channelID';
-const MESSAGEID ='messageId';
-const DEFAULT_GUILDID ='@me';
+const BASEURL = 'https://discord.com/channels';
+const CHANNELID = 'channelID';
+const MESSAGEID = 'messageId';
+const DEFAULT_GUILDID = '@me';
 
 test('trimTagsFromId with a user tag', () => {
-    expect(utils.trimTagsFromId('<@!227562842591723521>')).toBe('227562842591723521');
+    expect(testables.trimTagsFromId('<@!227562842591723521>')).toBe('227562842591723521');
 });
 
 test('trimTagsFromId with a channel tag', () => {
-    expect(utils.trimTagsFromId('<#227562842591723521>')).toBe('227562842591723521');
+    expect(testables.trimTagsFromId('<#227562842591723521>')).toBe('227562842591723521');
 });
 
 test('trimTagsFromId with a role tag', () => {
-    expect(utils.trimTagsFromId('<@&227562842591723521>')).toBe('227562842591723521');
+    expect(testables.trimTagsFromId('<@&227562842591723521>')).toBe('227562842591723521');
 });
 
 test('trimTagsFromId with OUT a tag', () => {
-    expect(utils.trimTagsFromId('227562842591723521')).toBe('227562842591723521');
+    expect(testables.trimTagsFromId('227562842591723521')).toBe('227562842591723521');
 });
 
 test('parseAllTagsFromString with multiple tags', () => {
-    expect(utils.parseAllTagsFromString(`I think we should add <@16890631690977280> to the <@&234362454976102401> role.
+    expect(testables.parseAllTagsFromString(`I think we should add <@16890631690977280> to the <@&234362454976102401> role.
     I think we should add <@!36890631690977280> to the <@&434362454976102401> role.
     I think we should add <@&56890631690977280> to the <@&634362454976102401> role.`)).toStrictEqual([
         '<@16890631690977280>',
@@ -36,40 +39,40 @@ test('parseAllTagsFromString with multiple tags', () => {
 });
 
 test('parseAllTagsFromString with no tags', () => {
-    expect(utils.parseAllTagsFromString(`I think we should add 16890631690977280> to the <@&234362454976102401 role.
+    expect(testables.parseAllTagsFromString(`I think we should add 16890631690977280> to the <@&234362454976102401 role.
     I think we should add <@!36890631690977280 to the 434362454976102401> role.
     I think we should add &56890631690977280> to the &634362454976102401> role.`)).toBe(null);
 });
 
 test(`appendStringsForEmbed don't quote`, () => {
     //stringArray, fieldSize, separator, dontQuote, padChar
-    expect(utils.appendStringsForEmbed(['one', 'tw', 'three', 'four'], 3, '|', true, ' ')).toBe('one|tw |thr|fou');
+    expect(testables.appendStringsForEmbed(['one', 'tw', 'three', 'four'], 3, '|', true, ' ')).toBe('one|tw |thr|fou');
 });
 
 test(`appendStringsForEmbed quoted`, () => {
     //stringArray, fieldSize, separator, dontQuote, padChar
-    expect(utils.appendStringsForEmbed(['one', 'tw', 'three', 'four'], 3, '|', false, ' ')).toBe('`one`|`tw `|`thr`|`fou`');
+    expect(testables.appendStringsForEmbed(['one', 'tw', 'three', 'four'], 3, '|', false, ' ')).toBe('`one`|`tw `|`thr`|`fou`');
 });
 
 test(`appendStringsForEmbedChanges`, () => {
-    expect(utils.appendStringsForEmbedChanges(['12345678901234567890', '12345678901234567890', '12345678901234567890', '1234567890'])).toBe('`1234567890123456` | `1234567890123456` | `1234567890123456` | `1234567890      `');
+    expect(testables.appendStringsForEmbedChanges(['12345678901234567890', '12345678901234567890', '12345678901234567890', '1234567890'])).toBe('`1234567890123456` | `1234567890123456` | `1234567890123456` | `1234567890      `');
 });
 
 test(`isTrue`, () => {
-    expect(utils.isTrue(1)).toBe(true);
-    expect(utils.isTrue('1')).toBe(true);
-    expect(utils.isTrue(true)).toBe(true);
-    expect(utils.isTrue('true')).toBe(true);
-    expect(utils.isTrue('on')).toBe(true);
-    expect(utils.isTrue('yes')).toBe(true);
-    expect(utils.isTrue(false)).toBe(false);
-    expect(utils.isTrue(0)).toBe(false);
-    expect(utils.isTrue("no")).toBe(false);
-    expect(utils.isTrue(undefined)).toBe(false);
+    expect(testables.isTrue(1)).toBe(true);
+    expect(testables.isTrue('1')).toBe(true);
+    expect(testables.isTrue(true)).toBe(true);
+    expect(testables.isTrue('true')).toBe(true);
+    expect(testables.isTrue('on')).toBe(true);
+    expect(testables.isTrue('yes')).toBe(true);
+    expect(testables.isTrue(false)).toBe(false);
+    expect(testables.isTrue(0)).toBe(false);
+    expect(testables.isTrue("no")).toBe(false);
+    expect(testables.isTrue(undefined)).toBe(false);
 });
 
 test('lengthOfEmbed', () => {
-    let fields = [{name: 'field1', value: 'value1'},{name: 'field2', value: 'value2'}];
+    let fields = [{ name: 'field1', value: 'value1' }, { name: 'field2', value: 'value2' }];
 
     let embed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
@@ -79,7 +82,7 @@ test('lengthOfEmbed', () => {
         .setDescription('Some Description')
         .setFields(fields);
 
-    expect(utils.lengthOfEmbed(embed)).toBe(101);
+    expect(testables.lengthOfEmbed(embed)).toBe(101);
 });
 
 const testCommands = {
@@ -104,9 +107,9 @@ const testCommands = {
 test(`checkIfCommandsChanged false`, () => {
     let testCommandsA1 = JSON.parse(JSON.stringify(testCommands));
     let testCommandsB1 = JSON.parse(JSON.stringify(testCommands));
-    let testCommandsA = utils.transformCommandsToDiscordFormat(testCommandsA1);
-    let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
-    expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(false);
+    let testCommandsA = testables.transformCommandsToDiscordFormat(testCommandsA1);
+    let testCommandsB = testables.transformCommandsToDiscordFormat(testCommandsB1);
+    expect(testables.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(false);
 });
 
 const testCommandsWithOptions = {
@@ -137,13 +140,13 @@ const testCommandsWithOptions = {
 test(`checkIfCommandsChanged if command and not actions or actions but not command`, () => {
     let testCommandsA1 = JSON.parse(JSON.stringify(testCommands));
     let testCommandsB1 = JSON.parse(JSON.stringify(testCommandsWithOptions));
-    let testCommandsA = utils.transformCommandsToDiscordFormat(testCommandsA1);
-    let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
+    let testCommandsA = testables.transformCommandsToDiscordFormat(testCommandsA1);
+    let testCommandsB = testables.transformCommandsToDiscordFormat(testCommandsB1);
 
-    console.debug('testCommandsA-->', testCommandsA);
-    console.debug('testCommandsB-->', testCommandsB);
+    //console.debug('testCommandsA-->', testCommandsA);
+    //console.debug('testCommandsB-->', testCommandsB);
 
-    expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
+    expect(testables.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
 });
 
 test(`checkIfCommandsChanged A true`, () => {
@@ -154,18 +157,18 @@ test(`checkIfCommandsChanged A true`, () => {
         "description": "Get statistics about bot",
         "slash": true
     };
-    let testCommandsA = utils.transformCommandsToDiscordFormat(testCommandsA1);
-    let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
-    expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
+    let testCommandsA = testables.transformCommandsToDiscordFormat(testCommandsA1);
+    let testCommandsB = testables.transformCommandsToDiscordFormat(testCommandsB1);
+    expect(testables.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
 });
 
 test(`checkIfCommandsChanged A option true`, () => {
     let testCommandsA1 = JSON.parse(JSON.stringify(testCommands));
     let testCommandsB1 = JSON.parse(JSON.stringify(testCommands));
     testCommandsA1.show.options[0].required = false;
-    let testCommandsA = utils.transformCommandsToDiscordFormat(testCommandsA1);
-    let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
-    expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
+    let testCommandsA = testables.transformCommandsToDiscordFormat(testCommandsA1);
+    let testCommandsB = testables.transformCommandsToDiscordFormat(testCommandsB1);
+    expect(testables.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
 });
 
 test(`checkIfCommandsChanged B true`, () => {
@@ -176,68 +179,128 @@ test(`checkIfCommandsChanged B true`, () => {
         "description": "Get statistics about bot",
         "slash": true
     }
-    let testCommandsA = utils.transformCommandsToDiscordFormat(testCommandsA1);
-    let testCommandsB = utils.transformCommandsToDiscordFormat(testCommandsB1);
-    expect(utils.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
+    let testCommandsA = testables.transformCommandsToDiscordFormat(testCommandsA1);
+    let testCommandsB = testables.transformCommandsToDiscordFormat(testCommandsB1);
+    expect(testables.checkIfCommandsChanged(testCommandsA, testCommandsB)).toBe(true);
 });
 
 test(`strikeThrough test result`, () => {
-    let result = utils.strikeThrough("text to be splited");
+    let result = testables.strikeThrough("text to be splited");
     expect(result).toMatch('t̶e̶x̶t̶ ̶t̶o̶ ̶b̶e̶ ̶s̶p̶l̶i̶t̶e̶d̶');
 });
 
 test(`parseIntOrMakeZero with undefined returns 0`, () => {
-    let result = utils.parseIntOrMakeZero(undefined);
+    let result = testables.parseIntOrMakeZero(undefined);
     expect(result).toBe(0);
 });
 
 test(`parseIntOrMakeZero with null returns 0`, () => {
-    let result = utils.parseIntOrMakeZero(null);
+    let result = testables.parseIntOrMakeZero(null);
     expect(result).toBe(0);
 });
 
 test(`parseIntOrMakeZero with unparseable String returns 0`, () => {
-    let result = utils.parseIntOrMakeZero('a');
+    let result = testables.parseIntOrMakeZero('a');
     expect(result).toBe(0);
 });
 
 test(`parseIntOrMakeZero with parseable String returns parsed value`, () => {
-    let result = utils.parseIntOrMakeZero('123a');
+    let result = testables.parseIntOrMakeZero('123a');
     expect(result).toBe(123);
 });
 
 test(`parseIntOrMakeZero with NaN returns 0`, () => {
-    let result = utils.parseIntOrMakeZero(NaN);
+    let result = testables.parseIntOrMakeZero(NaN);
     expect(result).toBe(0);
 });
 
 test(`parseIntOrMakeZero with POSITIVE_INFINITY returns 0`, () => {
-    let result = utils.parseIntOrMakeZero(Number.POSITIVE_INFINITY);
+    let result = testables.parseIntOrMakeZero(Number.POSITIVE_INFINITY);
     expect(result).toBe(0);
 });
 
 test(`parseIntOrMakeZero with NEGATIVE_INFINITY returns 0`, () => {
-    let result = utils.parseIntOrMakeZero(Number.NEGATIVE_INFINITY);
+    let result = testables.parseIntOrMakeZero(Number.NEGATIVE_INFINITY);
     expect(result).toBe(0);
 });
 
 test(`parseIntOrMakeZero with 0 returns 0`, () => {
-    let result = utils.parseIntOrMakeZero(0);
+    let result = testables.parseIntOrMakeZero(0);
     expect(result).toBe(0);
 });
 
 test('getDiscordUrlWithUndefinedguildIdToMatchString', () => {
-    let url = utils.getDiscordUrl(undefined, CHANNELID, MESSAGEID);
+    let url = testables.getDiscordUrl(undefined, CHANNELID, MESSAGEID);
     expect(url).toMatch(`${BASEURL}/${DEFAULT_GUILDID}/${CHANNELID}/${MESSAGEID}`);
 });
 
 test('getDiscordUrlWithNullguildIdToMatchString', () => {
-    let url = utils.getDiscordUrl(null, CHANNELID, MESSAGEID);
+    let url = testables.getDiscordUrl(null, CHANNELID, MESSAGEID);
     expect(url).toMatch(`${BASEURL}/${DEFAULT_GUILDID}/${CHANNELID}/${MESSAGEID}`);
 });
 
 test('getDiscordUrlWithNotNullguildIdToMatchString', () => {
     const GUILDID = 'guildId';
-    let url = utils.getDiscordUrl(GUILDID, CHANNELID ,MESSAGEID);
+    let url = testables.getDiscordUrl(GUILDID, CHANNELID, MESSAGEID);
     expect(url).toMatch(`${BASEURL}/${GUILDID}/${CHANNELID}/${MESSAGEID}`);
+});
+
+test('sendDirectOrFallbackToChannelError', async () => {
+    const ERRORSTRING = 'Bad things happen.';
+    let error = new Error(ERRORSTRING);
+    let msg = {};
+    let user = {};
+    user.send = (content) => { console.info('Content sent: ', content.embeds[0].fields) };
+    let userSendSpy = jest.spyOn(user, 'send');
+    let skipDM = false;
+    let urlToLinkBack = "https://example.com/linkback";
+    let addtlFields = { name: 'test', value: 'test value' };
+    await testables.sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBack, addtlFields);
+    expect(userSendSpy).toHaveBeenCalledWith(expect.objectContaining({
+        embeds: expect.arrayContaining([expect.objectContaining({
+            fields: expect.arrayContaining([expect.objectContaining({
+                name: 'Error',
+                value: expect.stringMatching(new RegExp('.* - ' + ERRORSTRING))
+            })])
+        })])
+    }));
+});
+
+test('sendDirectOrFallbackToChannel', async () => {
+    let msg = {};
+    let user = {};
+    user.send = (content) => { console.info('Content sent: ', content.embeds[0].fields) };
+    let userSendSpy = jest.spyOn(user, 'send');
+    let skipDM = false;
+    let urlToLinkBack = "https://example.com/linkback";
+    let fields = { name: 'test', value: 'test value' };
+    await testables.sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLinkBack);
+    expect(userSendSpy).toHaveBeenCalledWith(expect.objectContaining({
+        embeds: expect.arrayContaining([expect.objectContaining({
+            fields: expect.arrayContaining([expect.objectContaining({
+                name: 'test',
+                value: 'test value',
+            })])
+        })])
+    }));
+});
+
+test('sendSimpleDirectOrFallbackToChannel', async () => {
+    let msg = {};
+    let user = {};
+    user.send = (content) => { console.info('Content sent: ', content) };
+    let userSendSpy = jest.spyOn(user, 'send');
+    await testables.sendSimpleDirectOrFallbackToChannel("This is a test", msg, user);
+    expect(userSendSpy).toHaveBeenCalledWith(expect.objectContaining({
+        content: 'This is a test',
+    }));
+});
+
+test('trimAndElipsiseStringArray', () => {
+    //115
+    const strArrayToTrim = ['testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy', 'testy'];
+    const totalFinalLength = 99;
+    let resultString = testables.trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength);
+    // console.info(`trimAndElipsiseStringArray: `, resultString);
+    expect(resultString).toHaveLength(totalFinalLength);
 });

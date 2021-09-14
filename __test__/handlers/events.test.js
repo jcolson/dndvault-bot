@@ -1,11 +1,10 @@
+const path = require('path');
+global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 jest.mock('../../models/Event.js');
 const events = require('../../handlers/events.js');
 const EventModel = require('../../models/Event.js');
 const discordjs = require('discord.js');
-
-global.Config = {};
-global.Config.dndVaultIcon = "https://example.com/vaulticon.png";
-global.Config.httpServerURL = "https://example.com";
+const { testables } = events;
 
 test('embedForEvent with too long title fields, does not throw exception', async () => {
     const longField = `super long test title test title test title test title test title test title test title test title test title test title test title test title test title
@@ -25,10 +24,10 @@ test('embedForEvent with too long title fields, does not throw exception', async
     let eventArray = [event];
     let title = longField;
     let isShow = true;
-    let embeds = await events.embedForEvent(guild, eventArray, title, isShow);
+    let embeds = await testables.embedForEvent(guild, eventArray, title, isShow);
     // console.debug(embeds[0].title.length);
     expect(embeds[0].title.length).toBeLessThanOrEqual(1024);
-    for (field of embeds[0].fields) {
+    for (let field of embeds[0].fields) {
         // console.debug(`field`,field);
         // console.debug(field.value.length);
         expect(field.value.length).toBeLessThanOrEqual(1024);
