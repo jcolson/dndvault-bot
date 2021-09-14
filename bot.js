@@ -36,7 +36,7 @@ global.COMMANDS = commands.COMMANDS;
  */
 (async () => {
     console.info('connecting as mongo user: %s ...', Config.mongoUser);
-    await connect('mongodb://' + Config.mongoUser + ':' + Config.mongoPass + '@' + Config.mongoServer + ':' + Config.mongoPort + '/' + Config.mongoSchema + '?authSource=' + Config.mongoSchema, {
+    await connect(`mongodb://${Config.mongoUser}:${Config.mongoPass}@${Config.mongoServer}:${Config.mongoPort}/${Config.mongoSchema}?authSource=${Config.mongoSchema}`, {
         useNewUrlParser: true,
         useFindAndModify: false,
         useUnifiedTopology: true,
