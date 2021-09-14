@@ -38,7 +38,7 @@ const Character = Schema({
         "type": "Number"
     },
     "id": {
-        "type": "Number",
+        "type": "String",
         index: true
     },
     "userId": {
