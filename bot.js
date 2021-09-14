@@ -250,21 +250,6 @@ client.on('messageCreate', async (msg) => {
     }
 });
 
-/**
- * if paramArray didn't come from a slash command, it won't have the 'name's of each of the params
- * this function names the parameters so that they can be used by name in the update function
- * @param {Object} globalCommand (ex: COMMANDS.updateManual)
- * @param {Array} msgParms
- */
-function xformArrayToMsgParms(globalCommand, msgParms) {
-    for (let i = 0; i < msgParms.length; i++) {
-        if (!msgParms[i].name) {
-            msgParms[i].name = globalCommand.options[i].name;
-        }
-    }
-    console.debug(`xformArrayToMsgParms:`, msgParms);
-}
-
 process.on('SIGTERM', async () => {
     console.info('SIGTERM signal received.');
     await cleanShutdown(true);
