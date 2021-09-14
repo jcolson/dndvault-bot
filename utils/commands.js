@@ -934,5 +934,84 @@ const COMMANDS = {
     return options;
 }
 
+/**
+ * Pass in the actual message content (not the toLowerCased content, this will take care of that)
+ * @param {String} messageContent
+ * @param {String} command
+ * @param {String} prefix
+ * @returns
+ */
+ function parseMessageParms(messageContent, command, prefix) {
+    let options = [];
+    if (!messageContent) {
+        return options;
+    }
+    /**
+     * COMMANDS.command.name can not have spaces in it ... so I used underscores in the command name
+     * _ need to be replaced with spaces so that we can match the command name
+     * (commands used to have spaces in them with old-school prefix method)
+     */
+    command = command.replace(/_/g, ' ');
+    let messageContentLowercase = messageContent.toLowerCase();
+    let commandIndex = messageContentLowercase.indexOf(prefix + command);
+    if (commandIndex == -1) {
+        commandIndex = messageContentLowercase.indexOf(command);
+        if (commandIndex == -1) {
+            throw new Error(`Command (${command}) parameters could not be parsed: ${messageContent}`);
+        } else {
+            commandIndex += command.length;
+        }
+    } else {
+        commandIndex += (prefix + command).length;
+    }
+    let msgParms = messageContent.substring(commandIndex).trim();
+    //parse event format - ignore ! unless beginning of line or preceded by space
+    const regex = /(^!| !)(?:(?! !).)*/g;
+    let found = msgParms.match(regex);
+    if (found) {
+        console.debug('parseMessageParms:', msgParms);
+        //check to see if this is a non-slash 'event edit' and the first param is the event id (maintaining backwards compat)
+        if (!msgParms.startsWith('!') && command.replace(' ', '_').indexOf(COMMANDS.eventEdit.name) != -1) {
+            let option = {
+                name: 'event_id',
+                value: msgParms.trim().split(' ')[0]
+            }
+            options.push(option);
+        }
+        for (let each of found) {
+            // console.debug('each', each);
+            let eachSplit = each.trim().split(' ');
+            let option = {
+                name: eachSplit[0].substring(eachSplit[0].indexOf('!') + 1),
+                value: eachSplit.slice(1).join(' '),
+            };
+            options.push(option);
+        }
+    } else {
+        //parse poll format
+        const pollRegex = /[^\s"]+|"([^"]*)"/g;
+        found = msgParms.match(pollRegex);
+        if (found) {
+            for (let each of found) {
+                each = each.replace(/^"(.*)"$/, '$1');
+                let option = { value: each };
+                options.push(option);
+            }
+        } else {
+            //parse spaces
+            found = msgParms.split(' ');
+            if (found) {
+                for (let each of found) {
+                    let option = { value: each };
+                    options.push(option);
+                }
+            }
+        }
+    }
+    console.debug(`parseMessageParms: "${prefix}" "${command}" "${commandIndex}" - ${msgParms}`, options);
+    return options;
+}
+
 exports.handleCommandExec = handleCommandExec;
+exports.parseMessageParms = parseMessageParms;
 exports.COMMANDS = COMMANDS;
