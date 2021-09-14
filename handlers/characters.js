@@ -325,7 +325,7 @@ async function handleRegister(msg, paramArray, guildConfig) {
         let charJSON = await response.json();
         if (response.status != 200 || charJSON.success == false) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
-        };
+        }
         let charData = Object.assign({}, charJSON.data);
         const req = await CharModel.findOne({ id: charData.id, isUpdate: false, guildID: msg.guild.id });
         if (req) {
@@ -434,7 +434,7 @@ async function handleUpdate(msg, paramArray, guildConfig) {
         let charJSON = await response.json();
         if (response.status != 200 || charJSON.success == false) {
             throw new Error('Sorry, that URL or dndbeyond-id contains no character data');
-        };
+        }
         let charData = Object.assign({}, charJSON.data);
         const checkRegisterStatus = await CharModel.findOne({ id: charData.id, isUpdate: false, guildID: msg.guild.id, guildUser: msg.member.id });
         if (!checkRegisterStatus) {
@@ -615,9 +615,8 @@ function addSubtractSetValue(newValue, oldValue) {
  * Handler for displaying character changes
  * @param {Message} msg
  * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleChanges(msg, msgParms, guildConfig) {
+async function handleChanges(msg, msgParms) {
     try {
         const charId = msgParms[0].value;
         let updatedChar = await CharModel.findOne({ id: charId, guildID: msg.guild.id, approvalStatus: false });
@@ -1016,7 +1015,7 @@ function stringForRaceWithUrl(urlBase, charRace) {
  */
 function stringForClassesWithUrls(urlBase, charClasses) {
     let returnClassesString = '';
-    for (charClass of charClasses) {
+    for (let charClass of charClasses) {
         returnClassesString += stringForClassWithUrl(urlBase, charClass) + ' ';
     }
     return returnClassesString.trim();
@@ -1086,9 +1085,8 @@ function stringForNameChange(approvedChar, updatedChar) {
  * list all characters for the campaign requested
  * @param {Message} msg
  * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleListCampaign(msg, msgParms, guildConfig) {
+async function handleListCampaign(msg, msgParms) {
     try {
         let campaignToList = msgParms[0].value;
         let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, 'campaign.id': campaignToList, approvalStatus: false });
@@ -1129,12 +1127,10 @@ function getIdsFromCharacterArray(charArray) {
  * list characters for this user
  * @param {Message} msg
  * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleListUser(msg, msgParms, guildConfig) {
+async function handleListUser(msg, msgParms) {
     try {
-        let userToList = msgParms[0].value;
-        userToList = utils.trimTagsFromId(userToList);
+        let userToList = utils.trimTagsFromId(msgParms[0].value);
         //        if (userToList.startsWith('<')) {
         // console.debug("handleListUser: usertolist:", userToList);
         let memberToList = await msg.guild.members.fetch(userToList);
@@ -1190,7 +1186,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
-                name: `\:dagger: User | Char | ID | Status | Campaign \:shield:`,
+                name: `:dagger: User | Char | ID | Status | Campaign :shield:`,
                 value: `<@${char.guildUser}> | ${charNameString} | ${char.id} | ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
@@ -1266,7 +1262,7 @@ function stringForStats(char) {
 
 function calcTotalLevels(char) {
     let level = 0;
-    for (charClass of char.classes) {
+    for (let charClass of char.classes) {
         level += charClass.level;
     }
     return level;
@@ -1320,10 +1316,8 @@ function stringForApprovalsAndUpdates(char) {
 /**
  * list all characters in guild
  * @param {Message} msg
- * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleListAll(msg, msgParms, guildConfig) {
+async function handleListAll(msg) {
     try {
         let charArrayUpdates = await CharModel.find({ guildID: msg.guild.id, isUpdate: true });
         let notInIds = getIdsFromCharacterArray(charArrayUpdates);
@@ -1344,10 +1338,8 @@ async function handleListAll(msg, msgParms, guildConfig) {
 /**
  * list all characters queued for approval
  * @param {Message} msg
- * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleListQueued(msg, msgParms, guildConfig) {
+async function handleListQueued(msg) {
     try {
         const charArray = await CharModel.find({ guildID: msg.guild.id, approvalStatus: false });
         if (charArray.length > 0) {
@@ -1365,10 +1357,8 @@ async function handleListQueued(msg, msgParms, guildConfig) {
 /**
  *
  * @param {Message} msg
- * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleList(msg, msgParms, guildConfig) {
+async function handleList(msg) {
     try {
         let vaultUser = await UserModel.findOne({ guildID: msg.guild.id, userID: msg.member.id });
         // console.log('handlelist vaultuser', vaultUser);
@@ -1443,7 +1433,7 @@ async function handleApprove(msg, msgParms, guildConfig) {
                 charToApprove.approvalStatus = true;
                 charToApprove.approvedBy = msg.member.id;
                 // if this is an update, then remove the original - this update will become the registered character
-                if (charToApprove.isUpdate = true) {
+                if (charToApprove.isUpdate === true) {
                     charToApprove.isUpdate = false;
                     await CharModel.deleteMany({ id: charIdToApprove, guildID: msg.guild.id, isUpdate: false, approvalStatus: true });
                 }
@@ -1463,9 +1453,8 @@ async function handleApprove(msg, msgParms, guildConfig) {
  * show a user's character from the vault
  * @param {Message} msg
  * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleShow(msg, msgParms, guildConfig) {
+async function handleShow(msg, msgParms) {
     try {
         const charID = msgParms[0].value;
         // const charID = msg.content.substring((guildConfig.prefix + 'show').length + 1);
@@ -1486,9 +1475,8 @@ async function handleShow(msg, msgParms, guildConfig) {
  * allow editing of campaign to override dndbeyond
  * @param {Message} msg
  * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleCampaign(msg, msgParms, guildConfig) {
+async function handleCampaign(msg, msgParms) {
     try {
         if (msgParms.length < 1) {
             throw new Error('Please pass the (in the least) the character id.');

@@ -1,15 +1,16 @@
 const { Schema, model } = require('mongoose');
 
 const Character = Schema({
+    "apiVersion": {
+        "type": "String",
+        index: true,
+        default: '5'
+    },
     "guildUser": {
         "type": "String",
         index: true
     },
     "guildID": {
-        "type": "String",
-        index: true
-    },
-    "id": {
         "type": "String",
         index: true
     },
@@ -36,64 +37,88 @@ const Character = Schema({
     "treasurePoints": {
         "type": "Number"
     },
+    "id": {
+        "type": "String",
+        index: true
+    },
+    "userId": {
+        "type": "Number"
+    },
     "readonlyUrl": {
         "type": "String"
     },
-    "avatarUrl": {
-        "type": "String"
-    },
-    "frameAvatarUrl": {
-        "type": "String"
-    },
-    "backdropAvatarUrl": {
-        "type": "Mixed"
-    },
-    "smallBackdropAvatarUrl": {
-        "type": "Mixed"
-    },
-    "largeBackdropAvatarUrl": {
-        "type": "Mixed"
-    },
-    "thumbnailBackdropAvatarUrl": {
-        "type": "Mixed"
-    },
-    "defaultBackdrop": {
-        "backdropAvatarUrl": {
+    "decorations": {
+        "avatarUrl": {
             "type": "String"
+        },
+        "frameAvatarUrl": {
+            "type": "Mixed"
+        },
+        "backdropAvatarUrl": {
+            "type": "Mixed"
         },
         "smallBackdropAvatarUrl": {
-            "type": "String"
+            "type": "Mixed"
         },
         "largeBackdropAvatarUrl": {
-            "type": "String"
+            "type": "Mixed"
         },
         "thumbnailBackdropAvatarUrl": {
+            "type": "Mixed"
+        },
+        "defaultBackdrop": {
+            "backdropAvatarUrl": {
+                "type": "String"
+            },
+            "smallBackdropAvatarUrl": {
+                "type": "String"
+            },
+            "largeBackdropAvatarUrl": {
+                "type": "String"
+            },
+            "thumbnailBackdropAvatarUrl": {
+                "type": "String"
+            }
+        },
+        "avatarId": {
+            "type": "Number"
+        },
+        "portraitDecorationKey": {
+            "type": "Mixed"
+        },
+        "frameAvatarDecorationKey": {
+            "type": "Mixed"
+        },
+        "frameAvatarId": {
+            "type": "Mixed"
+        },
+        "backdropAvatarDecorationKey": {
+            "type": "Mixed"
+        },
+        "backdropAvatarId": {
+            "type": "Mixed"
+        },
+        "smallBackdropAvatarDecorationKey": {
             "type": "String"
+        },
+        "smallBackdropAvatarId": {
+            "type": "Mixed"
+        },
+        "largeBackdropAvatarDecorationKey": {
+            "type": "String"
+        },
+        "largeBackdropAvatarId": {
+            "type": "Mixed"
+        },
+        "thumbnailBackdropAvatarDecorationKey": {
+            "type": "String"
+        },
+        "thumbnailBackdropAvatarId": {
+            "type": "Mixed"
+        },
+        "themeColor": {
+            "type": "Mixed"
         }
-    },
-    "avatarId": {
-        "type": "Number"
-    },
-    "frameAvatarId": {
-        "type": "Number"
-    },
-    "backdropAvatarId": {
-        "type": "Mixed"
-    },
-    "smallBackdropAvatarId": {
-        "type": "Mixed"
-    },
-    "largeBackdropAvatarId": {
-        "type": "Mixed"
-    },
-    "thumbnailBackdropAvatarId": {
-        "type": "Mixed"
-    },
-    "themeColorId": {
-        "type": "Mixed"
-    },
-    "themeColor": {
-        "type": "Mixed"
     },
     "name": {
         "type": "String"
@@ -168,91 +193,24 @@ const Character = Schema({
         ]
     },
     "background": {
-        "customBackground": {
-            "backgroundType": {
-                "type": "Mixed"
-            },
-            "characteristicsBackground": {
-                "type": "Mixed"
-            },
-            "characteristicsBackgroundDefinitionId": {
-                "type": "Mixed"
-            },
-            "description": {
-                "type": "Mixed"
-            },
-            "entityTypeId": {
-                "type": "Number"
-            },
-            "featuresBackground": {
-                "type": "Mixed"
-            },
-            "featuresBackgroundDefinitionId": {
-                "type": "Mixed"
-            },
-            "id": {
-                "type": "Number"
-            },
-            "name": {
-                "type": "Mixed"
-            }
+        "hasCustomBackground": {
+            "type": "Boolean"
         },
         "definition": {
-            "avatarUrl": {
-                "type": "Mixed"
+            "id": {
+                "type": "Number"
             },
-            "bonds": {
-                "type": [
-                    "Mixed"
-                ]
+            "entityTypeId": {
+                "type": "Number"
             },
-            "contractsDescription": {
+            "name": {
                 "type": "String"
             },
             "description": {
                 "type": "String"
             },
-            "entityTypeId": {
-                "type": "Number"
-            },
-            "equipmentDescription": {
+            "snippet": {
                 "type": "String"
-            },
-            "featureDescription": {
-                "type": "String"
-            },
-            "featureName": {
-                "type": "String"
-            },
-            "flaws": {
-                "type": [
-                    "Mixed"
-                ]
-            },
-            "id": {
-                "type": "Number"
-            },
-            "ideals": {
-                "type": [
-                    "Mixed"
-                ]
-            },
-            "languagesDescription": {
-                "type": "String"
-            },
-            "largeAvatarUrl": {
-                "type": "Mixed"
-            },
-            "name": {
-                "type": "String"
-            },
-            "organization": {
-                "type": "Mixed"
-            },
-            "personalityTraits": {
-                "type": [
-                    "Mixed"
-                ]
             },
             "shortDescription": {
                 "type": "String"
@@ -260,26 +218,67 @@ const Character = Schema({
             "skillProficienciesDescription": {
                 "type": "String"
             },
-            "snippet": {
+            "toolProficienciesDescription": {
                 "type": "String"
             },
-            "spellsPostDescription": {
+            "languagesDescription": {
+                "type": "String"
+            },
+            "equipmentDescription": {
+                "type": "String"
+            },
+            "featureName": {
+                "type": "String"
+            },
+            "featureDescription": {
+                "type": "String"
+            },
+            "avatarUrl": {
+                "type": "Mixed"
+            },
+            "largeAvatarUrl": {
+                "type": "Mixed"
+            },
+            "suggestedCharacteristicsDescription": {
+                "type": "String"
+            },
+            "suggestedProficiencies": {
+                "type": "Mixed"
+            },
+            "suggestedLanguages": {
+                "type": "Mixed"
+            },
+            "organization": {
+                "type": "Mixed"
+            },
+            "contractsDescription": {
                 "type": "String"
             },
             "spellsPreDescription": {
                 "type": "String"
             },
-            "suggestedCharacteristicsDescription": {
+            "spellsPostDescription": {
                 "type": "String"
             },
-            "suggestedLanguages": {
-                "type": "Mixed"
+            "personalityTraits": {
+                "type": [
+                    "Mixed"
+                ]
             },
-            "suggestedProficiencies": {
-                "type": "Mixed"
+            "ideals": {
+                "type": [
+                    "Mixed"
+                ]
             },
-            "toolProficienciesDescription": {
-                "type": "String"
+            "bonds": {
+                "type": [
+                    "Mixed"
+                ]
+            },
+            "flaws": {
+                "type": [
+                    "Mixed"
+                ]
             },
             "isHomebrew": {
                 "type": "Boolean"
@@ -296,8 +295,34 @@ const Character = Schema({
         "definitionId": {
             "type": "Mixed"
         },
-        "hasCustomBackground": {
-            "type": "Boolean"
+        "customBackground": {
+            "id": {
+                "type": "Number"
+            },
+            "entityTypeId": {
+                "type": "Number"
+            },
+            "name": {
+                "type": "Mixed"
+            },
+            "description": {
+                "type": "Mixed"
+            },
+            "featuresBackground": {
+                "type": "Mixed"
+            },
+            "characteristicsBackground": {
+                "type": "Mixed"
+            },
+            "featuresBackgroundDefinitionId": {
+                "type": "Mixed"
+            },
+            "characteristicsBackgroundDefinitionId": {
+                "type": "Mixed"
+            },
+            "backgroundType": {
+                "type": "Mixed"
+            }
         }
     },
     "race": {
@@ -326,10 +351,10 @@ const Character = Schema({
             "type": "String"
         },
         "avatarUrl": {
-            "type": "Mixed"
+            "type": "String"
         },
         "largeAvatarUrl": {
-            "type": "Mixed"
+            "type": "String"
         },
         "portraitAvatarUrl": {
             "type": "String"
@@ -340,9 +365,6 @@ const Character = Schema({
         "isHomebrew": {
             "type": "Boolean"
         },
-        "sourceIds": {
-            "type": "Array"
-        },
         "groupIds": {
             "type": [
                 "Number"
@@ -351,8 +373,11 @@ const Character = Schema({
         "type": {
             "type": "Number"
         },
+        "supportsSubrace": {
+            "type": "Mixed"
+        },
         "subRaceShortName": {
-            "type": "String"
+            "type": "Mixed"
         },
         "baseName": {
             "type": "String"
@@ -363,33 +388,33 @@ const Character = Schema({
             ]
         },
         "weightSpeeds": {
+            "normal": {
+                "walk": {
+                    "type": "Number"
+                },
+                "fly": {
+                    "type": "Number"
+                },
+                "burrow": {
+                    "type": "Number"
+                },
+                "swim": {
+                    "type": "Number"
+                },
+                "climb": {
+                    "type": "Number"
+                }
+            },
             "encumbered": {
                 "type": "Mixed"
             },
             "heavilyEncumbered": {
                 "type": "Mixed"
             },
-            "normal": {
-                "burrow": {
-                    "type": "Number"
-                },
-                "climb": {
-                    "type": "Number"
-                },
-                "fly": {
-                    "type": "Number"
-                },
-                "swim": {
-                    "type": "Number"
-                },
-                "walk": {
-                    "type": "Number"
-                }
-            },
-            "override": {
+            "pushDragLift": {
                 "type": "Mixed"
             },
-            "pushDragLift": {
+            "override": {
                 "type": "Mixed"
             }
         },
@@ -401,9 +426,6 @@ const Character = Schema({
         },
         "sizeId": {
             "type": "Number"
-        },
-        "supportsSubrace": {
-            "type": "Mixed"
         },
         "sources": {
             "type": [
@@ -421,28 +443,31 @@ const Character = Schema({
         "allies": {
             "type": "Mixed"
         },
-        "backstory": {
+        "personalPossessions": {
             "type": "String"
         },
-        "enemies": {
+        "otherHoldings": {
             "type": "Mixed"
         },
         "organizations": {
             "type": "Mixed"
         },
-        "otherHoldings": {
+        "enemies": {
+            "type": "Mixed"
+        },
+        "backstory": {
             "type": "Mixed"
         },
         "otherNotes": {
-            "type": "Mixed"
-        },
-        "personalPossessions": {
             "type": "String"
         }
     },
     "traits": {
-        "appearance": {
-            "type": "Mixed"
+        "personalityTraits": {
+            "type": "String"
+        },
+        "ideals": {
+            "type": "String"
         },
         "bonds": {
             "type": "String"
@@ -450,18 +475,45 @@ const Character = Schema({
         "flaws": {
             "type": "String"
         },
-        "ideals": {
-            "type": "String"
-        },
-        "personalityTraits": {
-            "type": "String"
+        "appearance": {
+            "type": "Mixed"
         }
     },
     "preferences": {
-        "abilityScoreDisplayType": {
+        "useHomebrewContent": {
+            "type": "Boolean"
+        },
+        "progressionType": {
             "type": "Number"
         },
         "encumbranceType": {
+            "type": "Number"
+        },
+        "ignoreCoinWeight": {
+            "type": "Boolean"
+        },
+        "hitPointType": {
+            "type": "Number"
+        },
+        "showUnarmedStrike": {
+            "type": "Boolean"
+        },
+        "showScaledSpells": {
+            "type": "Boolean"
+        },
+        "primarySense": {
+            "type": "Number"
+        },
+        "primaryMovement": {
+            "type": "Number"
+        },
+        "privacyType": {
+            "type": "Number"
+        },
+        "sharingType": {
+            "type": "Number"
+        },
+        "abilityScoreDisplayType": {
             "type": "Number"
         },
         "enforceFeatRules": {
@@ -470,52 +522,25 @@ const Character = Schema({
         "enforceMulticlassRules": {
             "type": "Boolean"
         },
-        "showScaledSpells": {
-            "type": "Boolean"
-        },
-        "hitPointType": {
-            "type": "Number"
-        },
-        "ignoreCoinWeight": {
-            "type": "Boolean"
-        },
-        "primaryMovement": {
-            "type": "Number"
-        },
-        "primarySense": {
-            "type": "Number"
-        },
-        "privacyType": {
-            "type": "Number"
-        },
-        "progressionType": {
-            "type": "Number"
-        },
-        "sharingType": {
-            "type": "Number"
-        },
-        "showUnarmedStrike": {
-            "type": "Boolean"
-        },
-        "useHomebrewContent": {
-            "type": "Boolean"
-        },
         "enableOptionalClassFeatures": {
             "type": "Boolean"
         },
         "enableOptionalOrigins": {
             "type": "Boolean"
+        },
+        "enableDarkMode": {
+            "type": "Boolean"
         }
     },
     "configuration": {
+        "startingEquipmentType": {
+            "type": "Number"
+        },
         "abilityScoreType": {
             "type": "Number"
         },
         "showHelpText": {
             "type": "Boolean"
-        },
-        "startingEquipmentType": {
-            "type": "Number"
         }
     },
     "lifestyle": {
@@ -530,16 +555,16 @@ const Character = Schema({
         "cp": {
             "type": "Number"
         },
-        "ep": {
+        "sp": {
             "type": "Number"
         },
         "gp": {
             "type": "Number"
         },
-        "pp": {
+        "ep": {
             "type": "Number"
         },
-        "sp": {
+        "pp": {
             "type": "Number"
         }
     },
@@ -563,27 +588,26 @@ const Character = Schema({
     "customProficiencies": {
         "type": "Array"
     },
-    "spellDefenses": {
-        "type": "Mixed"
-    },
     "customActions": {
         "type": "Array"
     },
     "characterValues": {
-        "type": "Array"
+        "type": [
+            "Mixed"
+        ]
     },
     "conditions": {
         "type": "Array"
     },
     "deathSaves": {
         "failCount": {
-            "type": "Mixed"
+            "type": "Number"
+        },
+        "successCount": {
+            "type": "Number"
         },
         "isStabilized": {
             "type": "Boolean"
-        },
-        "successCount": {
-            "type": "Mixed"
         }
     },
     "adjustmentXp": {
@@ -605,83 +629,90 @@ const Character = Schema({
         ]
     },
     "spells": {
-        "background": {
-            "type": "Mixed"
-        },
-        "class": {
+        "race": {
             "type": [
                 "Mixed"
             ]
         },
-        "feat": {
+        "class": {
             "type": "Array"
+        },
+        "background": {
+            "type": "Mixed"
         },
         "item": {
             "type": "Array"
         },
-        "race": {
+        "feat": {
             "type": "Array"
         }
     },
     "options": {
-        "background": {
-            "type": "Mixed"
+        "race": {
+            "type": "Array"
         },
         "class": {
             "type": "Array"
         },
-        "feat": {
-            "type": "Array"
+        "background": {
+            "type": "Mixed"
         },
         "item": {
             "type": "Mixed"
         },
-        "race": {
+        "feat": {
             "type": "Array"
         }
     },
     "choices": {
-        "background": {
-            "type": [
-                "Mixed"
-            ]
+        "race": {
+            "type": "Array"
         },
         "class": {
             "type": [
                 "Mixed"
             ]
         },
-        "feat": {
-            "type": "Array"
+        "background": {
+            "type": [
+                "Mixed"
+            ]
         },
         "item": {
             "type": "Mixed"
         },
-        "race": {
+        "feat": {
+            "type": "Array"
+        },
+        "choiceDefinitions": {
             "type": [
                 "Mixed"
             ]
         }
     },
     "actions": {
-        "background": {
-            "type": "Mixed"
+        "race": {
+            "type": [
+                "Mixed"
+            ]
         },
         "class": {
-            "type": "Array"
+            "type": [
+                "Mixed"
+            ]
         },
-        "feat": {
-            "type": "Array"
+        "background": {
+            "type": "Mixed"
         },
         "item": {
             "type": "Mixed"
         },
-        "race": {
+        "feat": {
             "type": "Array"
         }
     },
     "modifiers": {
-        "background": {
+        "race": {
             "type": [
                 "Mixed"
             ]
@@ -691,19 +722,21 @@ const Character = Schema({
                 "Mixed"
             ]
         },
-        "condition": {
-            "type": "Array"
+        "background": {
+            "type": [
+                "Mixed"
+            ]
+        },
+        "item": {
+            "type": [
+                "Mixed"
+            ]
         },
         "feat": {
             "type": "Array"
         },
-        "item": {
+        "condition": {
             "type": "Array"
-        },
-        "race": {
-            "type": [
-                "Mixed"
-            ]
         }
     },
     "classSpells": {
@@ -716,15 +749,18 @@ const Character = Schema({
     },
     "campaign": {
         "id": {
-            "type": "String",
-            index: true
+            "type": "Number"
         },
-        "characters": {
-            "type": [
-                "Mixed"
-            ]
+        "name": {
+            "type": "String"
         },
         "description": {
+            "type": "String"
+        },
+        "link": {
+            "type": "String"
+        },
+        "publicNotes": {
             "type": "String"
         },
         "dmUserId": {
@@ -733,24 +769,28 @@ const Character = Schema({
         "dmUsername": {
             "type": "String"
         },
-        "link": {
-            "type": "String"
-        },
-        "name": {
-            "type": "String"
-        },
-        "publicNotes": {
-            "type": "String"
+        "characters": {
+            "type": [
+                "Mixed"
+            ]
         }
     },
     "creatures": {
-        "type": "Array"
+        "type": [
+            "Mixed"
+        ]
     },
     "optionalOrigins": {
         "type": "Array"
     },
     "optionalClassFeatures": {
         "type": "Array"
+    },
+    "dateModified": {
+        "type": "Date"
+    },
+    "providedFrom": {
+        "type": "String"
     }
 })
 module.exports = model('Character', Character);

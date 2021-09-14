@@ -4,3 +4,4 @@
 /dnd-mongo
 /dnd-mongo-init
 healthcheck-cookiejar.txt
+/coverage/

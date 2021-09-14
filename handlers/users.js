@@ -6,9 +6,8 @@ const utils = require('../utils/utils.js');
  * set user's timezone
  * @param {Message} msg
  * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleDefault(msg, msgParms, guildConfig) {
+async function handleDefault(msg, msgParms) {
     try {
         let defaultChar = msgParms.length > 0 ? msgParms[0].value : undefined;
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
@@ -68,9 +67,8 @@ async function bc_setUsersTimezone(userID, channelID, timezone, guildID) {
  * set user's timezone
  * @param {Message} msg
  * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleTimezone(msg, msgParms, guildConfig) {
+async function handleTimezone(msg, msgParms) {
     try {
         let timeZoneString = msgParms.length > 0 ? msgParms[0].value : undefined;
         let currUser = await UserModel.findOne({ userID: msg.member.id, guildID: msg.guild.id });
@@ -148,3 +146,7 @@ exports.handleTimezone = handleTimezone;
 exports.hasRoleOrIsAdmin = hasRoleOrIsAdmin;
 exports.handleDefault = handleDefault;
 exports.bc_setUsersTimezone = bc_setUsersTimezone;
+
+exports.testables = {
+    isValidTimeZone: isValidTimeZone
+};

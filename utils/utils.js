@@ -1,4 +1,4 @@
-const { MessageEmbed, MessagePayload } = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
@@ -49,8 +49,10 @@ const EMPTY_FIELD = '\u200B';
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
+ * @param {String} urlToLinkBack
+ * @param {Object} addtlFields - additional fields to add to message
  */
-async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBank, addtlFields) {
+async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBack, addtlFields) {
     let embed = new MessageEmbed()
         .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
         .setColor(COLORS.RED);
@@ -58,7 +60,7 @@ async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlT
     if (addtlFields) {
         embed.addFields(addtlFields);
     }
-    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
+    return await sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBack);
 }
 
 /**
@@ -67,8 +69,9 @@ async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlT
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
+ * @param {String} urlToLinkBack
  */
-async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLinkBank) {
+async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLinkBack) {
     if (!Array.isArray(fields)) {
         fields = [fields];
     }
@@ -80,7 +83,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
         field.value = typeof field.value !== 'undefined' && '' + field.value != '' ? field.value : 'UNSET';
     }
     embed.addFields(fields);
-    return sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBank);
+    return await sendDirectOrFallbackToChannelEmbeds([embed], msg, user, skipDM, urlToLinkBack);
 }
 
 /**
@@ -89,8 +92,9 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
  * @param {Message} msg will be used to determine link back, as well as user if user is not passed
  * @param {User} user will be used to DM
  * @param {Boolean} skipDM
+ * @param {String} urlToLinkBack
  */
-async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM, urlToLinkBank) {
+async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipDM, urlToLinkBack) {
     try {
         if (!Array.isArray(embedsArray)) {
             embedsArray = [embedsArray];
@@ -101,8 +105,8 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         if (!user && msg?.author) {
             user = msg.author;
         }
-        if (!urlToLinkBank && msg?.url) {
-            urlToLinkBank = msg.url;
+        if (!urlToLinkBack && msg?.url) {
+            urlToLinkBack = msg.url;
         }
         if (!user) {
             throw new Error('no valid message or user was passed to be able to respond.');
@@ -113,14 +117,14 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         let sentMessage, commsErrorMessage;
         if (user && !skipDM) {
             try {
-                if (urlToLinkBank) {
+                if (urlToLinkBack) {
                     let goBackMessage = '[Go Back To Message]';
                     // ensure that if this embed was 'reused', that we don't add the gobackmessage repeatedly
                     let lastFieldValue = embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1].value;
                     // console.debug('sendDirectOrFallbackToChannelEmbeds: ', embedsArray[embedsArray.length - 1].fields);
                     if (!lastFieldValue.startsWith(goBackMessage)) {
                         // console.debug(`last field did not start with ${goBackMessage}`, embedsArray[embedsArray.length - 1].fields[embedsArray[embedsArray.length - 1].fields.length - 1]);
-                        embedsArray[embedsArray.length - 1].addFields({ name: EMPTY_FIELD, value: `${goBackMessage}(${urlToLinkBank})`, inline: false });
+                        embedsArray[embedsArray.length - 1].addFields({ name: EMPTY_FIELD, value: `${goBackMessage}(${urlToLinkBack})`, inline: false });
                     }
                 }
                 // if it's an interaction (slash command) and there is only 1 embed, then just reply with it
@@ -219,6 +223,7 @@ async function sendSimpleDirectOrFallbackToChannel(content, msg, user) {
             console.error('could not send via DC or channel', error);
         }
     }
+    return sentMessage;
 }
 
 /**
@@ -337,15 +342,17 @@ function stringOfSize(value, size, padChar, padBefore) {
 function trimAndElipsiseStringArray(strArrayToTrim, totalFinalLength) {
     let elipses = '\n...';
     let buffer = elipses.length;
-    totalFinalLength = totalFinalLength - buffer;
+    // totalFinalLength = totalFinalLength - buffer;
     let stringToReturn = strArrayToTrim.join('\n');
-    while (stringToReturn.length >= totalFinalLength) {
+    while (stringToReturn.length > totalFinalLength) {
         let lastIndex = stringToReturn.lastIndexOf('\n');
+        // console.debug('trimAndElipsiseStringArray last index', lastIndex);
         if (lastIndex == -1) {
             stringToReturn = stringToReturn.substring(0, totalFinalLength - buffer) + elipses;
         } else {
             stringToReturn = stringToReturn.substring(0, lastIndex);
-            if (stringToReturn.length <= totalFinalLength - buffer) {
+            // console.debug(`trimAndElipsiseStringArray is it less? ${stringToReturn.length} - ${totalFinalLength}`);
+            if (stringToReturn.length <= totalFinalLength) {
                 stringToReturn += elipses;
             }
         }
@@ -421,7 +428,7 @@ async function checkChannelPermissions(msg, addtlPermsToCheck) {
     // if (!await botPerms.has(requiredPerms)) {
     //     throw new Error(`Server channel (${msg.channel.name}) is missing a Required Permission (please inform a server admin to remove the bot from that channel or ensure the bot has the following permissions): ${requiredPerms}`);
     // }
-    for (reqPerm of requiredPerms) {
+    for (let reqPerm of requiredPerms) {
         if (!await botPerms.has(reqPerm)) {
             throw new Error(`Server (${msg.guild}) channel (${msg.channel.name}) is missing a Required Permission for the bot to function properly (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}).`);
         }
@@ -470,7 +477,7 @@ function trimTagsFromId(idToTrim) {
 function parseAllTagsFromString(mentions) {
     const tagRegex = /<@[!&]?([0-9]*)>|(@everyone)/gm;
     let matches = mentions.match(tagRegex);
-    console.debug('matches', matches);
+    //console.debug('matches', matches);
     return matches;
 }
 
@@ -496,7 +503,7 @@ async function removeAllDataForGuild(guild) {
  * @returns {Boolean} true if changed; false if no change
  */
 function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfterThis) {
-    console.info(`checkIfCommandsChanged: ---START COMMAND CHECK---`);
+    //console.info(`checkIfCommandsChanged: ---START COMMAND CHECK---`);
     let registerCommands = false;
     for (const command of registeredCommands) {
         // console.debug("registerCommands: checkForRemove", command.name);
@@ -506,24 +513,24 @@ function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfte
                 // console.debug('command options', command.options);
                 if (!c.options && !command.options) {
                     //no options for either, it's a match
-                    console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:NO OPTIONS`);
+                    //console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:NO OPTIONS`);
                     return true;
                 } else if ((!c.options && command.options) || (c.options && !command.options)) {
-                    console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:*NO* MATCH, new options or options removed`);
+                    //console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:*NO* MATCH, new options or options removed`);
                     return false;
                 } else {
                     for (const regOpt of command.options) {
                         let optMatched = false;
                         for (const toRegOpt of c.options) {
                             if (regOpt.name.toLowerCase() == toRegOpt.name.toLowerCase() && isTrue(regOpt.required) == isTrue(toRegOpt.required)) {
-                                console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:${regOpt.name}:${toRegOpt.name} and req:${regOpt.required}:${toRegOpt.required}`);
+                                //console.info(`checkIfCommandsChanged: MATCH ${c.name} -> option:${regOpt.name}:${toRegOpt.name} and req:${regOpt.required}:${toRegOpt.required}`);
                                 optMatched = true;
                                 break;
                             }
                         }
                         if (!optMatched) {
                             //option could not be found, not a match
-                            console.info(`checkIfCommandsChanged: *NO* MATCH ${c.name} -> option:${regOpt.name} and req:${regOpt.required}`);
+                            //console.info(`checkIfCommandsChanged: *NO* MATCH ${c.name} -> option:${regOpt.name} and req:${regOpt.required}`);
                             return false;
                         }
                     }
@@ -541,7 +548,7 @@ function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfte
     }
     // recursively call the other way around
     if (!registerCommands && !stopAfterThis) {
-        console.info(`checkIfCommandsChanged: ---START RECURSE---`);
+        //console.info(`checkIfCommandsChanged: ---START RECURSE---`);
         registerCommands = checkIfCommandsChanged(commandsToRegister, registeredCommands, !stopAfterThis);
     }
     return registerCommands;
@@ -639,3 +646,21 @@ exports.checkIfCommandsChanged = checkIfCommandsChanged;
 exports.transformCommandsToDiscordFormat = transformCommandsToDiscordFormat;
 exports.strikeThrough = strikeThrough;
 exports.locateChannelForMessageSend = locateChannelForMessageSend;
+
+exports.testables = {
+    trimTagsFromId: trimTagsFromId,
+    parseAllTagsFromString: parseAllTagsFromString,
+    appendStringsForEmbed: appendStringsForEmbed,
+    appendStringsForEmbedChanges: appendStringsForEmbedChanges,
+    isTrue: isTrue,
+    lengthOfEmbed: lengthOfEmbed,
+    transformCommandsToDiscordFormat: transformCommandsToDiscordFormat,
+    checkIfCommandsChanged: checkIfCommandsChanged,
+    strikeThrough: strikeThrough,
+    parseIntOrMakeZero: parseIntOrMakeZero,
+    getDiscordUrl: getDiscordUrl,
+    sendDirectOrFallbackToChannelError: sendDirectOrFallbackToChannelError,
+    sendDirectOrFallbackToChannel: sendDirectOrFallbackToChannel,
+    sendSimpleDirectOrFallbackToChannel: sendSimpleDirectOrFallbackToChannel,
+    trimAndElipsiseStringArray: trimAndElipsiseStringArray,
+};

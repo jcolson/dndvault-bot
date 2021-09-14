@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.1 (2021-09-14)](#v191-2021-09-14)
+  - [v1.9.0 (2021-09-14)](#v190-2021-09-14)
   - [v1.8.10 (2021-09-03)](#v1810-2021-09-03)
   - [v1.8.9 (2021-09-03)](#v189-2021-09-03)
   - [v1.8.8 (2021-09-03)](#v188-2021-09-03)
@@ -114,6 +116,31 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.1](https://github.com/jcolson/dndvault-bot/tree/v1.9.1) (2021-09-14)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.0...v1.9.1)
+
+**Fixed bugs:**
+
+- character id accidentally changed to number from string [\#428](https://github.com/jcolson/dndvault-bot/issues/428)
+
+## [v1.9.0](https://github.com/jcolson/dndvault-bot/tree/v1.9.0) (2021-09-14)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.8.10...v1.9.0)
+
+**Implemented enhancements:**
+
+- upgrade script for character data to move to v5 [\#424](https://github.com/jcolson/dndvault-bot/issues/424)
+- upgrade to v5 of the dndbeyond character sync api [\#420](https://github.com/jcolson/dndvault-bot/issues/420)
+- make a test for /calendar [\#191](https://github.com/jcolson/dndvault-bot/issues/191)
+
+**Fixed bugs:**
+
+- in logging command output from bot, getting 'Do not know how to serialize a BigInt' [\#426](https://github.com/jcolson/dndvault-bot/issues/426)
+- cleanup script for characte data that should have been removed [\#425](https://github.com/jcolson/dndvault-bot/issues/425)
+- @i32jiprd  found an issue with handleApprove - bot is not removing old characters in db on 'isUpdate' check [\#423](https://github.com/jcolson/dndvault-bot/issues/423)
+- bot presence data is no longer appearing after upgrade of discordjs [\#422](https://github.com/jcolson/dndvault-bot/issues/422)
 
 ## [v1.8.10](https://github.com/jcolson/dndvault-bot/tree/v1.8.10) (2021-09-03)
 

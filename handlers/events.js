@@ -479,7 +479,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             }
         } else {
             let playersToAdd = [];
-            for (attendee of eventToMaintain.attendees) {
+            for (let attendee of eventToMaintain.attendees) {
                 if (!attendee.standby) {
                     playersToAdd.push(attendee.userID);
                 }
@@ -572,10 +572,10 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
             }
             console.debug(`maintainPlanningChannel: new players to add`, playersToAdd);
             // console.debug(`maintainPlanningChannel: old players to remove`, playersToRemove);
-            for (playerAdd of playersToAdd) {
+            for (let playerAdd of playersToAdd) {
                 console.debug(`maintainPlanningChannel: adding: '${playerAdd}'`, playerAdd);
                 try {
-                    guildMemberAdd = await guild.members.fetch(playerAdd);
+                    let guildMemberAdd = await guild.members.fetch(playerAdd);
                     await planningChannel.permissionOverwrites.create(guildMemberAdd, { VIEW_CHANNEL: true }, { type: 1 });
                 } catch (error) {
                     console.error(`maintainPlanningChannel: attendee, ${playerAdd}, may no longer be on server, couldn't maintain them for event ${eventToMaintain._id}: ${error.message}`);
@@ -591,10 +591,8 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
 /**
  * list events that are in the future or n days old
  * @param {Message} msg
- * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleEventList(msg, msgParms, guildConfig) {
+async function handleEventList(msg) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 3);
@@ -614,10 +612,8 @@ async function handleEventList(msg, msgParms, guildConfig) {
 /**
  * list PROPOSED (not deployed) events that are in the future or n days old
  * @param {Message} msg
- * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleEventListProposed(msg, msgParms, guildConfig) {
+async function handleEventListProposed(msg) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 1);
@@ -637,10 +633,8 @@ async function handleEventListProposed(msg, msgParms, guildConfig) {
 /**
  * list DEPLOYED events that are in the future or n days old
  * @param {Message} msg
- * @param {Array} msgParms
- * @param {GuildModel} guildConfig
  */
-async function handleEventListDeployed(msg, msgParms, guildConfig) {
+async function handleEventListDeployed(msg) {
     try {
         let cutOffDate = new Date();
         cutOffDate.setDate(cutOffDate.getDate() - 1);
@@ -895,7 +889,7 @@ function stringForAttendeesLength(theEvent, standbys) {
  */
 function getNumberAttendees(theEvent, standbys) {
     let attCount = 0;
-    for (attendee of theEvent.attendees) {
+    for (let attendee of theEvent.attendees) {
         if (utils.isTrue(standbys) == utils.isTrue(attendee.standby)) {
             attCount++;
         }
@@ -1020,7 +1014,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
     } finally {
         // console.debug(`handleReactionAdd: clean up all reactions, except for bot's`);
         const reactionUsers = await reaction.users.fetch();
-        for ([_, reactionUser] of reactionUsers) {
+        for (let [_, reactionUser] of reactionUsers) {
             // console.debug(`handleReactionAdd: guildUser: ${reaction.message.guild.me.id} user:`, reactionUser);
             if (reactionUser.id != reaction.message.guild.me.id) {
                 await reaction.users.remove(reactionUser.id);
@@ -1089,7 +1083,7 @@ async function handleEventAttendance(msg, msgParms, guildConfig) {
                 }
             }
         ]);
-        for (row of attendanceRows) {
+        for (let row of attendanceRows) {
             row.character = await retrieveCharacterToUse(msg.guild.id, row._id);
         }
         let eventAttendanceEmbed = embedForEventAttendance(attendanceRows, `${utils.EMOJIS.DAGGER}Event Attendance from ${formatJustDate(fromDate)} to ${formatJustDate(endDate)}${utils.EMOJIS.SHIELD}`, guildConfig.guildIconURL);
@@ -1113,7 +1107,7 @@ function embedForEventAttendance(attendanceRows, title, guildIconURL) {
     const separator = '|';
     let reportArray = [utils.appendStringsForEmbed([`# SESH`, `CHARACTER`, `PLAYER`], fieldLength, separator)];
     let rowCount = 0;
-    for (row of attendanceRows) {
+    for (let row of attendanceRows) {
         reportArray.push(utils.appendStringsForEmbed([row.count + '', characters.stringForCharacterShort(row.character), '<@' + row._id + '>'], fieldLength, separator));
         if (++rowCount > rowsPerField) {
             rowCount = 0;
@@ -1129,7 +1123,7 @@ function embedForEventAttendance(attendanceRows, title, guildIconURL) {
     return eventAttendanceEmbed;
 }
 
-async function convertTimeForUser(reaction, user, eventForMessage, guildConfig) {
+async function convertTimeForUser(reaction, user, eventForMessage) {
     let userModel = await UserModel.findOne({ guildID: reaction.message.guild.id, userID: user.id });
     let fieldsToSend = [];
     let epochEventDateTime = Math.floor(eventForMessage.date_time / 1000);
@@ -1300,7 +1294,7 @@ async function attendeeRemove(message, user, eventForMessage, guildConfig) {
     // if enable standby queuing is enabled, switch the next standby to active
     if (guildConfig.enableStandbyQueuing) {
         if (getNumberAttendees(eventForMessage) < eventForMessage.number_player_slots) {
-            for (attendee of eventForMessage.attendees) {
+            for (let attendee of eventForMessage.attendees) {
                 if (attendee.standby) {
                     attendee.standby = false;
                     break;
@@ -1324,7 +1318,7 @@ async function sendReminders(client) {
         let guildsToRemind = Array.from(client.guilds.cache.keys());
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
         console.debug("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
-        for (theEvent of eventsToRemind) {
+        for (let theEvent of eventsToRemind) {
             try {
                 theEvent.reminderSent = new Date();
                 try {
@@ -1344,14 +1338,14 @@ async function sendReminders(client) {
                 if (theEvent.dm) {
                     usersToNotify.push(theEvent.dm);
                 }
-                for (attendee of theEvent.attendees) {
+                for (let attendee of theEvent.attendees) {
                     if (!attendee.standby) {
                         usersToNotify.push(attendee.userID);
                     }
                 }
                 usersToNotify = [...new Set(usersToNotify)];
                 console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
-                for (userToNotify of usersToNotify) {
+                for (let userToNotify of usersToNotify) {
                     // let user = await (new User(client, { id: '227562842591723521' })).fetch();
                     try {
                         let user = await (new User(client, { id: userToNotify })).fetch();
@@ -1377,7 +1371,7 @@ async function recurEvents(client) {
         let guildsToRecur = Array.from(client.guilds.cache.keys());
         let eventsToRecur = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, date_time: { $lt: toDate }, guildID: { $in: guildsToRecur } });
         console.log("recurEvents: for %d events until %s for %d guilds", eventsToRecur.length, toDate, guildsToRecur.length);
-        for (theEvent of eventsToRecur) {
+        for (let theEvent of eventsToRecur) {
             theEvent.recurComplete = new Date();
             try {
                 await theEvent.save();
@@ -1483,7 +1477,7 @@ async function removeOldSessionPlanningChannels(client) {
             }]
         );
         console.info("removeOldSessionPlanningChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRemoveChannels.length);
-        for (row of channelsToRemove) {
+        for (let row of channelsToRemove) {
             try {
                 let existingEvent = await EventModel.findById(row._id);
                 existingEvent.planningChannel = undefined;
@@ -1554,7 +1548,7 @@ async function removeOldSessionVoiceChannels(client) {
             }]
         );
         console.info("removeOldSessionVoiceChannels: for %d channels for %d guilds", channelsToRemove.length, guildsToRemoveChannels.length);
-        for (row of channelsToRemove) {
+        for (let row of channelsToRemove) {
             try {
                 let existingEvent = await EventModel.findById(row._id);
                 existingEvent.voiceChannel = undefined;
@@ -1591,4 +1585,6 @@ exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
 exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;
 //for testing
-exports.embedForEvent = embedForEvent;
+exports.testables = {
+    embedForEvent: embedForEvent
+};

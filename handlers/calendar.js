@@ -15,16 +15,16 @@ const EOL = '\r\n';
  * @param {String} userID
  * @param {Array} excludeGuild
  */
- async function handleCalendarRequest(userID, excludeGuild) {
+async function handleCalendarRequest(userID, excludeGuild) {
     if (!userID) {
         throw new Error('No userID passed!');
     }
-    const calendarRefreshHours = config?.calendarICSRefreshHours ? config?.calendarICSRefreshHours : 12;
+    const calendarRefreshHours = Config?.calendarICSRefreshHours ? Config?.calendarICSRefreshHours : 12;
     let returnICS = `BEGIN:VCALENDAR${EOL}`;
 
     returnICS += `VERSION:2.0${EOL}`;
     returnICS += `PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}`;
-    returnICS += `URL:${config.httpServerURL}/calendar?userID=${userID}${EOL}`;
+    returnICS += `URL:${Config.httpServerURL}/calendar?userID=${userID}${EOL}`;
     returnICS += `NAME:DND Vault${EOL}`;
     returnICS += `X-WR-CALNAME:DND Vault${EOL}`;
     returnICS += `DESCRIPTION:${DESCRIPTION}${EOL}`;
@@ -47,15 +47,15 @@ const EOL = '\r\n';
     });
 
     // console.log(events);
-    for (currEvent of userEvents) {
+    for (let currEvent of userEvents) {
         if (!excludeGuild.includes(currEvent.guildID)) {
             let userAttendee;
-            for (attendee of currEvent.attendees) {
+            for (let attendee of currEvent.attendees) {
                 if (attendee.userID == userID) {
                     userAttendee = attendee;
                 }
             }
-            let guildConfig = await config.getGuildConfig(currEvent.guildID);
+
             returnICS += `BEGIN:VEVENT${EOL}`;
             let endDate = new Date(currEvent.date_time);
             endDate.setTime(endDate.getTime() + (currEvent.duration_hours * 60 * 60 * 1000));
@@ -63,6 +63,8 @@ const EOL = '\r\n';
             returnICS += `UID:${currEvent._id}${EOL}`;
             returnICS += `DTSTAMP:${getICSdateFormat(new Date())}${EOL}`;
             returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}${EOL}`;
+
+            let guildConfig = await config.getGuildConfig(currEvent.guildID);
             // seems like X-ALT-DESC doesn't really work any more
             // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>${EOL}`;
             returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}${EOL}`;
@@ -125,6 +127,11 @@ END:VCALENDAR
  */
 
 exports.handleCalendarRequest = handleCalendarRequest;
-exports.encodeStringICS = encodeStringICS;
-exports.getICSdateFormat = getICSdateFormat;
-exports.EOL = EOL;
+
+//for testing
+exports.testables = {
+    handleCalendarRequest: handleCalendarRequest,
+    encodeStringICS: encodeStringICS,
+    getICSdateFormat: getICSdateFormat,
+    EOL: EOL,
+};
