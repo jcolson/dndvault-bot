@@ -36,6 +36,7 @@ DND Vault Table of Contents
     - [mongo db json to mongoose schema](#mongo-db-json-to-mongoose-schema)
   - [Notes](#notes)
     - [create change log for release](#create-change-log-for-release)
+    - [Review gh pr](#review-gh-pr)
     - [Test via docker container](#test-via-docker-container)
     - [Mongodb queries](#mongodb-queries)
     - [Bot Commands for testing](#bot-commands-for-testing)
@@ -447,6 +448,12 @@ i actually use my own github-release.sh script at this point, which includes thi
 
 ```sh
 npm run changelog
+```
+
+### Review gh pr
+
+```
+gh pr diff 434 | patch -p1
 ```
 
 ### Test via docker container
