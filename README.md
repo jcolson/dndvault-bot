@@ -36,6 +36,7 @@ DND Vault Table of Contents
     - [mongo db json to mongoose schema](#mongo-db-json-to-mongoose-schema)
   - [Notes](#notes)
     - [create change log for release](#create-change-log-for-release)
+    - [Review gh pr](#review-gh-pr)
     - [Test via docker container](#test-via-docker-container)
     - [Mongodb queries](#mongodb-queries)
     - [Bot Commands for testing](#bot-commands-for-testing)
@@ -46,6 +47,8 @@ DND Vault Table of Contents
 # D&D Vault Discord BOT
 
 The most complete Dungeons and Dragons ( DnD ) Event Management, Character Vault, Polling and Dice Roller for your West Marches discord server!
+
+[![Server Status](https://top.gg/api/widget/status/792843392664993833.svg)](https://top.gg/bot/792843392664993833) [![Server Count](https://top.gg/api/widget/servers/792843392664993833.svg)](https://top.gg/bot/792843392664993833)
 
 ## Current build status
 
@@ -447,6 +450,12 @@ i actually use my own github-release.sh script at this point, which includes thi
 
 ```sh
 npm run changelog
+```
+
+### Review gh pr
+
+```
+gh pr diff 434 | patch -p1
 ```
 
 ### Test via docker container
