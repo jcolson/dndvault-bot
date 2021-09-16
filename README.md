@@ -48,6 +48,8 @@ DND Vault Table of Contents
 
 The most complete Dungeons and Dragons ( DnD ) Event Management, Character Vault, Polling and Dice Roller for your West Marches discord server!
 
+[![Server Status](https://top.gg/api/widget/status/792843392664993833.svg)](https://top.gg/bot/792843392664993833) [![Server Count](https://top.gg/api/widget/servers/792843392664993833.svg)](https://top.gg/bot/792843392664993833)
+
 ## Current build status
 
 - [Change Log](CHANGELOG.md)
