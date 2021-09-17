@@ -879,7 +879,7 @@ const COMMANDS = {
     if (commandIndex == -1) {
         commandIndex = messageContentLowercase.indexOf(command);
         if (commandIndex == -1) {
-            throw new Error(`Command(${command}) parameters could not be parsed: ${messageContent}`);
+            throw new Error(`Command (${command}) parameters could not be parsed: ${messageContent}`);
         } else {
             commandIndex += command.length;
         }
@@ -888,7 +888,7 @@ const COMMANDS = {
     }
     let msgParms = messageContent.substring(commandIndex).trim();
     //parse event format - ignore ! unless beginning of line or preceded by space
-    const regex = /(^\!| \!)(?:(?! \!).)*/g;
+    const regex = /(^!| !)(?:(?! !).)*/g;
     let found = msgParms.match(regex);
     if (found) {
         console.debug('parseMessageParms:', msgParms);
@@ -935,4 +935,5 @@ const COMMANDS = {
 }
 
 exports.handleCommandExec = handleCommandExec;
+exports.parseMessageParms = parseMessageParms;
 exports.COMMANDS = COMMANDS;

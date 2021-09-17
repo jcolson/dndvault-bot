@@ -1317,7 +1317,7 @@ async function sendReminders(client) {
         let toDate = new Date(new Date().getTime() + (Config.calendarReminderMinutesOut * 1000 * 60));
         let guildsToRemind = Array.from(client.guilds.cache.keys());
         let eventsToRemind = await EventModel.find({ reminderSent: null, date_time: { $lt: toDate }, guildID: { $in: guildsToRemind } });
-        console.debug("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
+        console.info("sendReminders: for %d unreminded events until %s for %d guilds", eventsToRemind.length, toDate, guildsToRemind.length);
         for (let theEvent of eventsToRemind) {
             try {
                 theEvent.reminderSent = new Date();
@@ -1331,8 +1331,7 @@ async function sendReminders(client) {
                 if (!theEvent.channelID || !theEvent.messageID) {
                     throw new Error(`sendReminders: this event (${theEvent.id}) is malformed, there is no channelID or messageID, skipping.`);
                 }
-                let channel = new TextChannel(guild, { id: theEvent.channelID });
-                let msg = new Message(client, { id: theEvent.messageID, guild: guild, url: getEmbedLinkForEvent(theEvent) }, channel);
+                let msg = new Message(client, { id: theEvent.messageID, guild_id: theEvent.guildID, channel_id: theEvent.channelID });
                 let eventEmbeds = await embedForEvent(guild, [theEvent], `Reminder for ${theEvent.title}`, true);
                 let usersToNotify = [];
                 if (theEvent.dm) {
@@ -1344,7 +1343,7 @@ async function sendReminders(client) {
                     }
                 }
                 usersToNotify = [...new Set(usersToNotify)];
-                console.log(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
+                console.info(`sendReminders: userstonotify for event ${theEvent.id}`, usersToNotify);
                 for (let userToNotify of usersToNotify) {
                     // let user = await (new User(client, { id: '227562842591723521' })).fetch();
                     try {
@@ -1370,7 +1369,7 @@ async function recurEvents(client) {
         let toDate = new Date(new Date().getTime() - (1 * 1000 * 60 * 60));
         let guildsToRecur = Array.from(client.guilds.cache.keys());
         let eventsToRecur = await EventModel.find({ recurComplete: null, recurEvery: { $ne: null }, date_time: { $lt: toDate }, guildID: { $in: guildsToRecur } });
-        console.log("recurEvents: for %d events until %s for %d guilds", eventsToRecur.length, toDate, guildsToRecur.length);
+        console.info("recurEvents: for %d events until %s for %d guilds", eventsToRecur.length, toDate, guildsToRecur.length);
         for (let theEvent of eventsToRecur) {
             theEvent.recurComplete = new Date();
             try {

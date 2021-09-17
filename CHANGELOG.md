@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.3 (2021-09-17)](#v193-2021-09-17)
+  - [v1.9.2 (2021-09-14)](#v192-2021-09-14)
   - [v1.9.1 (2021-09-14)](#v191-2021-09-14)
   - [v1.9.0 (2021-09-14)](#v190-2021-09-14)
   - [v1.8.10 (2021-09-03)](#v1810-2021-09-03)
@@ -116,6 +118,23 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.3](https://github.com/jcolson/dndvault-bot/tree/v1.9.3) (2021-09-17)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.2...v1.9.3)
+
+**Implemented enhancements:**
+
+- add character count, user count and event count to stats [\#435](https://github.com/jcolson/dndvault-bot/issues/435)
+- enhancement: add skills, tools, and saving throws to 'show character'  [\#419](https://github.com/jcolson/dndvault-bot/issues/419)
+
+## [v1.9.2](https://github.com/jcolson/dndvault-bot/tree/v1.9.2) (2021-09-14)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.1...v1.9.2)
+
+**Fixed bugs:**
+
+- Reminder dm event link back urls are broken [\#431](https://github.com/jcolson/dndvault-bot/issues/431)
 
 ## [v1.9.1](https://github.com/jcolson/dndvault-bot/tree/v1.9.1) (2021-09-14)
 

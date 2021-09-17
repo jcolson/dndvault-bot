@@ -1072,7 +1072,7 @@ function stringForInventory(char) {
             inventoryString += `\`${appInv.quantity}\` ${appInv.name}\n`;
         });
     });
-    return inventoryString;
+    return utils.stringOfSize(inventoryString, 1024);
 }
 
 function stringForNameChange(approvedChar, updatedChar) {
@@ -1168,9 +1168,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
     let charEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
         .setTitle(title)
-        // .setURL('https://discord.js.org/')
         .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
-        // .setDescription(description)
         .setThumbnail(msg.guild.iconURL());
     let i = 0;
     charArray.forEach((char) => {
@@ -1186,22 +1184,18 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
         // console.log('defCharString "%s" and "%s"', defCharString, char.id);
         charEmbed.addFields(
             {
-                name: `:dagger: User | Char | ID | Status | Campaign :shield:`,
+                name: `${utils.EMOJIS.DAGGER} User | Char | ID | Status | Campaign ${utils.EMOJIS.SHIELD}`,
                 value: `<@${char.guildUser}> | ${charNameString} | ${char.id} | ${stringForApprovalsAndUpdates(char)} | ${stringForCampaign(char)}`
             }
         );
-        // let campaignString = stringForCampaign(char);
-        // if (campaignString) {
-        //     charEmbed.addFields({ name: 'Campaign', value: campaignString, inline: true });
-        // }
         if (isShow) {
             charEmbed.addFields(
-                // { name: 'Core Info', value: `Race: [${char.race.fullName}](${Config.dndBeyondUrl}${char.race.moreDetailsUrl})\nClass: \`${char.classes.length > 0 ? stringForClass(char.classes[0]) : '?'}\``, inline: true },
                 { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nHP: \`${calcHitPoints(char)}\``, inline: true },
                 { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
                 { name: 'Currency', value: `GP: \`${utils.parseIntOrMakeZero(char.currencies.gp)}\`\nSP: \`${utils.parseIntOrMakeZero(char.currencies.sp)}\`\nCP: \`${utils.parseIntOrMakeZero(char.currencies.cp)}\`\nPP: \`${utils.parseIntOrMakeZero(char.currencies.pp)}\`\nEP: \`${utils.parseIntOrMakeZero(char.currencies.ep)}\`\n`, inline: true },
-                { name: 'Inventory', value: stringForInventory(char), inline: true },
                 { name: 'Attributes (*estimate, as not all calculations are correct at this time)', value: stringForStats(char), inline: true },
+                { name: 'Proficiencies', value: stringForProficiencies(char), inline: true },
+                { name: 'Inventory', value: stringForInventory(char), inline: true },
             );
         }
     });
@@ -1249,7 +1243,7 @@ function stringForCampaign(char) {
  */
 function stringForStats(char) {
     if (char.stats.length < 1) {
-        return "N/A";
+        return 'N/A';
     }
     let charStatsString = '';
     char.stats.forEach((stat) => {
@@ -1258,6 +1252,44 @@ function stringForStats(char) {
         charStatsString = charStatsString + `${StatLookup[stat.id].substring(0, 3)}: \`${indivStat}(${modifier})\` \n`;
     });
     return charStatsString.substring(0, charStatsString.length - 2);
+}
+
+function stringForProficiencies(char) {
+    let charProfString = '';
+    let headerSet = false;
+    char.modifiers.race.forEach((mod) => {
+        if (mod.type === 'proficiency') {
+            if (!headerSet) {
+                charProfString += `\`Race\`\n`;
+                headerSet = true;
+            }
+            charProfString += `${mod.friendlySubtypeName}\n`;
+        }
+    });
+    headerSet = false;
+    char.modifiers.class.forEach((mod) => {
+        if (mod.type === 'proficiency') {
+            if (!headerSet) {
+                charProfString += `**Class:**\n`;
+                headerSet = true;
+            }
+            charProfString += `${mod.friendlySubtypeName}\n`;
+        }
+    });
+    headerSet = false;
+    char.modifiers.background.forEach((mod) => {
+        if (mod.type === 'proficiency') {
+            if (!headerSet) {
+                charProfString += `**Background:**\n`;
+                headerSet = true;
+            }
+            charProfString += `${mod.friendlySubtypeName}\n`;
+        }
+    });
+    if (charProfString === '') {
+        charProfString = 'N/A';
+    }
+    return utils.stringOfSize(charProfString, 1024);
 }
 
 function calcTotalLevels(char) {
