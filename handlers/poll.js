@@ -116,6 +116,9 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                             resultsString += `${aReaction.emoji.name}:${aReaction.count}\n`;
                         }
                     }
+                    if (resultsString === ``) {
+                        resultsString = "N/A";
+                    }
                     reaction.message.embeds[0].addFields({ name: `Poll Results`, value: `${resultsString}` });
                 }
                 try {
