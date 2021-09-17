@@ -65,8 +65,6 @@ async function handleCalendarRequest(userID, excludeGuild) {
             returnICS += `LOCATION:${events.getLinkForEvent(currEvent)}${EOL}`;
 
             let guildConfig = await config.getGuildConfig(currEvent.guildID);
-            // seems like X-ALT-DESC doesn't really work any more
-            // returnICS += `X-ALT-DESC;FMTTYPE=text/HTML:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">\\n<html><title></title><body>${guildConfig.iconURL ? '<img src="' + encodeStringICS(guildConfig.iconURL, true) + '"/><br/>' : ''}🗡${encodeStringICS(currEvent.description, true)}</body></html>${EOL}`;
             returnICS += `DESCRIPTION:${encodeStringICS(currEvent.description)}${EOL}`;
             returnICS += `URL;VALUE=URI:${events.getLinkForEvent(currEvent)}${EOL}`;
             returnICS += `SUMMARY:${utils.EMOJIS.DAGGER}${encodeStringICS(currEvent.title)} ${userAttendee?.standby ? `[${utils.EMOJIS.HOURGLASS}STANDBY]` : ''}[${currEvent.deployedByID ? utils.EMOJIS.CHECK : utils.EMOJIS.X}DEPLOYED] (${encodeStringICS(guildConfig.name)})${EOL}`;
