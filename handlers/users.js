@@ -1,6 +1,9 @@
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
 const utils = require('../utils/utils.js');
+const { Client } = require('discord.js');
+
+const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
 
 /**
  * set user's timezone
@@ -99,7 +102,7 @@ async function handleTimezone(msg, msgParms) {
 
 function isValidTimeZone(tz) {
     if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
-        throw 'Time zones are not available in this environment';
+        throw new Error('Time zones are not available in this environment');
     }
     let validTZ = Intl.DateTimeFormat(undefined, { timeZone: tz, timeZoneName: 'long' });
     let validTZstring = validTZ.format(new Date());
@@ -120,23 +123,23 @@ async function hasRoleOrIsAdmin(member, roleId) {
     // }
     let hasRole = false;
     try {
-        // console.debug(`hasRoleOrIsAdmin: member (should be an object):`, member);
-        if (member.permissions.has('ADMINISTRATOR') || member.id == Config.adminUser) {
+        //console.debug(`hasRoleOrIsAdmin: member (should be an object):`, member);
+        if (member.permissions.has(ROLE_ADMINISTRATOR) || member.id === Config.adminUser) {
             hasRole = true;
-            console.info(`hasRoleOrIsAdmin: ${member.id}: admin`);
+            //console.info(`hasRoleOrIsAdmin: ${member.id}: admin`);
         } else {
             for (let [key, role] of member.roles.cache) {
                 // (member.roles.cache.values()).forEach((role) => {
-                // console.log('role check: ' + role.id + " : " + roleId);
-                if (role.id == roleId) {
+                //console.log('role check: ' + role.id + " : " + roleId);
+                if (role.id === roleId) {
                     hasRole = true;
                 }
                 // });
             }
-            console.info(`hasRoleOrIsAdmin: ${member.id}: ${hasRole}`);
+            //console.info(`hasRoleOrIsAdmin: ${member.id}: ${hasRole}`);
         }
     } catch (error) {
-        // console.error(`Could not determine user (${member ? member.id : member}) role`, error);
+        // console.debug(`Could not determine user (${member ? member.id : member}) role`, error);
         throw new Error(`Could not determine user (${member ? member.id : member}) role`);
     }
     return hasRole;
