@@ -5,8 +5,6 @@ const { Client } = require('discord.js');
 
 const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
 
-const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
-
 /**
  * set user's timezone
  * @param {Message} msg
