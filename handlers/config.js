@@ -1,4 +1,7 @@
-const GuildModel = require('../models/Guild');
+const GuildModel = require('../models/Guild.js');
+const CharModel = require('../models/Character.js');
+const EventModel = require('../models/Event.js');
+const UserModel = require('../models/User.js');
 const utils = require('../utils/utils.js');
 const users = require('../handlers/users.js');
 const events = require('../handlers/events.js');
@@ -395,10 +398,28 @@ async function handleStats(msg) {
                 });
                 return totalMemberCount;
             }));
+            const charCountRows = await CharModel.aggregate([
+                {
+                    '$count': 'characterCount'
+                }
+            ]);
+            const eventCountRows = await EventModel.aggregate([
+                {
+                    '$count': 'eventCount'
+                }
+            ]);
+            const userCountRows = await UserModel.aggregate([
+                {
+                    '$count': 'userCount'
+                }
+            ]);
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Server count', value: totalGuilds.toString(), inline: true },
                 { name: 'Member count', value: totalMembers.toString(), inline: true },
                 { name: 'Shard count', value: msg.client.shard.count.toString(), inline: true },
+                { name: 'Character count', value: charCountRows[0].characterCount.toString(), inline: true },
+                { name: 'Event count', value: eventCountRows[0].eventCount.toString(), inline: true },
+                { name: 'User count', value: userCountRows[0].userCount.toString(), inline: true },
                 { name: 'Uptime', value: getUptime(), inline: true },
                 { name: 'BOT Version', value: vaultVersion, inline: true },
                 { name: 'Node Version', value: process.versions.node, inline: true }
