@@ -1,6 +1,6 @@
-const { DiceRoll } = require('rpg-dice-roller');
-const { MessageEmbed } = require('discord.js');
-const utils = require('../utils/utils.js');
+const { DiceRoll } = import('rpg-dice-roller');
+const { MessageEmbed } = import('discord.js');
+const utils = import('../utils/utils.js');
 
 /**
  *

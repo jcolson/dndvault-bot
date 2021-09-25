@@ -20,6 +20,7 @@
     "license": "MIT",
     "dependencies": {
         "@holistics/date-parser": "2.10.0",
+        "babel-jest": "^27.2.1",
         "discord.js": "^13.1.0",
         "express": "^4.17.1",
         "express-session": "^1.17.1",
@@ -27,6 +28,7 @@
         "he": "^1.2.0",
         "log-timestamp": "0.3.0",
         "luxon": "^2.0.2",
+        "mathjs": "^9.5.0",
         "mongoose": "^5.13.8",
         "morgan": "^1.10.0",
         "node-cache": "^5.1.2",
@@ -38,10 +40,11 @@
         "tzdata": "^1.0.25"
     },
     "devDependencies": {
-        "jest": "^27.1.0"
+        "jest": "^27.2.1"
     },
     "jest": {
-        "testEnvironment": "node"
+        "testEnvironment": "node",
+        "verbose": true
     },
     "resolutions": {},
     "resolutionsComments": {
