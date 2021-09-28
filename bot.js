@@ -29,7 +29,6 @@ global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './conf
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 // @todo rename global.client --- wtf was i thinking keeping the same variable name?
 global.client = client;
-global.COMMANDS = commands.COMMANDS;
 
 /**
  * connect to the mongodb
@@ -64,7 +63,7 @@ async function registerCommands() {
         // only register commands if I'm shard id '0'
         if (client.shard.ids.includes(0)) {
             console.info(`registerCommands: ShardId:${client.shard.ids}, registering commands ...`);
-            let commandsToRegister = utils.transformCommandsToDiscordFormat(COMMANDS);
+            let commandsToRegister = utils.transformCommandsToDiscordFormat(commands.COMMANDS);
             const registeredCommands = await getClientApp().commands.get();
             //console.debug('registeredCommands:', registeredCommands);
             let registerCommands = utils.checkIfCommandsChanged(registeredCommands, commandsToRegister);
