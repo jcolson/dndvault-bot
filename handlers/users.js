@@ -1,7 +1,6 @@
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
 const utils = require('../utils/utils.js');
-const { Client } = require('discord.js');
 
 const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
 

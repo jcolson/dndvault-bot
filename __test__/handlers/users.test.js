@@ -1,8 +1,6 @@
 const path = require('path');
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 const UserModel = require('../../models/User.js');
-//const { GuildMember } = require('discord.js');
-//const { Client } = require('discord.js');
 const users = require('../../handlers/users.js');
 const { testables } = users;
 
@@ -103,13 +101,11 @@ test('bc_setUsersTimezone when guildID is not found in cache returns false', asy
     const channelID = 'channelID';
     const guildID = 'guildID';
 
-    //We should be using the class Client but seems to be incorrect
-    //const Client = new Client();
-    const client = {
+    global.client = {
         guilds: {
             cache: {
                 get(guildID) {
-                    return false;
+                    return undefined;
                 },
             },
         },
@@ -123,20 +119,21 @@ test('bc_setUsersTimezone when an unexpected exception occur Then returns false'
     const userID = 'userID';
     const channelID = 'channelID';
     const guildID = 'guildID';
+    let findOneUserModel = jest.spyOn(UserModel, 'findOne').mockImplementation((config) => {
+        throw new Error("bc_setUsersTimezone: findOneUserModel: this error is to be expected - for testing purposes");
+    });
 
-    //We should be using the class Client but seems to be incorrect
-    //const Client = new Client();
-    const client = {
+    global.client = {
         guilds: {
             cache: {
                 get(guildID) {
-                    return true;
+                    return guildID;
                 },
             },
         },
     };
     const result = await users.bc_setUsersTimezone(userID, channelID, AMERICA_NY_TIMEZONE, guildID);
-
+    expect(findOneUserModel).toHaveBeenCalled();
     expect(result).toBe(false);
 });
 
@@ -146,7 +143,7 @@ test('bc_setUsersTimezone when User is not in UserModel Then save user and retur
     const guildID = 'guildID';
 
     //We provide an incorrect object configuration
-    const client = {
+    global.client = {
     };
 
     //TODO : Capture that the exception has been thrown inside the method

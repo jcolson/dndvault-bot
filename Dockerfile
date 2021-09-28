@@ -19,7 +19,7 @@ COPY . /usr/src/bot
 
 FROM base as test
 RUN npm ci
-RUN npm run test __test__
+RUN NODE_OPTIONS=--experimental-vm-modules npm run test
 
 # Start me!
 # CMD ["node", "index.js"]

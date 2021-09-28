@@ -24,7 +24,7 @@ test('handleInsultWithError', () => {
     let msgParms = {};
     let guildConfig = {};
     let sendDirectOrFallbackToChannel = jest.spyOn(utils, 'sendDirectOrFallbackToChannel').mockImplementation((embed, msg) => {
-        throw new Error("test error");
+        throw new Error("handleInsultWithError: this error is to be expected - for testing purposes");
     });
     let sendDirectOrFallbackToChannelError = jest.spyOn(utils, 'sendDirectOrFallbackToChannelError').mockImplementation((embed, msg) => {
     });
