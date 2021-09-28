@@ -24,6 +24,10 @@ const ESCAPED_AND_ENCODED_STRING = '&#x22;this\\nis &#x27;a&#x27; &#x26;multi?\\
 
 const EOL = testables.EOL;
 
+afterEach(() => {
+    jest.clearAllMocks();
+});
+
 test('encodeStringICS with no encode and non escapable string returns original string', () => {
     expect(testables.encodeStringICS(SIMPLE_STRING, false)).toMatch(SIMPLE_STRING);
 });

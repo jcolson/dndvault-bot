@@ -84,7 +84,7 @@ async function handleDiceRollStats(msg) {
         }
         statsEmbed.addFields({ name: 'Stats Roll', value: statRollString });
         statsEmbed.addFields({ name: 'Total', value: `\`${total}\`` });
-        await utils.sendDirectOrFallbackToChannelEmbeds(statsEmbed, msg, undefined, true);
+        await utils.sendDirectOrFallbackToChannelEmbeds([statsEmbed], msg, undefined, true);
         utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleDiceRollStats:', error);
@@ -94,3 +94,8 @@ async function handleDiceRollStats(msg) {
 
 exports.handleDiceRoll = handleDiceRoll;
 exports.handleDiceRollStats = handleDiceRollStats;
+
+exports.testables = {
+    handleDiceRoll: handleDiceRoll,
+    handleDiceRollStats: handleDiceRollStats
+}

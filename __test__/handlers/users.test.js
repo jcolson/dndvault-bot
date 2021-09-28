@@ -9,6 +9,10 @@ const DEFAULT_MEMBER_ID = '123456789';
 const CONFIG_DEFAULT_MEMBER_ID = '227562842591723521';
 const AMERICA_NY_TIMEZONE = 'America/New_York';
 
+afterEach(() => {
+    jest.clearAllMocks();
+});
+
 test('isValidTimezone valid', () => {
     expect(testables.isValidTimeZone(AMERICA_NY_TIMEZONE)).toMatch(AMERICA_NY_TIMEZONE);
 });
