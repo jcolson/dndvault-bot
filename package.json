@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
-        "dockertest": "docker build --target test ./",
+        "dockertest": "docker build --target test .",
         "preinstall": "git lfs update --force && pre-commit install -t pre-commit -t pre-push",
         "preinstall_old": "npx npm-force-resolutions && pre-commit install -t pre-commit -t pre-push"
     },
