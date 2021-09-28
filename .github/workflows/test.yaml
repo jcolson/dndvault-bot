@@ -19,4 +19,4 @@ jobs:
       -
         name: Build
         run: |
-          docker build --target test ./
+          docker build --progress plain --target test ./
