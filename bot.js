@@ -11,7 +11,7 @@ const poll = require('./handlers/poll.js');
 const utils = require('./utils/utils.js');
 const commands = require('./utils/commands.js');
 
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] });
+const theClient = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES'] });
 
 /**
  * scheduled cron for calendar reminders
@@ -27,8 +27,7 @@ require('log-timestamp')(function () { return `[${new Date().toISOString()}] [sh
 global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './config.json'));
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
-// @todo rename global.client --- wtf was i thinking keeping the same variable name?
-global.client = client;
+global.client = theClient;
 
 /**
  * connect to the mongodb
