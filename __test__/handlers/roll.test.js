@@ -91,7 +91,7 @@ test('handleDiceRollStats', async () => {
         return "https://www.example.com/example.png";
     }
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        console.debug(embedsArray[0].fields, msg, user, skipDM);
+        // console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
     });
