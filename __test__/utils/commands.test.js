@@ -1,3 +1,7 @@
+var SegfaultHandler = require('segfault-handler');
+SegfaultHandler.registerHandler();
+// SegfaultHandler.causeSegfault();
+
 const commands = require('../../utils/commands.js');
 const { testables } = commands;
 
