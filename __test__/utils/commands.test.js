@@ -1,5 +1,5 @@
-// const commands = require('../../utils/commands.js');
-// const { testables } = commands;
+const commands = require('../../utils/commands.js');
+const { testables } = commands;
 
 afterEach(() => {
     jest.clearAllMocks();
