@@ -1,6 +1,7 @@
-const {handleCommandExec, parseMessageParms, COMMANDS} = require('../../utils/commands.js');
+const commands = require('../../utils/commands.js');
+const { testables } = commands;
 
 test('COMMANDS is not undefined or empty', () => {
-    expect(COMMANDS).not.toBe(undefined);
-    expect(COMMANDS).not.toBe(null);
+    expect(testables.COMMANDS).not.toBe(undefined);
+    expect(testables.COMMANDS).not.toBe(null);
 });

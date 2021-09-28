@@ -937,3 +937,7 @@ const COMMANDS = {
 exports.handleCommandExec = handleCommandExec;
 exports.parseMessageParms = parseMessageParms;
 exports.COMMANDS = COMMANDS;
+
+exports.testables = {
+    COMMANDS: COMMANDS
+};
