@@ -1,11 +1,12 @@
-FROM node:16-alpine as base
+FROM node:16 as base
 
-# Install jq for healthcheck
-# RUN apt-get update && apt-get install -y jq
-RUN apk add jq
-RUN apk add python3 git git-lfs
-RUN python3 -m ensurepip
-RUN pip3 install pre-commit
+# for debian:
+RUN apt-get update && apt-get install -y jq python3 git git-lfs python-pip
+RUN pip install pre-commit
+
+# for alpine:
+# RUN apk add jq python3 git git-lfs
+# RUN python3 -m ensurepip && pip3 install pre-commit
 
 # Create the directory!
 RUN mkdir -p /usr/src/bot
