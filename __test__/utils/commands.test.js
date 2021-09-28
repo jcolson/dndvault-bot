@@ -1,5 +1,5 @@
-var SegfaultHandler = require('segfault-handler');
-SegfaultHandler.registerHandler();
+// var SegfaultHandler = require('segfault-handler');
+// SegfaultHandler.registerHandler();
 // SegfaultHandler.causeSegfault();
 
 const commands = require('../../utils/commands.js');
@@ -10,6 +10,6 @@ afterEach(() => {
 });
 
 test('COMMANDS is not undefined or empty', () => {
-    // expect(testables.COMMANDS).not.toBe(undefined);
-    // expect(testables.COMMANDS).not.toBe(null);
+    expect(testables.COMMANDS).not.toBe(undefined);
+    expect(testables.COMMANDS).not.toBe(null);
 });

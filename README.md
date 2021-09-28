@@ -491,15 +491,3 @@ Preferred Playstyle focus, if any (e.g. exploration, 50/50 rp/combat, intrigue):
 ```html
 https://discord.com/api/oauth2/authorize?client_id=795114885989400596&permissions=268659792&scope=bot%20applications.commands
 ```
-
-
-PASS __test__/utils/utils.test.js x
-PASS __test__/models/Character.test.js x
-PASS __test__/handlers/calendar.test.js x
-PASS __test__/handlers/users.test.js x
-PASS __test__/handlers/roll.test.js x
-PASS __test__/handlers/events.test.js x
-PASS __test__/handlers/insult.test.js x
-PASS __test__/models/Event.test.js x
-PASS __test__/models/Guild.test.js x
-PASS __test__/models/User.test.js x
