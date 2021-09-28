@@ -24,7 +24,9 @@ FROM base as test
 RUN apt-get install -y git git-lfs python3 python-pip && pip install pre-commit
 
 RUN npm ci
-RUN npm run test --verbose
+RUN npm run test -- --verbose --testPathIgnorePatterns roll.test.js
+# workaround for linux node bug --> https://github.com/nodejs/node/issues/35889
+RUN npm run test roll.test.js -- --verbose
 
 # Start me!
 # CMD ["node", "index.js"]
