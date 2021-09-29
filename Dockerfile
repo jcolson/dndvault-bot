@@ -1,10 +1,11 @@
-FROM node:16 as base
+FROM node:16-alpine as base
+# FROM node:16 as base
 
 # for debian:
-RUN apt-get update && apt-get install -y jq
+# RUN apt-get update && apt-get install -y jq
 
 # for alpine:
-# RUN apk add jq
+RUN apk add jq
 
 # Create the directory!
 RUN mkdir -p /usr/src/bot
@@ -18,10 +19,10 @@ COPY . /usr/src/bot
 
 FROM base as test
 # for alpine:
-# RUN apk add python3 git git-lfs && python3 -m ensurepip && pip3 install pre-commit
+RUN apk add python3 git git-lfs && python3 -m ensurepip && pip3 install pre-commit
 
 # for debian:
-RUN apt-get install -y git git-lfs python3 python-pip && pip install pre-commit
+# RUN apt-get install -y git git-lfs python3 python-pip && pip install pre-commit
 
 RUN npm ci
 RUN npm run test -- --verbose --testPathIgnorePatterns roll.test.js
