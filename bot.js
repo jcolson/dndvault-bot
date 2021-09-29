@@ -101,7 +101,7 @@ client.on("guildCreate", async (guild) => {
     console.log(`guildCreate: ${guild.id} (${guild.name})`);
     try {
         await config.confirmGuildConfig(guild);
-        let channel = utils.locateChannelForMessageSend(guild);
+        let channel = await utils.locateChannelForMessageSend(guild);
         if (channel) {
             await channel.send({ content: 'Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me.  Roll initiative!' });
         }
