@@ -24,6 +24,10 @@ const ESCAPED_AND_ENCODED_STRING = '&#x22;this\\nis &#x27;a&#x27; &#x26;multi?\\
 
 const EOL = testables.EOL;
 
+afterEach(() => {
+    jest.clearAllMocks();
+});
+
 test('encodeStringICS with no encode and non escapable string returns original string', () => {
     expect(testables.encodeStringICS(SIMPLE_STRING, false)).toMatch(SIMPLE_STRING);
 });
@@ -75,7 +79,7 @@ test('handleCalendarRequest with valid userId and no events returns string', asy
 
     const result = await testables.handleCalendarRequest(userID, excludeGuild);
 
-    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${Config.httpServerURL}/calendar?userID=123${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT12H${EOL}X-PUBLISHED-TTL:PT12H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}END:VCALENDAR${EOL}`;
+    const expected = `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//BLACKNTAN LLC//NONSGML dndvault//EN${EOL}URL:${Config.httpServerURL}/calendar?userID=123${EOL}NAME:DND Vault${EOL}X-WR-CALNAME:DND Vault${EOL}DESCRIPTION:DND Vault events from Discord${EOL}X-WR-CALDESC:DND Vault events from Discord${EOL}REFRESH-INTERVAL;VALUE=DURATION:PT${Config.calendarICSRefreshHours}H${EOL}X-PUBLISHED-TTL:PT${Config.calendarICSRefreshHours}H${EOL}COLOR:34:50:105${EOL}CALSCALE:GREGORIAN${EOL}END:VCALENDAR${EOL}`;
     expect(result).toMatch(expected);
 });
 

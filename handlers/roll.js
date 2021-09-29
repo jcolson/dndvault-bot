@@ -1,4 +1,4 @@
-const { DiceRoll } = require('rpg-dice-roller');
+const rpgdiceroller = import('rpg-dice-roller');
 const { MessageEmbed } = require('discord.js');
 const utils = require('../utils/utils.js');
 
@@ -13,6 +13,7 @@ async function handleDiceRoll(msg, diceParam) {
         if (notation == '') {
             notation = '1d20';
         }
+        const DiceRoll = (await rpgdiceroller).DiceRoll;
         const rollit = new DiceRoll(notation);
         // console.debug(`handleDiceRoll: ${rollit.output}`);
         let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2, rollit.output.lastIndexOf(' = '));
@@ -74,6 +75,7 @@ async function handleDiceRollStats(msg) {
             .setThumbnail(msg.guild.iconURL());
         let statRollString = '';
         let total = 0;
+        const DiceRoll = (await rpgdiceroller).DiceRoll;
         for (let j = 0; j < 6; j++) {
             const rollit = new DiceRoll('4d6dl1sd');
             let rollitValue = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
@@ -82,7 +84,7 @@ async function handleDiceRollStats(msg) {
         }
         statsEmbed.addFields({ name: 'Stats Roll', value: statRollString });
         statsEmbed.addFields({ name: 'Total', value: `\`${total}\`` });
-        await utils.sendDirectOrFallbackToChannelEmbeds(statsEmbed, msg, undefined, true);
+        await utils.sendDirectOrFallbackToChannelEmbeds([statsEmbed], msg, undefined, true);
         utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleDiceRollStats:', error);
@@ -92,3 +94,8 @@ async function handleDiceRollStats(msg) {
 
 exports.handleDiceRoll = handleDiceRoll;
 exports.handleDiceRollStats = handleDiceRollStats;
+
+exports.testables = {
+    handleDiceRoll: handleDiceRoll,
+    handleDiceRollStats: handleDiceRollStats
+}

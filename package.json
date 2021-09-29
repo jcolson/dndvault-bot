@@ -1,17 +1,17 @@
 {
     "name": "dndvault",
-    "version": "v1.9.3",
+    "version": "v1.9.4",
     "description": "D&D Character Vault and Event Management for Discord.",
     "main": "index.js",
     "scripts": {
-        "test": "jest --coverage",
-        "dockertest": "docker build --target test ./",
+        "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+        "dockertest": "docker build --target test .",
         "preinstall": "git lfs update --force && pre-commit install -t pre-commit -t pre-push",
         "preinstall_old": "npx npm-force-resolutions && pre-commit install -t pre-commit -t pre-push"
     },
     "scriptsComments": {
         "test": "use jest for testing",
-        "dockertest": "run tests inside docker container",
+        "dockertest": "run tests inside docker container -->  --progress plain",
         "preinstall": "insure that pre-commit hooks are installed",
         "preinstall_old": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
     },
@@ -20,6 +20,7 @@
     "license": "MIT",
     "dependencies": {
         "@holistics/date-parser": "2.10.0",
+        "babel-jest": "^27.2.1",
         "discord.js": "^13.1.0",
         "express": "^4.17.1",
         "express-session": "^1.17.1",
@@ -27,6 +28,7 @@
         "he": "^1.2.0",
         "log-timestamp": "0.3.0",
         "luxon": "^2.0.2",
+        "mathjs": "^9.5.0",
         "mongoose": "^5.13.8",
         "morgan": "^1.10.0",
         "node-cache": "^5.1.2",
@@ -38,10 +40,11 @@
         "tzdata": "^1.0.25"
     },
     "devDependencies": {
-        "jest": "^27.1.0"
+        "jest": "^27.2.1"
     },
     "jest": {
-        "testEnvironment": "node"
+        "testEnvironment": "node",
+        "verbose": true
     },
     "resolutions": {},
     "resolutionsComments": {

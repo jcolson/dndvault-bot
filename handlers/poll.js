@@ -33,10 +33,10 @@ async function handlePoll(msg, msgParms, guildConfig) {
             sentMessage.react(thePoll.emojis[i]);
         }
         sentMessage.react(utils.EMOJIS.TRASH);
-        await utils.sendDirectOrFallbackToChannel({ name: `${utils.EMOJIS.DAGGER} Poll Create ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
+        await utils.sendDirectOrFallbackToChannel({ name: `${utils.EMOJIS.DAGGER} Poll Create ${utils.EMOJIS.SHIELD}`, value: `<@${msg.author.id}> - created poll successfully.`, inline: true }, msg, undefined, undefined, sentMessage.url);
         utils.deleteMessage(msg);
     } catch (error) {
-        error.message += ` For Channel: ${pollChannel.name}`;
+        error.message += ` For Channel: ${pollChannel?.name}`;
         console.error('handlePoll:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -95,10 +95,11 @@ function parseMessageForPoll(pollParams) {
 
 async function handleReactionAdd(reaction, user, guildConfig) {
     try {
-        console.log('handleReactionAdd...' + reaction.emoji.name);
+        console.log('handleReactionAdd...' + reaction.emoji?.name);
         let pollAuthor;
         for (let field of reaction.message.embeds[0].fields) {
             if (field.name == POLLSTER_AUTHOR_FIELD_NAME) {
+                // use utils method for this
                 pollAuthor = field.value.substring(2, field.value.length - 1);
             }
         }
@@ -115,6 +116,9 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                         if (aReaction.emoji.name != utils.EMOJIS.TRASH) {
                             resultsString += `${aReaction.emoji.name}:${aReaction.count}\n`;
                         }
+                    }
+                    if (resultsString === ``) {
+                        resultsString = "N/A";
                     }
                     reaction.message.embeds[0].addFields({ name: `Poll Results`, value: `${resultsString}` });
                 }
@@ -161,3 +165,8 @@ async function handleReactionAdd(reaction, user, guildConfig) {
 exports.handlePoll = handlePoll;
 exports.handleReactionAdd = handleReactionAdd;
 exports.POLLSTER_AUTHOR = POLLSTER_AUTHOR;
+
+exports.testables = {
+    handlePoll: handlePoll,
+    handleReactionAdd: handleReactionAdd
+}

@@ -1255,37 +1255,44 @@ function stringForStats(char) {
 }
 
 function stringForProficiencies(char) {
+    let startingClass = char.classes.find((theClass) => {
+        if (theClass.isStartingClass === true) {
+            return theClass;
+        }
+    });
+    // console.debug(`stringForProficiencies: startingClass: `, startingClass);
     let charProfString = '';
-    let headerSet = false;
+    let modifiers = new Set();
     char.modifiers.race.forEach((mod) => {
-        if (mod.type === 'proficiency') {
-            if (!headerSet) {
-                charProfString += `\`Race\`\n`;
-                headerSet = true;
-            }
-            charProfString += `${mod.friendlySubtypeName}\n`;
+        if (mod.type === 'proficiency' && mod.entityId != null) {
+            modifiers.add(mod.friendlySubtypeName);
         }
     });
-    headerSet = false;
+    charProfString += `**Race**\n`;
+    charProfString += Array.from(modifiers).join('\n');
+    modifiers = new Set();
     char.modifiers.class.forEach((mod) => {
-        if (mod.type === 'proficiency') {
-            if (!headerSet) {
-                charProfString += `**Class:**\n`;
-                headerSet = true;
+        let classFeature = startingClass.definition.classFeatures.find((theFeature) => {
+            if (theFeature.id === mod.componentId) {
+                return theFeature;
             }
-            charProfString += `${mod.friendlySubtypeName}\n`;
+        });
+        if (mod.type === 'proficiency') {
+            if (classFeature || mod.availableToMulticlass === true) {
+                modifiers.add(mod.friendlySubtypeName);
+            }
         }
     });
-    headerSet = false;
+    charProfString += `\n**Class:**\n`;
+    charProfString += Array.from(modifiers).join('\n');
+    modifiers = new Set();
     char.modifiers.background.forEach((mod) => {
-        if (mod.type === 'proficiency') {
-            if (!headerSet) {
-                charProfString += `**Background:**\n`;
-                headerSet = true;
-            }
-            charProfString += `${mod.friendlySubtypeName}\n`;
+        if (mod.type === 'proficiency' && mod.entityId != null) {
+            modifiers.add(mod.friendlySubtypeName);
         }
     });
+    charProfString += `\n**Background:**\n`;
+    charProfString += Array.from(modifiers).join('\n');
     if (charProfString === '') {
         charProfString = 'N/A';
     }
