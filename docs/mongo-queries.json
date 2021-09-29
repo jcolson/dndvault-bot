@@ -1,20 +1,3 @@
-{
-    "$and": [
-        {
-            "guildID": "785567026512527390",
-            "guildUser": "227562842591723521",
-            "approvalStatus": true,
-            "isUpdate": false
-        },
-        {
-            "$or": [
-                {
-                    "campaignOverride": "Beholders Must Die"
-                },
-                {
-                    "campaign.id": 1664765
-                }
-            ]
-        }
-    ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:1d7a4272c5c4faf3c7e47819ac08aa30df54f625590c794eb174d8c20150236d
+size 434
