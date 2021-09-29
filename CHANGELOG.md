@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.4 (2021-09-29)](#v194-2021-09-29)
   - [v1.9.3 (2021-09-17)](#v193-2021-09-17)
   - [v1.9.2 (2021-09-14)](#v192-2021-09-14)
   - [v1.9.1 (2021-09-14)](#v191-2021-09-14)
@@ -118,6 +119,15 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.4](https://github.com/jcolson/dndvault-bot/tree/v1.9.4) (2021-09-29)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.3...v1.9.4)
+
+**Fixed bugs:**
+
+- Bug: Incorrect proficiency listing [\#440](https://github.com/jcolson/dndvault-bot/issues/440)
+- poll exceptional condition \(when bot doesn't have rights in channel\) will get exception on poll removal [\#438](https://github.com/jcolson/dndvault-bot/issues/438)
 
 ## [v1.9.3](https://github.com/jcolson/dndvault-bot/tree/v1.9.3) (2021-09-17)
 

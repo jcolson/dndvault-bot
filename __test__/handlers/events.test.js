@@ -6,6 +6,10 @@ const EventModel = require('../../models/Event.js');
 const discordjs = require('discord.js');
 const { testables } = events;
 
+afterEach(() => {
+    jest.clearAllMocks();
+});
+
 test('embedForEvent with too long title fields, does not throw exception', async () => {
     const longField = `super long test title test title test title test title test title test title test title test title test title test title test title test title test title
     test title test title test title test title test title test title test title test title test title test title test title test title test title test title test title
