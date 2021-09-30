@@ -28,6 +28,8 @@ global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './config.json'));
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 global.client = theClient;
+// to get around jest/nodejs import bug
+global.COMMANDS = commands.COMMANDS;
 
 /**
  * connect to the mongodb
