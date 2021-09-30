@@ -25,7 +25,7 @@ RUN apk add python3 git git-lfs && python3 -m ensurepip && pip3 install pre-comm
 # RUN apt-get install -y git git-lfs python3 python-pip && pip install pre-commit
 
 RUN npm ci
-RUN npm run test -- --verbose --testPathIgnorePatterns roll.test.js,commands.test.js
+RUN npm run test -- --verbose --testPathIgnorePatterns roll.test.js commands.test.js
 # workaround for linux node bug --> https://github.com/nodejs/node/issues/35889
 RUN npm run test roll.test.js -- --verbose
 RUN npm run test commands.test.js -- --verbose
