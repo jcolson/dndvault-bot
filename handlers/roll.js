@@ -19,7 +19,7 @@ async function handleDiceRoll(msg, diceParam) {
         let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2, rollit.output.lastIndexOf(' = '));
         let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut, rollit.total);
         await utils.sendDirectOrFallbackToChannelEmbeds(diceRollEmbedArray, msg, undefined, true);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         console.error(`handleDiceRoll: ${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -85,7 +85,7 @@ async function handleDiceRollStats(msg) {
         statsEmbed.addFields({ name: 'Stats Roll', value: statRollString });
         statsEmbed.addFields({ name: 'Total', value: `\`${total}\`` });
         await utils.sendDirectOrFallbackToChannelEmbeds([statsEmbed], msg, undefined, true);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleDiceRollStats:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);

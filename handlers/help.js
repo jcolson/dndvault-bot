@@ -29,7 +29,7 @@ If you would like to see all commands available, [they are on the github website
         );
         charEmbedArray.push(charEmbed);
         await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
         console.error(`handleHelp: ${error.message}`);
