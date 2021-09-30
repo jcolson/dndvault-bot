@@ -3,6 +3,7 @@ const CharModel = require('../models/Character.js');
 const EventModel = require('../models/Event.js');
 const UserModel = require('../models/User.js');
 const utils = require('../utils/utils.js');
+const commands = require('../utils/commands.js');
 const users = require('../handlers/users.js');
 const events = require('../handlers/events.js');
 const { MessageEmbed } = require('discord.js');
@@ -21,7 +22,7 @@ async function handleConfig(msg, msgParms, guildConfig) {
             console.debug(`handleConfig:`, msgParms);
             for (let param of msgParms) {
                 // check to see if param passed is part of config options before dynamically calling function
-                for (let option of COMMANDS.config.options) {
+                for (let option of commands.COMMANDS.config.options) {
                     if (option.name == param.name) {
                         console.debug(`handleConfig: COMMAND: ${param.name}`);
                         if (utils.isString(param.value) && param.value?.trim() == '') {
