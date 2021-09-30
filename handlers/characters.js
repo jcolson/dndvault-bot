@@ -343,7 +343,7 @@ async function handleRegister(msg, paramArray, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Register', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -384,7 +384,7 @@ async function handleRegisterManual(msg, paramArray, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Register Manual', value: `<@${msg.member.id}>, ${char.name} / ${char.race.fullName} / ${char.classes[0].definition.name} is now registered` }, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -472,7 +472,7 @@ async function handleUpdate(msg, paramArray, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update', value: `<@${msg.member.id}>, ${stringForCharacter(char)} now has been updated.` }, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -582,7 +582,7 @@ async function handleUpdateManual(msg, paramArray, guildConfig) {
         }
         await char.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Update Manual', value: `<@${msg.member.id}>, ${stringForCharacter(char)} ${char.approvalStatus ? 'has been updated.' : 'update is pending approval.'}` }, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleUpdateManual:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -628,7 +628,7 @@ async function handleChanges(msg, msgParms) {
             // console.log(changesEmbed);
             await utils.sendDirectOrFallbackToChannelEmbeds(changesEmbed, msg);
         }
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         console.error(`handleChanges:`, error)
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -1106,7 +1106,7 @@ async function handleListCampaign(msg, msgParms) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters in campaign "${campaignToList}"`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`There are no registered characters for that campaign, \`register\` one!`);
         }
@@ -1141,7 +1141,7 @@ async function handleListUser(msg, msgParms) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `All Characters for ${memberToList.displayName} in the Vault`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any registered characters for ${userToList}`);
         }
@@ -1365,7 +1365,7 @@ async function handleListAll(msg) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'All Characters in the Vault', false);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any registered characters \`register\` one!`);
         }
@@ -1384,7 +1384,7 @@ async function handleListQueued(msg) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, 'Characters pending approval');
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any queued changes to characters awaiting approval right now ... go play some D&D!`);
         }
@@ -1408,7 +1408,7 @@ async function handleList(msg) {
         if (charArray.length > 0) {
             const charEmbedArray = embedForCharacter(msg, charArray, `${msg.member.displayName}'s Characters in the Vault`, false, vaultUser);
             await utils.sendDirectOrFallbackToChannelEmbeds(charEmbedArray, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`There are no registered characters for you, \`register\` one`);
         }
@@ -1446,7 +1446,7 @@ async function handleRemove(msg, msgParms, guildConfig) {
             }
         }
         await utils.sendDirectOrFallbackToChannel({ name: 'Remove', value: `<@${msg.member.id}>, ${charIdToDelete} (${typeOfRemoval}) was removed (${deleteResponse.deletedCount} records) from vault.` }, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -1478,7 +1478,7 @@ async function handleApprove(msg, msgParms, guildConfig) {
                 }
                 await charToApprove.save();
                 await utils.sendDirectOrFallbackToChannel({ name: 'Approve', value: `<@${msg.member.id}>, ${stringForCharacter(charToApprove)} was approved.` }, msg);
-                utils.deleteMessage(msg);
+                await utils.deleteMessage(msg);
             }
         } else {
             throw new Error(`please ask an \`approver role\` to approve.`);
@@ -1503,7 +1503,7 @@ async function handleShow(msg, msgParms) {
         }
         const embedsChar = embedForCharacter(msg, [showUser], 'Show Character', true);
         await utils.sendDirectOrFallbackToChannelEmbeds(embedsChar, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         console.error(`handleShow:`, error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -1531,7 +1531,7 @@ async function handleCampaign(msg, msgParms) {
         charToEdit.campaignOverride = campaignID;
         await charToEdit.save();
         await utils.sendDirectOrFallbackToChannel({ name: 'Campaign', value: `Character ${charID} campaign changed to \`${campaignID ? campaignID : 'No Campaign Override'}\`` }, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }

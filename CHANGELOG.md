@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.6 (2021-09-30)](#v196-2021-09-30)
+  - [v1.9.5 (2021-09-30)](#v195-2021-09-30)
   - [v1.9.4 (2021-09-29)](#v194-2021-09-29)
   - [v1.9.3 (2021-09-17)](#v193-2021-09-17)
   - [v1.9.2 (2021-09-14)](#v192-2021-09-14)
@@ -119,6 +121,18 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.6](https://github.com/jcolson/dndvault-bot/tree/v1.9.6) (2021-09-30)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.5...v1.9.6)
+
+## [v1.9.5](https://github.com/jcolson/dndvault-bot/tree/v1.9.5) (2021-09-30)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.4...v1.9.5)
+
+**Fixed bugs:**
+
+- handleConfig: ReferenceError: COMMANDS is not defined [\#444](https://github.com/jcolson/dndvault-bot/issues/444)
 
 ## [v1.9.4](https://github.com/jcolson/dndvault-bot/tree/v1.9.4) (2021-09-29)
 

@@ -28,6 +28,8 @@ global.vaultVersion = require('./package.json').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './config.json'));
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 global.client = theClient;
+// to get around jest/nodejs import bug
+global.COMMANDS = commands.COMMANDS;
 
 /**
  * connect to the mongodb
@@ -101,7 +103,7 @@ client.on("guildCreate", async (guild) => {
     console.log(`guildCreate: ${guild.id} (${guild.name})`);
     try {
         await config.confirmGuildConfig(guild);
-        let channel = utils.locateChannelForMessageSend(guild);
+        let channel = await utils.locateChannelForMessageSend(guild);
         if (channel) {
             await channel.send({ content: 'Thanks for inviting me!  Use the slash command `/help` to find out how to interact with me.  Roll initiative!' });
         }

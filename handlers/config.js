@@ -34,7 +34,7 @@ async function handleConfig(msg, msgParms, guildConfig) {
             await guildConfig.save();
             GuildCache.set(msg.guild.id, guildConfig);
             utils.sendDirectOrFallbackToChannelEmbeds(await embedForConfig(msg.guild, guildConfig), msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`Please ask an \`approver role\` to configure.`);
         }
@@ -424,7 +424,7 @@ async function handleStats(msg) {
                 { name: 'BOT Version', value: vaultVersion, inline: true },
                 { name: 'Node Version', value: process.versions.node, inline: true }
             ], msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         }
     } catch (error) {
         console.error(`handleStats:`, error);
@@ -459,7 +459,7 @@ async function handleKick(msg, msgParms) {
                     { name: 'Kick from Server', value: `Could not kick server ${msgParms[0].value}` }
                 ], msg);
             }
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         }
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);

@@ -148,6 +148,13 @@ test('bc_setUsersTimezone when User is not in UserModel Then save user and retur
 
     //We provide an incorrect object configuration
     global.client = {
+        guilds: {
+            cache: {
+                get(guildID) {
+                    return guildID;
+                },
+            },
+        },
     };
 
     //TODO : Capture that the exception has been thrown inside the method

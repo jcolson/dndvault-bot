@@ -178,7 +178,7 @@ async function handleInsult(msg) {
         await utils.sendDirectOrFallbackToChannel(
             [{ name: 'Vicious Mockery Suggestion', value: `${insult}` }],
             msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
     } catch (error) {
         console.error("handleConfig:", error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
