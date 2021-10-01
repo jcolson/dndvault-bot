@@ -522,3 +522,7 @@ exports.configcharacterapproval = configcharacterapproval;
 exports.configcampaign = configcampaign;
 exports.configprefix = configprefix;
 exports.configeventrequireapprover = configeventrequireapprover;
+
+exports.testables = {
+    handleConfig: handleConfig
+}
