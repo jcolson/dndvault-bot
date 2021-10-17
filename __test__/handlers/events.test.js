@@ -1,10 +1,9 @@
 const path = require('path');
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 jest.mock('../../models/Event.js');
-const events = require('../../handlers/events.js');
+const { testables } = require('../../handlers/events.js');
 const EventModel = require('../../models/Event.js');
 const discordjs = require('discord.js');
-const { testables } = events;
 
 afterEach(() => {
     jest.clearAllMocks();

@@ -1,8 +1,7 @@
 const path = require('path');
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
-const insult = require('../../handlers/insult.js');
+const { testables } = require('../../handlers/insult.js');
 const utils = require('../../utils/utils.js');
-const { testables } = insult;
 
 afterEach(() => {
     jest.clearAllMocks();

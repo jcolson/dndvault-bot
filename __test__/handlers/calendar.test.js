@@ -1,6 +1,6 @@
 const path = require('path');
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
-const calendar = require('../../handlers/calendar.js');
+const { testables } = require('../../handlers/calendar.js');
 const utils = require('../../utils/utils.js');
 
 jest.mock('../../handlers/config.js');
@@ -8,8 +8,6 @@ const config = require('../../handlers/config.js');
 
 jest.mock('../../models/Event.js');
 const EventModel = require('../../models/Event.js');
-
-const { testables } = calendar;
 
 const EXCEPTION_ERROR_MESSAGE = 'No userID passed!';
 
