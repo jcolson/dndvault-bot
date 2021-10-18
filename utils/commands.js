@@ -939,5 +939,7 @@ exports.parseMessageParms = parseMessageParms;
 exports.COMMANDS = COMMANDS;
 
 exports.testables = {
-    COMMANDS: COMMANDS
+    COMMANDS: COMMANDS,
+    handleCommandExec: handleCommandExec,
+    parseMessageParms: parseMessageParms,
 };
