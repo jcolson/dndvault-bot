@@ -4,16 +4,17 @@
     "description": "D&D Character Vault and Event Management for Discord.",
     "main": "index.js",
     "scripts": {
-        "test": "npx cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+        "test": "npx cross-env NODE_OPTIONS=--experimental-vm-modules jest roll.test.js --runInBand && npx cross-env NODE_OPTIONS=--experimental-vm-modules jest commands.test.js --runInBand && npx cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testPathIgnorePatterns roll.test.js --testPathIgnorePatterns commands.test.js",
+        "test:coverage": "npx cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
         "dockertest": "docker build --target test .",
         "preinstall": "git lfs update --force && pre-commit install -t pre-commit -t pre-push",
-        "preinstall_old": "npx npm-force-resolutions && pre-commit install -t pre-commit -t pre-push"
+        "preinstall:old": "npx npm-force-resolutions && pre-commit install -t pre-commit -t pre-push"
     },
     "scriptsComments": {
         "test": "use jest for testing",
         "dockertest": "run tests inside docker container -->  --progress plain",
         "preinstall": "insure that pre-commit hooks are installed",
-        "preinstall_old": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
+        "preinstall:old": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"
     },
     "keywords": [],
     "author": "Jay <jay@karma.net> (https://karma.net/)",
