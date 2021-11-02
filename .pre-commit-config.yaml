@@ -21,7 +21,7 @@ repos:
       - id: npm-test
         name: Run node tests
         language: system
-        entry: npm run test __test__
+        entry: npm test
         stages: [commit]
   - repo: local
     hooks:

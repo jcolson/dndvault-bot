@@ -1189,6 +1189,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
             }
         );
         if (isShow) {
+            charEmbed.setThumbnail(char.decorations.avatarUrl);
             charEmbed.addFields(
                 { name: 'Core Info', value: `Race: ${stringForRaceWithUrl(Config.dndBeyondUrl, char.race)}\nClass: ${stringForClassesWithUrls(Config.dndBeyondUrl, char.classes)}\nHP: \`${calcHitPoints(char)}\``, inline: true },
                 { name: 'Misc', value: `Inspiration: \`${utils.isTrue(char.inspiration)}\`\nLuck Points: \`${utils.parseIntOrMakeZero(char.luckPoints)}\`\nTreasure Points: \`${utils.parseIntOrMakeZero(char.treasurePoints)}\``, inline: true },
@@ -1198,6 +1199,7 @@ function embedForCharacter(msg, charArray, title, isShow, vaultUser) {
                 { name: 'Inventory', value: stringForInventory(char), inline: true },
             );
         }
+        // console.debug('CharEmbed: ', charEmbed);
     });
     returnEmbeds.push(charEmbed);
     return returnEmbeds;

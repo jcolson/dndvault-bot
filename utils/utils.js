@@ -654,6 +654,7 @@ exports.strikeThrough = strikeThrough;
 exports.locateChannelForMessageSend = locateChannelForMessageSend;
 
 exports.testables = {
+    COLORS: COLORS,
     trimTagsFromId: trimTagsFromId,
     parseAllTagsFromString: parseAllTagsFromString,
     appendStringsForEmbed: appendStringsForEmbed,
