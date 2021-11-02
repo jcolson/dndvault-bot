@@ -1,8 +1,7 @@
 const path = require('path');
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
 const { MessageEmbed } = require('discord.js');
-const utils = require('../../utils/utils.js');
-const { testables } = utils;
+const { testables } = require('../../utils/utils.js');
 
 const BASEURL = 'https://discord.com/channels';
 const CHANNELID = 'channelID';
@@ -75,7 +74,7 @@ test('lengthOfEmbed', () => {
     let fields = [{ name: 'field1', value: 'value1' }, { name: 'field2', value: 'value2' }];
 
     let embed = new MessageEmbed()
-        .setColor(utils.COLORS.BLUE)
+        .setColor(testables.COLORS.BLUE)
         .setTitle(`Review Changes for Character:`)
         .setURL('https://discord.js.org/')
         .setAuthor('D&D Vault')

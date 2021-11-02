@@ -1,4 +1,4 @@
-const { MessageEmbed } = require("discord.js");
+const { MessageEmbed, Permissions, Channel, Constants } = require("discord.js");
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
@@ -151,7 +151,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (!messageSent && (msg?.channel || msg?.interaction)) {
             try {
-                let channel = locateChannelForMessageSend(msg.guild ? msg.guild : msg.interaction?.guild, msg.channel ? msg.channel : msg.interaction?.channel);
+                let channel = await locateChannelForMessageSend(msg.guild ? msg.guild : msg.interaction?.guild, msg.channel ? msg.channel : msg.interaction?.channel);
                 if (msg.interaction && embedsArray.length == 1) {
                     for (let embed of embedsArray) {
                         // clientWsReply(msg.interaction, embed);
@@ -415,10 +415,10 @@ function isString(x) {
 async function checkChannelPermissions(msg, addtlPermsToCheck) {
     // throw new Error(`test error`);
     //check that I have the proper permissions
-    let requiredPerms = ['MANAGE_MESSAGES', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
+    let requiredPerms = [Permissions.FLAGS.MANAGE_MESSAGES, Permissions.FLAGS.SEND_MESSAGES, Permissions.FLAGS.ADD_REACTIONS, Permissions.FLAGS.READ_MESSAGE_HISTORY];
     if (msg.interaction) {
         // interactions don't remove old messages or send messages to the channel, so can ignore those permission in this case.
-        requiredPerms = ['ADD_REACTIONS', 'READ_MESSAGE_HISTORY'];
+        requiredPerms = [Permissions.FLAGS.ADD_REACTIONS, Permissions.FLAGS.READ_MESSAGE_HISTORY];
     }
     if (addtlPermsToCheck) {
         requiredPerms = requiredPerms.concat(addtlPermsToCheck);
@@ -600,23 +600,29 @@ function parseIntOrMakeZero(intToParse) {
  * @param {Channel} channel
  * @returns
  */
-function locateChannelForMessageSend(guild, channel) {
-    if (!channel ||
-        (channel.type !== 'GUILD_TEXT' ||
-            !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']))) {
+async function locateChannelForMessageSend(guild, channel) {
+    if (!isChannelTypeAndPerms(guild, channel)) {
         // console.debug('finding another channel');
         if (guild.systemChannelId) {
             channel = guild.channels.resolve(guild.systemChannelId);
         }
-        if (!channel || channel.type !== 'GUILD_TEXT' ||
-            !channel.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES'])) {
-            channel = guild.channels.cache.find(c => {
-                // console.debug(`${c.name} - ${c.type} - ${c.permissionsFor(guild.me).has('VIEW_CHANNEL')} - ${c.permissionsFor(guild.me).has('SEND_MESSAGES')}`);
-                return (c.type == 'GUILD_TEXT' && c.permissionsFor(guild.me).has(['VIEW_CHANNEL', 'SEND_MESSAGES']));
+        if (!isChannelTypeAndPerms(guild, channel)) {
+            // console.debug('still finding another channel');
+            channel = (await guild.channels.fetch()).find(c => {
+                if (isChannelTypeAndPerms(guild, c)) {
+                    return c;
+                }
             });
         }
     }
+    // console.debug(`locateChannelForMessageSend:`, channel);
     return channel;
+}
+
+function isChannelTypeAndPerms(guild, channel) {
+    // console.debug(`${channel?.name}, ${channel?.type}, ${channel?.type == Constants.ChannelTypes[Constants.ChannelTypes.GUILD_TEXT]}, ${channel?.permissionsFor(guild.me).has([Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.SEND_MESSAGES])}`);
+    return (channel && channel?.type == Constants.ChannelTypes[Constants.ChannelTypes.GUILD_TEXT] &&
+        channel?.permissionsFor(guild.me).has([Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.SEND_MESSAGES]));
 }
 
 exports.parseIntOrMakeZero = parseIntOrMakeZero;
@@ -648,6 +654,7 @@ exports.strikeThrough = strikeThrough;
 exports.locateChannelForMessageSend = locateChannelForMessageSend;
 
 exports.testables = {
+    COLORS: COLORS,
     trimTagsFromId: trimTagsFromId,
     parseAllTagsFromString: parseAllTagsFromString,
     appendStringsForEmbed: appendStringsForEmbed,

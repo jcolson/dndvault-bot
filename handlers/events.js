@@ -23,7 +23,7 @@ async function handleEventCreate(msg, msgParms, guildConfig) {
     try {
         let eventCreateResult = await bc_eventCreate(msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
         if (eventCreateResult) {
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error("Could not create event.");
         }
@@ -91,7 +91,7 @@ async function handleEventEdit(msg, msgParms, guildConfig) {
         // sometimes event id (from mobile) get's passed with an additional space at the end, so trim()
         let eventEditResult = await bc_eventEdit(eventIDparam.value.trim(), msg.member.id, eventChannelID, msg.guild.id, guildConfig.arole, guildConfig.eventRequireApprover, msgParms, msg);
         if (eventEditResult) {
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error("Could not edit event.");
         }
@@ -199,7 +199,7 @@ async function handleEventSignup(msg, msgParms, guildConfig) {
         }
         await attendeeAdd(eventMessage, userToSignup, eventToAlter, guildConfig);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Signup ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Signed Up To Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleEventSignup:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -248,7 +248,7 @@ async function handleEventWithdrawal(msg, msgParms, guildConfig) {
         }
         await attendeeRemove(eventMessage, userToSignup, eventToAlter, guildConfig);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Withdrawal ${utils.EMOJIS.SHIELD}`, value: `<@${userToSignup.id}> Withdrawn From Event.`, inline: true }], msg, msg.author, false, eventMessage.url);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         console.error('handleEventWithdrawal:', error);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
@@ -266,7 +266,7 @@ async function handleEventRemove(msg, msgParms, guildConfig) {
         let eventID = msgParms[0].value;
         let deleteMessage = await removeEvent(msg.guild, msg.member, eventID, guildConfig);
         await utils.sendDirectOrFallbackToChannel(deleteMessage, msg);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
     } catch (error) {
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }
@@ -328,7 +328,7 @@ async function handleEventShow(msg, msgParms, guildConfig) {
             throw new Error(`Please ask an \`approver role\` to re-show this event if needed.`);
         }
         let sentMessage = await eventShow(msg.guild, msg.channel, eventID);
-        utils.deleteMessage(msg);
+        await utils.deleteMessage(msg);
         await utils.sendDirectOrFallbackToChannel([{ name: `${utils.EMOJIS.DAGGER} Event Show ${utils.EMOJIS.SHIELD}`, value: `<@${msg.member.id}> - event displayed successfully.`, inline: true }], msg ? msg : sentMessage, msg.member.user, false, sentMessage.url);
     } catch (error) {
         console.error('handleEventShow:', error.message);
@@ -600,7 +600,7 @@ async function handleEventList(msg) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild, eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any events yet.  Create one with \`event create\`!`);
         }
@@ -621,7 +621,7 @@ async function handleEventListProposed(msg) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild, eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any PROPOSED events yet.  Create one with \`event create\`!`);
         }
@@ -642,7 +642,7 @@ async function handleEventListDeployed(msg) {
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild, eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
-            utils.deleteMessage(msg);
+            await utils.deleteMessage(msg);
         } else {
             throw new Error(`I don't see any DEPLOYED events yet.  Create one with \`event create\`!`);
         }

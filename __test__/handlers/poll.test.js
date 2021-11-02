@@ -1,9 +1,8 @@
 const { TextChannel, Client, Guild } = require('discord.js');
 const path = require('path');
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, '../../config_example.json'));
-const poll = require('../../handlers/poll.js');
+const { testables } = require('../../handlers/poll.js');
 const utils = require('../../utils/utils.js');
-const { testables } = poll;
 
 const TEST_USER_ID = '1234567890';
 

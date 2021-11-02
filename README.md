@@ -382,7 +382,7 @@ docker run -d --network dnd-net --name dnd-mongo \
     -e MONGO_INITDB_ROOT_PASSWORD_FILE=/data/db/mongoadmin \
     -v ${VOLUME}:/data/db \
     -v ${VOLUME}-init:/docker-entrypoint-initdb.d \
-    mongo:4.4.3-bionic
+    mongo:4.4.10
 ```
 
 - now that mongdb is running, let's run the bot!  Create a directory for the dndvault bot config, and replace the `VOLUME=`, below, with that directory.
