@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.7 (2021-11-02)](#v197-2021-11-02)
   - [v1.9.6 (2021-09-30)](#v196-2021-09-30)
   - [v1.9.5 (2021-09-30)](#v195-2021-09-30)
   - [v1.9.4 (2021-09-29)](#v194-2021-09-29)
@@ -121,6 +122,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.7](https://github.com/jcolson/dndvault-bot/tree/v1.9.7) (2021-11-02)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.6...v1.9.7)
+
+**Implemented enhancements:**
+
+- enhancement request - haireey 海利: itll be cool if u use the /show command, theres also avatar shown from dnd beyond [\#448](https://github.com/jcolson/dndvault-bot/issues/448)
 
 ## [v1.9.6](https://github.com/jcolson/dndvault-bot/tree/v1.9.6) (2021-09-30)
 
