@@ -22,7 +22,7 @@
     "dependencies": {
         "@holistics/date-parser": "2.10.0",
         "babel-jest": "^27.2.1",
-        "discord.js": "^13.1.0",
+        "discord.js": "^13.3.1",
         "express": "^4.17.1",
         "express-session": "^1.17.1",
         "grant": "^5.4.9",
