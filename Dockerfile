@@ -5,7 +5,7 @@ FROM node:17-alpine as base
 # RUN apt-get update && apt-get install -y jq
 
 # for alpine:
-RUN apk add jq
+RUN apk add jq curl
 
 # Create the directory!
 RUN mkdir -p /usr/src/bot
