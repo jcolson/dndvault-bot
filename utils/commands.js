@@ -908,7 +908,7 @@ function parseMessageParms(messageContent, command, prefix) {
             let eachSplit = each.trim().split(' ');
             let option = {
                 name: eachSplit[0].substring(eachSplit[0].indexOf('!') + 1),
-                value: ÎeachSplit.slice(1).join(' '),
+                value: eachSplit.slice(1).join(' '),
             };
             options.push(option);
             console.debug('parseMessageParms: option:', option);
