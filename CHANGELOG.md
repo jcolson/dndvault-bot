@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v.1.9.10 (2021-11-22)](#v1910-2021-11-22)
+  - [v1.9.9 (2021-11-17)](#v199-2021-11-17)
   - [v1.9.8 (2021-11-14)](#v198-2021-11-14)
   - [v1.9.7 (2021-11-02)](#v197-2021-11-02)
   - [v1.9.6 (2021-09-30)](#v196-2021-09-30)
@@ -123,6 +125,18 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v.1.9.10](https://github.com/jcolson/dndvault-bot/tree/v.1.9.10) (2021-11-22)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.9...v.1.9.10)
+
+**Implemented enhancements:**
+
+- add the ability for event creators to add CR/LF's in options [\#455](https://github.com/jcolson/dndvault-bot/issues/455)
+
+## [v1.9.9](https://github.com/jcolson/dndvault-bot/tree/v1.9.9) (2021-11-17)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.8...v1.9.9)
 
 ## [v1.9.8](https://github.com/jcolson/dndvault-bot/tree/v1.9.8) (2021-11-14)
 
