@@ -685,7 +685,7 @@ const COMMANDS = {
  * @param {Array} msgParms
  * @returns {Boolean}
  */
- async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgParms) {
+async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgParms) {
     /**
      * COMMANDS.command.name can not have spaces in it ... so I used underscores in the command name
      * spaces need to be replaced with _ so that we can match the command name
@@ -720,6 +720,9 @@ const COMMANDS = {
             // console.debug('findcommand RESULT', findCommand);
             if (findCommand && userHasSufficientRole) {
                 msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS[findCommand].name, commandPrefix);
+                for (let option of msgParms) {
+                    option.value = option.value.replaceAll('\\n', '\n');
+                }
                 switch (COMMANDS[findCommand].name) {
                     case COMMANDS.rollStats.name:
                         roll.handleDiceRollStats(msg, msgParms);
@@ -847,7 +850,7 @@ const COMMANDS = {
  * @param {Object} globalCommand (ex: COMMANDS.updateManual)
  * @param {Array} msgParms
  */
- function xformArrayToMsgParms(globalCommand, msgParms) {
+function xformArrayToMsgParms(globalCommand, msgParms) {
     for (let i = 0; i < msgParms.length; i++) {
         if (!msgParms[i].name) {
             msgParms[i].name = globalCommand.options[i].name;
@@ -863,7 +866,7 @@ const COMMANDS = {
  * @param {String} prefix
  * @returns
  */
- function parseMessageParms(messageContent, command, prefix) {
+function parseMessageParms(messageContent, command, prefix) {
     let options = [];
     if (!messageContent) {
         return options;
@@ -905,9 +908,10 @@ const COMMANDS = {
             let eachSplit = each.trim().split(' ');
             let option = {
                 name: eachSplit[0].substring(eachSplit[0].indexOf('!') + 1),
-                value: eachSplit.slice(1).join(' '),
+                value: ÎeachSplit.slice(1).join(' '),
             };
             options.push(option);
+            console.debug('parseMessageParms: option:', option);
         }
     } else {
         //parse poll format
