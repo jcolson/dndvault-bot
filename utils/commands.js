@@ -721,7 +721,9 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
             if (findCommand && userHasSufficientRole) {
                 msgParms = msgParms ? msgParms : parseMessageParms(msg.content, COMMANDS[findCommand].name, commandPrefix);
                 for (let option of msgParms) {
-                    option.value = option.value.replaceAll('\\n', '\n');
+                    if (typeof option.value === 'string' || option.value instanceof String) {
+                        option.value = option.value.replaceAll('\\n', '\n');
+                    }
                 }
                 switch (COMMANDS[findCommand].name) {
                     case COMMANDS.rollStats.name:
