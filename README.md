@@ -183,7 +183,7 @@ In order to see the new slash commands and their accompanying options and descri
 - /timezone - view your timezone
 - /timezone [TIMEZONE] - set your timezone (required for interacting with events)
 - /poll ["Poll Question"] {"Response 0"} {"Response 1"} {"Response 2"} {"Response 3"} ...
-- /roll {notation} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
+- /roll {notation} {roll_type} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
 - /roll_stats - roll for D&D 5E stat block
 - /insult - generates a random insult for Vicious Mockery
 - /event_attendance - produces a report of players signup attendance for events
@@ -242,7 +242,7 @@ In order to see the new slash commands and their accompanying options and descri
   - [x] [TIMEZONE] - set your timezone (required for interacting with events)
 - [x] poll ["Poll Question"] {"Response 0"} {"Response 1"} {"Response 2"} {"Response 3"} ...
 - [x] roll
-  - [x] {notation} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
+  - [x] {notation} {roll_type} - rolls dice, using notation reference available here https://greenimp.github.io/rpg-dice-roller/guide/notation/
   - [x] stats - roll for D&D 5E stat block
 - [x] insult - generates a random insult for Vicious Mockery
 - [ ] event
