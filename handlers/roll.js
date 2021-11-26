@@ -9,15 +9,21 @@ const utils = require('../utils/utils.js');
  */
 async function handleDiceRoll(msg, diceParam) {
     try {
-        let notation = diceParam.map(element => element.value).join(' ').trim();
-        if (notation == '') {
+        let rollType = diceParam.find(p => p.name == 'roll_type')?.value;
+        let notation = diceParam.find(p => p.name == 'notation')?.value;
+        if (!notation && !rollType) {
+            // handle old school commands still
+            notation = diceParam[0]?.value.trim();
+            rollType = diceParam.slice(1).map(element => element.value).join(' ').trim();
+        }
+        if (!notation) {
             notation = '1d20';
         }
         const DiceRoll = (await rpgdiceroller).DiceRoll;
         const rollit = new DiceRoll(notation);
         // console.debug(`handleDiceRoll: ${rollit.output}`);
         let rollitValut = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2, rollit.output.lastIndexOf(' = '));
-        let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut, rollit.total);
+        let diceRollEmbedArray = embedsForDiceRoll(rollit.notation, rollitValut, rollit.total, rollType);
         await utils.sendDirectOrFallbackToChannelEmbeds(diceRollEmbedArray, msg, undefined, true);
         await utils.deleteMessage(msg);
     } catch (error) {
@@ -30,14 +36,17 @@ async function handleDiceRoll(msg, diceParam) {
  *
  * @param {String} notation
  * @param {String} rollitValut
+ * @param {Number} total
+ * @param {String} rollType
  * @returns {MessageEmbed[]}
  */
-function embedsForDiceRoll(notation, rollitValut, total) {
+function embedsForDiceRoll(notation, rollitValut, total, rollType) {
     const EMBED_FIELD_MAX = 1000;
     const FIELDS_PER_EMBED = 4;
     let diceRollEmbedArray = [];
     let embedFields = [];
-    let fieldName = utils.EMOJIS.DICE + notation.substring(0, 256 - utils.EMOJIS.DICE.length - utils.EMOJIS.DICE.length) + utils.EMOJIS.DICE;
+    let title = (rollType ? rollType + ' - ' : '') + notation;
+    let fieldName = utils.EMOJIS.DICE + title.substring(0, 256 - utils.EMOJIS.DICE.length - utils.EMOJIS.DICE.length) + utils.EMOJIS.DICE;
     // ensure that if the result is larger than 1000 chars we split it up in different discord embed fields
     for (let i = 0; i < rollitValut.length; i += EMBED_FIELD_MAX) {
         const cont = rollitValut.substring(i, Math.min(rollitValut.length, i + EMBED_FIELD_MAX));

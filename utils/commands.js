@@ -44,6 +44,11 @@ const COMMANDS = {
             "description": "Dice notation, such as `2d8 + 1d4` or `8d20dl2` (8 d20, drop lowest 2)",
             "required": false,
             "type": 3
+        }, {
+            "name": "roll_type",
+            "description": "Optional text for what type of roll this is",
+            "required": false,
+            "type": 3
         }]
     },
     "registerManual": {
