@@ -43,13 +43,14 @@ async function handlePoll(msg, msgParms, guildConfig) {
 }
 
 function embedForPoll(msg, thePoll, allowMultiple) {
-    let title = `${thePoll.question}${allowMultiple ? POLLSTER_MULTIPLE_ALLOWED : ''}`;
+    let title = `${thePoll.question ? thePoll.question : ''}${allowMultiple ? POLLSTER_MULTIPLE_ALLOWED : ''}`;
+    // console.debug(`embedForPoll: ${title} // ${thePoll.question} // ${allowMultiple}`);
     let pollQuestion;
     if (title.length > 255) {
         if (allowMultiple) {
             title = `Poll${allowMultiple ? POLLSTER_MULTIPLE_ALLOWED : ''}`;
         } else {
-            title = undefined;
+            title = `Poll`;
         }
         pollQuestion = thePoll.question.substring(0, 1023);
     }
@@ -77,9 +78,11 @@ function parseMessageForPoll(pollParams) {
     if (pollParams.length > 11) {
         throw new Error('Too many choices, please reduce to 10 or fewer');
     }
+    // console.debug(`parseMessageForPoll:`, pollParams);
     let thePoll = {};
     if (pollParams.length > 0) {
         thePoll.question = pollParams[0].value;
+        // console.debug(`parseMessageForPoll: ${thePoll.question}`)
         if (pollParams.length > 1) {
             thePoll.choices = pollParams.slice(1).map(entity => entity.value);
             thePoll.emojis = [utils.EMOJIS.ONE, utils.EMOJIS.TWO, utils.EMOJIS.THREE,
@@ -168,5 +171,6 @@ exports.POLLSTER_AUTHOR = POLLSTER_AUTHOR;
 
 exports.testables = {
     handlePoll: handlePoll,
-    handleReactionAdd: handleReactionAdd
+    handleReactionAdd: handleReactionAdd,
+    POLLSTER_AUTHOR_FIELD_NAME: POLLSTER_AUTHOR_FIELD_NAME
 }
