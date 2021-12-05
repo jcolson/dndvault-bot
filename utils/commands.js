@@ -33,7 +33,13 @@ const COMMANDS = {
     "rollStats": {
         "name": "roll_stats",
         "description": "Rolls for D&D 5E stats.",
-        "slash": true
+        "slash": true,
+        "options": [{
+            "name": "reroll_ones",
+            "description": "Should ones be re-rolled?",
+            "required": false,
+            "type": 5 // boolean
+        }]
     },
     "roll": {
         "name": "roll",

@@ -75,8 +75,13 @@ function embedsForDiceRoll(notation, rollitValut, total, rollType) {
  *
  * @param {Message} msg
  */
-async function handleDiceRollStats(msg) {
+async function handleDiceRollStats(msg, diceParam) {
     try {
+        let statRollNotation = '4d6dl1sd';
+        let rerollOnes = diceParam.find(p => p.name == 'reroll_ones')?.value;
+        if (rerollOnes) {
+            statRollNotation = '4d6rdl1sd';
+        }
         const statsEmbed = new MessageEmbed()
             .setColor(utils.COLORS.GREEN)
             .setTitle(`${utils.EMOJIS.DICE}D&D 5E Stats Roll${utils.EMOJIS.DICE}`)
@@ -86,7 +91,7 @@ async function handleDiceRollStats(msg) {
         let total = 0;
         const DiceRoll = (await rpgdiceroller).DiceRoll;
         for (let j = 0; j < 6; j++) {
-            const rollit = new DiceRoll('4d6dl1sd');
+            const rollit = new DiceRoll(statRollNotation);
             let rollitValue = rollit.output.substring(rollit.output.lastIndexOf(': ') + 2);
             total += rollit.total;
             statRollString += `Stat ${j + 1}: \`${rollitValue}\`\n`;

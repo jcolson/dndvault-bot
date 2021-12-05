@@ -13,7 +13,7 @@
     },
     "scriptsComments": {
         "test": "use jest for testing",
-        "stest": "use jest for testing, for a single test use '-- roll.js.test' for example",
+        "stest": "use jest for testing, for a single test use '-- roll.test.js' for example",
         "dockertest": "run tests inside docker container -->  --progress plain",
         "preinstall": "insure that pre-commit hooks are installed",
         "preinstall:old": "this runs automatically on install to enforce versions of dependencies, see 'resolutions' below"

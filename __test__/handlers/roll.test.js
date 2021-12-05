@@ -245,7 +245,8 @@ test('handleDiceRollStats', async () => {
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
     });
-    await testables.handleDiceRollStats(msg);
+    let diceParam = [];
+    await testables.handleDiceRollStats(msg, diceParam);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -253,7 +254,39 @@ test('handleDiceRollStats', async () => {
                     expect.arrayContaining([
                         expect.objectContaining({
                             'name': `Stats Roll`,
-                            'value': expect.stringMatching(/^Stat 1: `\[\d,.*/)
+                            'value': expect.stringMatching(/^Stat 1: `\[\d*[d]*, \d*[d]*, \d*[d]*, \d*[d]*] = \d*`/)
+                        }),
+                        expect.objectContaining({
+                            'name': `Total`,
+                            'value': expect.stringMatching(/^`\d*`$/)
+
+                        })
+                    ])
+            })
+        ]), msg, undefined, true
+    );
+});
+
+test('handleDiceRollStats reroll ones', async () => {
+    let msg = { guild: {} };
+    msg.guild.iconURL = () => {
+        return "https://www.example.com/example.png";
+    }
+    let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
+        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+    });
+    jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+    });
+    let diceParam = [{ name: 'reroll_ones', value: true }];
+    await testables.handleDiceRollStats(msg, diceParam);
+    expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
+        expect.arrayContaining([
+            expect.objectContaining({
+                'fields':
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            'name': `Stats Roll`,
+                            'value': expect.stringMatching(/^Stat 1: `\[\d*[rd]*, \d*[rd]*, \d*[rd]*, \d*[rd]*] = \d*`/)
                         }),
                         expect.objectContaining({
                             'name': `Total`,
@@ -273,8 +306,8 @@ test('handleDiceRollStats error', async () => {
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
     });
-    let diceParam = [{ 'value': 'x4d' }];
-    await testables.handleDiceRollStats(msg);
+    let diceParam = [];
+    await testables.handleDiceRollStats(msg, diceParam);
     expect(sendDirectOrFallbackToChannelError).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'msg.guild?.iconURL is not a function' })
         , msg
