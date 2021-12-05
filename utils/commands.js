@@ -33,7 +33,13 @@ const COMMANDS = {
     "rollStats": {
         "name": "roll_stats",
         "description": "Rolls for D&D 5E stats.",
-        "slash": true
+        "slash": true,
+        "options": [{
+            "name": "reroll_ones",
+            "description": "Should ones be re-rolled?",
+            "required": false,
+            "type": 5 // boolean
+        }]
     },
     "roll": {
         "name": "roll",
@@ -317,7 +323,7 @@ const COMMANDS = {
             "type": 3
         }, {
             "name": "at",
-            "description": "The time at which this event will start",
+            "description": "The time at which this event will start (ex: 10pm)",
             "required": true,
             "type": 3
         }, {
@@ -327,12 +333,12 @@ const COMMANDS = {
             "type": 3
         }, {
             "name": "on",
-            "description": "The date on which this event will start",
+            "description": "The date on which this event will start (ex: 10/28/1990)",
             "required": true,
             "type": 3
         }, {
             "name": "with",
-            "description": "The number of attendee slot available to join this event",
+            "description": "The number of attendee slot available to join this event (ex: 5)",
             "required": true,
             "type": 4 //integer
         }, {
@@ -373,22 +379,22 @@ const COMMANDS = {
             "type": 3
         }, {
             "name": "at",
-            "description": "The time at which this event will start",
+            "description": "The time at which this event will start (ex: 10pm)",
             "required": false,
             "type": 3
         }, {
             "name": "for",
-            "description": "The number of hours that this event will run for",
+            "description": "The number of hours that this event will run for (ex: 3.5)",
             "required": false,
             "type": 3
         }, {
             "name": "on",
-            "description": "The date on which this event will start",
+            "description": "The date on which this event will start (ex: 10/28/1990)",
             "required": false,
             "type": 3
         }, {
             "name": "with",
-            "description": "The number of attendee slot available to join this event",
+            "description": "The number of attendee slot available to join this event (ex: 5)",
             "required": false,
             "type": 4 //integer
         }, {

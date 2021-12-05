@@ -26,7 +26,7 @@ test('handlePoll default choices no guildconfig channel', async () => {
         });
         return aSentMessage;
     });
-    let msgParms = [{}];
+    let msgParms = [{ name: 'poll_question', value: 'The Question - we need to make this longer than 256 chars. - we need to make this longer than 256 chars. - we need to make this longer than 256 chars. - we need to make this longer than 256 chars. - we need to make this longer than 256 chars. - we need to make this longer than 256 chars.' }];
     let guildConfig = {};
     let sendDirectOrFallbackToChannel = jest.spyOn(utils, 'sendDirectOrFallbackToChannel').mockImplementation((fields, msg, user, skipDM) => {
         // console.debug(fields, msg, user, skipDM);
@@ -64,4 +64,54 @@ test('handleReactionAdd', async () => {
     let guildConfig = {};
 
     await testables.handleReactionAdd(reaction, user, guildConfig);
+});
+
+test('handleReactionAdd trash', async () => {
+    let reaction = {
+        message: {
+            embeds: [
+                {
+                    fields: [{ name: testables.POLLSTER_AUTHOR_FIELD_NAME, value: '<@' + TEST_USER_ID + '>' }],
+                    setTitle: ((titleString) => { return }),
+                    addFields: ((fieldObject) => { return })
+                }
+            ],
+            guild: {
+                members: {
+                    resolve: ((userId) => { console.debug(userId) })
+                }
+            },
+            reactions: {
+                cache: {
+                    values: (() => { return [] })
+                }
+            },
+            delete: (() => { return })
+        },
+        emoji: { name: utils.EMOJIS.TRASH },
+        users: {
+            remove: ((userId) => { return })
+        }
+    };
+    let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embeds, msg, user) => {
+        // console.debug(fields, msg, user, skipDM);
+    });
+    let user = { id: TEST_USER_ID };
+    let guildConfig = {};
+
+    await testables.handleReactionAdd(reaction, user, guildConfig);
+
+    expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
+        expect.arrayContaining([
+            expect.objectContaining({
+                'fields':
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            'name': `Author`,
+                            'value': expect.stringMatching(/^<@1234567890>/)
+                        })
+                    ])
+            })
+        ]), reaction.message, user
+    );
 });
