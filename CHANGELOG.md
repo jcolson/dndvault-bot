@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.14 (2021-12-05)](#v1914-2021-12-05)
   - [v1.9.13 (2021-12-05)](#v1913-2021-12-05)
   - [v1.9.12 (2021-11-26)](#v1912-2021-11-26)
   - [v1.9.11 (2021-11-23)](#v1911-2021-11-23)
@@ -128,6 +129,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.14](https://github.com/jcolson/dndvault-bot/tree/v1.9.14) (2021-12-05)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.13...v1.9.14)
+
+**Fixed bugs:**
+
+- permission errors are showing the permission number instead of the name [\#469](https://github.com/jcolson/dndvault-bot/issues/469)
 
 ## [v1.9.13](https://github.com/jcolson/dndvault-bot/tree/v1.9.13) (2021-12-05)
 
