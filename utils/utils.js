@@ -430,7 +430,7 @@ async function checkChannelPermissions(msg, addtlPermsToCheck) {
     // }
     for (let reqPerm of requiredPerms) {
         if (!await botPerms.has(reqPerm)) {
-            throw new Error(`Server (${msg.guild}) channel (${msg.channel.name}) is missing a Required Permission for the bot to function properly (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${reqPerm}).`);
+            throw new Error(`Server (${msg.guild}) channel (${msg.channel.name}) is missing a Required Permission for the bot to function properly (please inform a server admin to remove the bot from that channel or ensure the bot has the following permission: ${returnPropertyNameFromValue(Permissions.FLAGS, reqPerm)}).`);
         }
     }
     // debug info below for permissions debugging in a channel
@@ -448,6 +448,20 @@ async function checkChannelPermissions(msg, addtlPermsToCheck) {
     // for (perm of msg.guild.me.permissions) {
     //     console.log(perm);
     // }
+}
+
+/**
+ * find the name of the first corresponding parameter name that has a value of theValue
+ * @param {Object} theObject
+ * @param {Object} theValue
+ * @returns
+ */
+function returnPropertyNameFromValue(theObject, theValue) {
+    for (let propertyName in theObject) {
+        if (theValue == theObject[propertyName]) {
+            return propertyName;
+        }
+    }
 }
 
 /**
