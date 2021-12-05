@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.13 (2021-12-05)](#v1913-2021-12-05)
   - [v1.9.12 (2021-11-26)](#v1912-2021-11-26)
   - [v1.9.11 (2021-11-23)](#v1911-2021-11-23)
   - [v.1.9.10 (2021-11-22)](#v1910-2021-11-22)
@@ -127,6 +128,19 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.13](https://github.com/jcolson/dndvault-bot/tree/v1.9.13) (2021-12-05)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.12...v1.9.13)
+
+**Implemented enhancements:**
+
+- add an option in roll\_stats to "re-roll ones" [\#466](https://github.com/jcolson/dndvault-bot/issues/466)
+- improve test coverage for roll.js [\#463](https://github.com/jcolson/dndvault-bot/issues/463)
+
+**Fixed bugs:**
+
+- give better error message for event create when invalid 'on' parameter passed [\#465](https://github.com/jcolson/dndvault-bot/issues/465)
 
 ## [v1.9.12](https://github.com/jcolson/dndvault-bot/tree/v1.9.12) (2021-11-26)
 
