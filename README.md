@@ -194,19 +194,21 @@ In order to see the new slash commands and their accompanying options and descri
 - /event_list - list all future events (and events from the past few days) (PROPOSed and DEPLOYed)
 - /event_list proposed - list all future PROPOSED events
 - /event_list deployed - list all future DEPLOYED events
-- /config [RESET_BOOLEAN] [@PLAYER_ROLE] [@APPROVER_ROLE] [#POLL_CHANNEL] [#EVENT_CHANNEL] [EVENT_STANDBY_BOOLEAN] [EVENT_PLANNING_CHANNEL_CATEGORY] [EVENT_PLANNING_CHANNEL_DAYS] [CHARACTER_APPROVAL_BOOLEAN] [CAMPAIGN_BOOLEAN] [NEW_PREFIX] - show/edit BOT config
+- /config [RESET_BOOLEAN] [@PLAYER_ROLE] [@APPROVER_ROLE] [#POLL_CHANNEL] [REQUIRE_APPROVER] [#EVENT_CHANNEL] [EVENT_STANDBY_BOOLEAN] [EVENT_PLANNING_CHANNEL_CATEGORY] [EVENT_VOICE_CHANNEL_CATEGORY] [VOICE_PERMS] [EVENT_PLANNING_CHANNEL_DAYS] [CHARACTER_APPROVAL_BOOLEAN] [CAMPAIGN_BOOLEAN] [NEW_PREFIX] - show/edit BOT config
   - [RESET_BOOLEAN] - reset config to defaults
-  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
   - [@PLAYER_ROLE] - modify player role (allows user to use bot)
-  - [NEW_PREFIX] - modify the command prefix
-  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
-  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
   - [#POLL_CHANNEL] - send all polls to this channel
+  - [REQUIRE_APPROVER] - Require approver to create & edit events
   - [#EVENT_CHANNEL] - send all events to this channel
+  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
   - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
   - [EVENT_VOICE_CHANNEL_CATEGORY] - Configure what channel category to autocreate event voice channels in - if this is populated, then an "event voice channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
+  - [VOICE_PERMS] - Autocreate event voice channels with one of these permissions: "Attendees Only" (only allows attendees to join), "Everyone Speak" (@everyone can join and speak) or "Everyone Listen" (@everyone can join, but only attendees can speak)
   - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning and voice channels should be removed
-  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
+  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
+  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [NEW_PREFIX] - modify the command prefix
 ```
 
 ### Old Command Descriptions
@@ -259,20 +261,22 @@ In order to see the new slash commands and their accompanying options and descri
   - [ ] list campaign [CAMPAIGN_ID] - list all future events for a campaign
   - [ ] list campaign proposed [CAMPAIGN_ID] - list all future DEPLOYed events for a campaign
   - [ ] list campaign deployed [CAMPAIGN_ID] - list all future PROPOSEed events for a campaign
-- [x] config !reset [RESET_BOOLEAN] !prole [@PLAYER_ROLE] !arole [@APPROVER_ROLE] !pollchannel [#POLL_CHANNEL] !eventchannel [#EVENT_CHANNEL] !eventstandby [EVENT_STANDBY_BOOLEAN] !channelcategory [EVENT_PLANNING_CHANNEL_CATEGORY] !voicecategory [EVENT_VOICE_CHANNEL_CATEGORY] !channeldays [EVENT_PLANNING_CHANNEL_DAYS] !characterapproval [CHARACTER_APPROVAL_BOOLEAN] !campaign [CAMPAIGN_BOOLEAN] !prefix [NEW_PREFIX] - show/edit BOT config
+- [x] config !reset [RESET_BOOLEAN] !prole [@PLAYER_ROLE] !arole [@APPROVER_ROLE] !pollchannel [#POLL_CHANNEL] !eventchannel [#EVENT_CHANNEL] !eventstandby [EVENT_STANDBY_BOOLEAN] !channelcategory [EVENT_PLANNING_CHANNEL_CATEGORY] !voicecategory [EVENT_VOICE_CHANNEL_CATEGORY] !voiceperms [VOICE_PERMS] !channeldays [EVENT_PLANNING_CHANNEL_DAYS] !characterapproval [CHARACTER_APPROVAL_BOOLEAN] !campaign [CAMPAIGN_BOOLEAN] !prefix [NEW_PREFIX] - show/edit BOT config
   - {no args} - show config
   - [RESET_BOOLEAN] - reset config to defaults
-  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
   - [@PLAYER_ROLE] - modify player role (allows user to use bot)
-  - [NEW_PREFIX] - modify the command prefix
-  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
-  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [@APPROVER_ROLE] - modify approver role (allows user to approve characters)
   - [#POLL_CHANNEL] - send all polls to this channel
+  - [REQUIRE_APPROVER] - Require approver to create & edit events
   - [#EVENT_CHANNEL] - send all events to this channel
+  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
   - [EVENT_PLANNING_CHANNEL_CATEGORY] - Configure what channel category to autocreate event planning channels in - if this is populated, then an "event planning channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
   - [EVENT_VOICE_CHANNEL_CATEGORY] - Configure what channel category to autocreate event voice channels in - if this is populated, then an "event voice channel" will be created under this category for every event that is created.  the members of that channel will be those that are signed up to the event
-  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning channel should be removed
-  - [EVENT_STANDBY_BOOLEAN] - Does your server support standby queuing on events?
+  - [VOICE_PERMS] - Autocreate event voice channels with one of these permissions: "Attendees Only" (only allows attendees to join), "Everyone Speak" (@everyone can join and speak) or "Everyone Listen" (@everyone can join, but only attendees can speak)
+  - [EVENT_PLANNING_CHANNEL_DAYS] - Configure how many days after an event planning and voice channels should be removed
+  - [CHARACTER_APPROVAL_BOOLEAN] - does character registration and updates require arole approval?
+  - [CAMPAIGN_BOOLEAN] - require that a user have matching character for event's campaigns
+  - [NEW_PREFIX] - modify the command prefix
 ```
 
 ## Example character workflow with the BOT
