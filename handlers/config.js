@@ -425,6 +425,7 @@ async function handleStats(msg) {
                 { name: 'Node Version', value: process.versions.node, inline: true }
             ], msg);
             await utils.deleteMessage(msg);
+            await client.user.setPresence({ activities: [{ name: `on ${totalGuilds.toString()} servers, type /help`, type: 'PLAYING' }], status: 'online' });
         }
     } catch (error) {
         console.error(`handleStats:`, error);
