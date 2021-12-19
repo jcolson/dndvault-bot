@@ -2,11 +2,10 @@ name: dockerhub
 
 on:
   create:
-    branches:
-      - docker
 
 jobs:
   dockerhub:
+    if: github.event.base_ref == 'refs/heads/master'
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
