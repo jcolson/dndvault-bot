@@ -12,6 +12,7 @@
   - [v1.9.16 (2021-12-19)](#v1916-2021-12-19)
   - [v1.9.17-docker (2021-12-19)](#v1917-docker-2021-12-19)
   - [v1.9.15-docker (2021-12-19)](#v1915-docker-2021-12-19)
+  - [v1.9.17-docker (2021-12-19)](#v1917-docker-2021-12-19)
   - [v1.9.15 (2021-12-19)](#v1915-2021-12-19)
   - [v1.9.14 (2021-12-05)](#v1914-2021-12-05)
   - [v1.9.13 (2021-12-05)](#v1913-2021-12-05)
@@ -178,7 +179,11 @@
 
 ## [v1.9.15-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.15-docker) (2021-12-19)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15...v1.9.15-docker)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.17-docker...v1.9.15-docker)
+
+## [v1.9.17-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.17-docker) (2021-12-19)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15...v1.9.17-docker)
 
 ## [v1.9.15](https://github.com/jcolson/dndvault-bot/tree/v1.9.15) (2021-12-19)
 
