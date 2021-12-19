@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
-  - [Unreleased](#unreleased)
+  - [v1.9.17 (2021-12-19)](#v1917-2021-12-19)
   - [v1.9.16 (2021-12-19)](#v1916-2021-12-19)
   - [v1.9.15-docker (2021-12-19)](#v1915-docker-2021-12-19)
   - [v1.9.15 (2021-12-19)](#v1915-2021-12-19)
@@ -134,17 +134,17 @@
 
 # Changelog
 
-## [Unreleased](https://github.com/jcolson/dndvault-bot/tree/HEAD)
+## [v1.9.17](https://github.com/jcolson/dndvault-bot/tree/v1.9.17) (2021-12-19)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.16...HEAD)
-
-**Fixed bugs:**
-
-- automatically remove users no longer on the server from events when the event is interacted with [\#477](https://github.com/jcolson/dndvault-bot/issues/477)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.16...v1.9.17)
 
 ## [v1.9.16](https://github.com/jcolson/dndvault-bot/tree/v1.9.16) (2021-12-19)
 
 [Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15-docker...v1.9.16)
+
+**Fixed bugs:**
+
+- automatically remove users no longer on the server from events when the event is interacted with [\#477](https://github.com/jcolson/dndvault-bot/issues/477)
 
 ## [v1.9.15-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.15-docker) (2021-12-19)
 
