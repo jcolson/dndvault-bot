@@ -452,8 +452,11 @@ https://transform.tools/json-to-mongoose
 
 i actually use my own `github-release.sh` script at this point, which includes this step in a release.  Github's action for the docker branch requires a tag (so that the docker image gets a tag).  So this is required after release:
 
+may not need to do this ... merge may do it for us?
+
 ```sh
 git switch docker && \
+git pull && \
 git tag `git describe --tags \`git rev-list --tags --max-count=1\``-docker && \
 git push --tags
 git switch develop
