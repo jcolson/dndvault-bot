@@ -993,6 +993,16 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         let eventForMessage = await EventModel.findOne({ guildID: reaction.message.guild.id, channelID: reaction.message.channel.id, messageID: reaction.message.id });
         if (!eventForMessage) {
             console.info('handleReactionAdd: Did not find event for reaction.');
+        } else {
+            // scrub users that are no longer on server
+            await eventForMessage.attendees.forEach(async (attendee, index) => {
+                let attendeeUser = await reaction.message.guild.members.resolve(attendee.userID);
+                if (!attendeeUser) {
+                    console.debug(`handleReactionAdd: removing an attendee that is no longer in guild: ${attendee.userID}`);
+                    eventForMessage.attendees.splice(index, 1);
+                }
+            });
+            await eventForMessage.save();
         }
         if (reaction.emoji?.name == utils.EMOJIS.CHECK && eventForMessage) {
             await attendeeAdd(reaction.message, user, eventForMessage, guildConfig);

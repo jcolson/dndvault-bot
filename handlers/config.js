@@ -427,8 +427,14 @@ async function handleStats(msg) {
                 { name: 'BOT Version', value: vaultVersion, inline: true },
                 { name: 'Node Version', value: process.versions.node, inline: true }
             ], msg);
+            await msg.client.shard.broadcastEval((client, { totalGuilds }) => {
+                client.user.setPresence({ activities: [{ name: `on ${totalGuilds.toString()} servers, type /help`, type: 'PLAYING' }], status: 'online' });
+            }, {
+                context: {
+                    totalGuilds
+                }
+            });
             await utils.deleteMessage(msg);
-            await client.user.setPresence({ activities: [{ name: `on ${totalGuilds.toString()} servers, type /help`, type: 'PLAYING' }], status: 'online' });
         }
     } catch (error) {
         console.error(`handleStats:`, error);
