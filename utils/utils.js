@@ -146,7 +146,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                 }
                 messageSent = true;
             } catch (error) {
-                console.error('sendDirectOrFallbackToChannelEmbeds: could not DC with user, will fallback to channel send. - %s', error.message);
+                console.error(`sendDirectOrFallbackToChannelEmbeds: could not DC with user (${user?.id}), will fallback to channel send. - ${error.message}`);
             }
         }
         if (!messageSent && (msg?.channel || msg?.interaction)) {
@@ -172,7 +172,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
                     messageSent = true;
                 } else {
                     // channel must not be defined
-                    commsErrorMessage = `sendDirectOrFallbackToChannelEmbeds: no appropriate channel was found to communicate with user, <@${user.id}> on server, ${msg.guild ? msg.guild.name : msg.interaction?.guild?.name}.`;
+                    commsErrorMessage = `sendDirectOrFallbackToChannelEmbeds: no appropriate channel was found to communicate with user (${user?.id}) on server, ${msg.guild ? msg.guild.name : msg.interaction?.guild?.name}.`;
                     console.error(commsErrorMessage);
                 }
             } catch (error) {
@@ -201,7 +201,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
             throw new Error('No channel or DM method to send message.');
         }
     } catch (error) {
-        console.error('sendDirectOrFallbackToChannelEmbeds: - %s', error.message);
+        console.error(`sendDirectOrFallbackToChannelEmbeds: - ${error.message}`);
     }
 }
 
