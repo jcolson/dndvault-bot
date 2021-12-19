@@ -450,7 +450,16 @@ https://transform.tools/json-to-mongoose
 
 ### create change log for release
 
-i actually use my own github-release.sh script at this point, which includes this step in a release
+i actually use my own `github-release.sh` script at this point, which includes this step in a release.  Github's action for the docker branch requires a tag (so that the docker image gets a tag).  So this is required after release:
+
+```sh
+git switch docker && \
+git tag `git describe --tags \`git rev-list --tags --max-count=1\``-docker && \
+git push --tags
+git switch develop
+```
+
+OLD
 
 ```sh
 npm run changelog
