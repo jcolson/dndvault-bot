@@ -1,7 +1,9 @@
 name: dockerhub
 
 on:
-  create:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   dockerhub:
