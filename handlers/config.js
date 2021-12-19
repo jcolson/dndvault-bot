@@ -398,6 +398,9 @@ async function handleStats(msg) {
                 });
                 return totalMemberCount;
             }));
+            let totalMemberCount = totalMembers.reduce((accumulator, guildMemberCount) => {
+                return accumulator + guildMemberCount;
+            });
             const charCountRows = await CharModel.aggregate([
                 {
                     '$count': 'characterCount'
@@ -415,7 +418,7 @@ async function handleStats(msg) {
             ]);
             await utils.sendDirectOrFallbackToChannel([
                 { name: 'Server count', value: totalGuilds.toString(), inline: true },
-                { name: 'Member count', value: totalMembers.toString(), inline: true },
+                { name: 'Member count', value: totalMemberCount.toString(), inline: true },
                 { name: 'Shard count', value: msg.client.shard.count.toString(), inline: true },
                 { name: 'Character count', value: charCountRows[0].characterCount.toString(), inline: true },
                 { name: 'Event count', value: eventCountRows[0].eventCount.toString(), inline: true },
