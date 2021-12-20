@@ -996,7 +996,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
         } else {
             // scrub users that are no longer on server
             await eventForMessage.attendees.forEach(async (attendee, index) => {
-                let attendeeUser = await reaction.message.guild.members.resolve(attendee.userID);
+                let attendeeUser = await reaction.message.guild.members.fetch(attendee.userID);
                 if (!attendeeUser) {
                     console.debug(`handleReactionAdd: removing an attendee that is no longer in guild: ${attendee.userID}`);
                     eventForMessage.attendees.splice(index, 1);
