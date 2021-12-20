@@ -1,9 +1,12 @@
 name: dockerhub
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types:
+      - created
+  # push:
+  #   tags:
+  #     - 'v*'
 
 jobs:
   dockerhub:
