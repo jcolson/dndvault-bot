@@ -3,6 +3,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v1.9.26 (2021-12-22)](#v1926-2021-12-22)
+  - [v1.9.25 (2021-12-22)](#v1925-2021-12-22)
   - [v1.9.24 (2021-12-20)](#v1924-2021-12-20)
   - [v1.9.23 (2021-12-20)](#v1923-2021-12-20)
   - [v1.9.22 (2021-12-19)](#v1922-2021-12-19)
@@ -141,6 +143,18 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v1.9.26](https://github.com/jcolson/dndvault-bot/tree/v1.9.26) (2021-12-22)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.25...v1.9.26)
+
+**Fixed bugs:**
+
+- regression in another fix - editing event fails [\#483](https://github.com/jcolson/dndvault-bot/issues/483)
+
+## [v1.9.25](https://github.com/jcolson/dndvault-bot/tree/v1.9.25) (2021-12-22)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.24...v1.9.25)
 
 ## [v1.9.24](https://github.com/jcolson/dndvault-bot/tree/v1.9.24) (2021-12-20)
 
