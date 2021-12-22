@@ -996,13 +996,24 @@ async function handleReactionAdd(reaction, user, guildConfig) {
             console.info('handleReactionAdd: Did not find event for reaction.');
         } else {
             // scrub users that are no longer on server
-            await eventForMessage.attendees.forEach(async (attendee, index) => {
-                let attendeeUser = await reaction.message.guild.members.fetch(attendee.userID);
-                if (!attendeeUser) {
-                    console.debug(`handleReactionAdd: removing an attendee that is no longer in guild: ${attendee.userID}`);
-                    eventForMessage.attendees.splice(index, 1);
+            let index = 0;
+            for (let attendee of eventForMessage.attendees) {
+                let attendeeUser;
+                try {
+                    attendeeUser = await reaction.message.guild.members.fetch({ user: attendee.userID, force: true });
+                } catch (error) {
+                    console.debug(`${attendee.userID} is not in guild any longer ...`);
                 }
-            });
+                console.debug(`handleReactionAdd: is member (${attendee.userID}) deleted? ${attendeeUser?.deleted}`)
+                if (!attendeeUser || attendeeUser?.deleted) {
+                    console.info(`handleReactionAdd: removing an attendee that is no longer in guild: ${attendee.userID}`);
+                    eventForMessage.attendees.splice(index, 1);
+                } else {
+                    // increase index if we didn't splice
+                    index++;
+                }
+            }
+            // console.debug(`handleReactionAdd: attendees: `, eventForMessage.attendees);
             await eventForMessage.save();
         }
         if (reaction.emoji?.name == utils.EMOJIS.CHECK && eventForMessage) {
