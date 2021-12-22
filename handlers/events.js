@@ -721,11 +721,12 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
             usersOriginalEventDate = getDateInDifferentTimezone(existingEvent.date_time, currUser.timezone);
         }
         let refDate = usersOriginalEventDate ? usersOriginalEventDate : getDateInDifferentTimezone(new Date(), currUser.timezone);
-        let parsedOnDate = parse(eon, refDate);
-        if (!parsedOnDate) {
-            throw new Error(`Could not parse the date \`${eon}\`, please pass a date conforming to this format: \`10/28/1990\``);
+        let onDate;
+        try {
+            onDate = eon ? formatJustDate(parse(eon, refDate)?.start.date()) : formatJustDate(usersOriginalEventDate);
+        } catch (error) {
+            throw new Error(`Could not parse the date \`${eon ? eon : usersOriginalEventDate}\`, please pass a date conforming to this format: \`10/28/1990\``);
         }
-        let onDate = eon ? formatJustDate(parsedOnDate?.start.date()) : formatJustDate(usersOriginalEventDate);
         // parser thinks times with no colons are years ...  how would it now?  help it out
         if (eat && !isNaN(eat)) {
             eat = eat.substring(0, eat.length - 2) + ':' + eat.substr(eat.length - 2);
