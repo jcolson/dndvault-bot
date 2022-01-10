@@ -10,8 +10,13 @@ repos:
       - id: check-json
       - id: check-added-large-files
       - id: check-merge-conflict
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.6.0
+    hooks:
+      - id: eslint
+        name: "Running eslint"
   - repo: https://github.com/thlorenz/doctoc
-    rev: v2.0.0
+    rev: v2.1.0
     hooks:
       - id: doctoc
         name: "Check Table of Contents for changes"

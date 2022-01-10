@@ -13,7 +13,7 @@ async function handleHelp(msg, msgParms, prefix) {
         let charEmbed = new MessageEmbed()
             .setColor(utils.COLORS.BLUE)
             .setTitle('Help for D&D Vault BOT')
-            .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+            .setAuthor({ name: 'D&D Vault', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
             .setDescription(`Current Command Prefix is "${prefix}"
             [If you have any issues or ideas, please let us know here.](https://github.com/jcolson/dndvault-bot/issues/new)`);
         if (msg.guild) {

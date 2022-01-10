@@ -77,7 +77,7 @@ test('lengthOfEmbed', () => {
         .setColor(testables.COLORS.BLUE)
         .setTitle(`Review Changes for Character:`)
         .setURL('https://discord.js.org/')
-        .setAuthor('D&D Vault')
+        .setAuthor({ name: 'D&D Vault'})
         .setDescription('Some Description')
         .setFields(fields);
 

@@ -1,0 +1,28 @@
+{
+    "env": {
+        "node": true,
+        "jest": true,
+        "commonjs": true,
+        "es2021": true
+    },
+    "globals": {
+        "Config": "readonly",
+        "client": "readonly",
+        "COMMANDS": "readonly",
+        "GuildCache": "readonly",
+        "VaultVersion": "readonly",
+        "DiscordJSVersion": "readonly"
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 13
+    },
+    "rules": {
+        "no-unused-vars": [
+            "error",
+            {
+                "varsIgnorePattern": "_"
+            }
+        ]
+    }
+}
