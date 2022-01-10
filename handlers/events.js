@@ -1,7 +1,7 @@
 const EventModel = require('../models/Event');
 const UserModel = require('../models/User');
 const CharModel = require('../models/Character');
-const { MessageEmbed, Message, User, Guild, TextChannel, GuildMember, Permissions } = require('discord.js');
+const { MessageEmbed, Message, User, Guild, TextChannel, Permissions } = require('discord.js');
 const { parse } = require('@holistics/date-parser');
 const { DateTime } = require('luxon');
 const { Types } = require('mongoose');
