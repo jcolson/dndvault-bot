@@ -25,7 +25,7 @@ Client.prototype.dnd_config = config;
 require('log-timestamp')(function () { return `[${new Date().toISOString()}] [shrd:${client.shard.ids}] %s` });
 
 global.VaultVersion = require('./package.json').version;
-global.DiscordJSVersion = require('./package.json').dependencies['discord.js'];
+global.DiscordJSVersion = require('discord.js').version;
 global.Config = require(path.resolve(process.env.CONFIGDIR || __dirname, './config.json'));
 global.GuildCache = new NodeCache({ stdTTL: 86400, checkperiod: 14400 });
 global.client = theClient;
