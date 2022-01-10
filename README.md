@@ -1,50 +1,48 @@
+# D&D Vault Discord BOT
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-DND Vault Table of Contents
-
 - [D&D Vault Discord BOT](#dd-vault-discord-bot)
-  - [Current build status](#current-build-status)
-  - [Character Vault](#character-vault)
-  - [Events](#events)
-    - [Subscribe to the iCalendar ICS](#subscribe-to-the-icalendar-ics)
-  - [Polling](#polling)
-  - [Rolling dice](#rolling-dice)
-    - [Die quantity](#die-quantity)
-    - [Example usages](#example-usages)
-  - [Feedback and Support Discord](#feedback-and-support-discord)
-  - [Invite the BOT to your server](#invite-the-bot-to-your-server)
-  - [Commands](#commands)
-    - [Functionality Documentation](#functionality-documentation)
-    - [Slash Commands](#slash-commands)
-    - [Slash Command Descriptions](#slash-command-descriptions)
-    - [Old Command Descriptions](#old-command-descriptions)
-  - [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
-  - [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
-  - [Screenshots](#screenshots)
-    - [event list](#event-list)
-    - [event](#event)
-    - [poll](#poll)
-    - [show character](#show-character)
-    - [list characters](#list-characters)
-    - [changes in character updates](#changes-in-character-updates)
-    - [config of server for guild](#config-of-server-for-guild)
-  - [Run the bot yourself](#run-the-bot-yourself)
-    - [Permissions required for bot](#permissions-required-for-bot)
-  - [Developer contributions](#developer-contributions)
-    - [pre-commit](#pre-commit)
-    - [run nodemon](#run-nodemon)
-    - [mongo db json to mongoose schema](#mongo-db-json-to-mongoose-schema)
-  - [Notes](#notes)
-    - [create change log for release](#create-change-log-for-release)
-    - [Review gh pr](#review-gh-pr)
-    - [Test via docker container](#test-via-docker-container)
-    - [Mongodb queries](#mongodb-queries)
-    - [Bot Commands for testing](#bot-commands-for-testing)
-    - [Test Bot Invite](#test-bot-invite)
+
+- [Current build status](#current-build-status)
+- [Character Vault](#character-vault)
+- [Events](#events)
+  - [Subscribe to the iCalendar ICS](#subscribe-to-the-icalendar-ics)
+- [Polling](#polling)
+- [Rolling dice](#rolling-dice)
+  - [Die quantity](#die-quantity)
+  - [Example usages](#example-usages)
+- [Feedback and Support Discord](#feedback-and-support-discord)
+- [Invite the BOT to your server](#invite-the-bot-to-your-server)
+- [Commands](#commands)
+  - [Functionality Documentation](#functionality-documentation)
+  - [Slash Commands](#slash-commands)
+  - [Slash Command Descriptions](#slash-command-descriptions)
+  - [Old Command Descriptions](#old-command-descriptions)
+- [Example character workflow with the BOT](#example-character-workflow-with-the-bot)
+- [Example character workflow usage with approvals 'true'](#example-character-workflow-usage-with-approvals-true)
+- [Screenshots](#screenshots)
+  - [event list](#event-list)
+  - [event](#event)
+  - [poll](#poll)
+  - [show character](#show-character)
+  - [list characters](#list-characters)
+  - [changes in character updates](#changes-in-character-updates)
+  - [config of server for guild](#config-of-server-for-guild)
+- [Run the bot yourself](#run-the-bot-yourself)
+  - [Permissions required for bot](#permissions-required-for-bot)
+- [Developer contributions](#developer-contributions)
+  - [pre-commit](#pre-commit)
+  - [run nodemon](#run-nodemon)
+  - [mongo db json to mongoose schema](#mongo-db-json-to-mongoose-schema)
+- [Notes](#notes)
+  - [create change log for release](#create-change-log-for-release)
+  - [Review gh pr](#review-gh-pr)
+  - [Test via docker container](#test-via-docker-container)
+  - [Mongodb queries](#mongodb-queries)
+  - [Bot Commands for testing](#bot-commands-for-testing)
+  - [Test Bot Invite](#test-bot-invite)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# D&D Vault Discord BOT
 
 The most complete Dungeons and Dragons ( DnD ) Event Management, Character Vault, Polling and Dice Roller for your West Marches discord server!
 
@@ -442,7 +440,7 @@ to quickly restart node while developing - I recommend [nodemon](https://nodemon
 
 ### mongo db json to mongoose schema
 
-https://transform.tools/json-to-mongoose
+[json to mongoose](https://transform.tools/json-to-mongoose)
 
 ## Notes
 
@@ -470,7 +468,7 @@ npm run changelog
 
 ### Review gh pr
 
-```
+```shell
 gh pr diff 434 | patch -p1
 ```
 
