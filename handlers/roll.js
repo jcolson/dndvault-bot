@@ -85,7 +85,7 @@ async function handleDiceRollStats(msg, diceParam) {
         const statsEmbed = new MessageEmbed()
             .setColor(utils.COLORS.GREEN)
             .setTitle(`${utils.EMOJIS.DICE}D&D 5E Stats Roll${utils.EMOJIS.DICE}`)
-            .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+            .setAuthor({ name: 'D&D Vault', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
             .setThumbnail(msg.guild?.iconURL());
         let statRollString = '';
         let total = 0;

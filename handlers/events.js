@@ -800,7 +800,7 @@ async function embedForEvent(guild, eventArray, title, isShow, removedBy) {
         // trim the title to 1024 including the emojis and spaces
         .setTitle(`${utils.EMOJIS.DAGGER} ${title.substring(0, 1024 - utils.EMOJIS.DAGGER.length - utils.EMOJIS.SHIELD.length - 2)} ${utils.EMOJIS.SHIELD}`)
         // .setURL('https://discord.js.org/')
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${guild?.id}`)
+        .setAuthor({ name: 'Event Coordinator', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${guild?.id}` })
         // .setDescription('test')
         .setThumbnail(guild.iconURL());
     let i = 0;
@@ -1127,7 +1127,7 @@ function embedForEventAttendance(attendanceRows, title, guildIconURL) {
     const rowsPerField = 12;
     let eventAttendanceEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setAuthor('Event Coordinator', Config.dndVaultIcon, `${Config.httpServerURL}`)
+        .setAuthor({ name: 'Event Coordinator', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}` })
         .setThumbnail(guildIconURL);
     const fieldLength = [6, 31, 21];
     const separator = '|';

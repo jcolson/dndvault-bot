@@ -54,7 +54,7 @@ const EMPTY_FIELD = '\u200B';
  */
 async function sendDirectOrFallbackToChannelError(error, msg, user, skipDM, urlToLinkBack, addtlFields) {
     let embed = new MessageEmbed()
-        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor({ name: 'D&D Vault', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
         .setColor(COLORS.RED);
     embed.addFields({ name: `Error`, value: `<@${user ? user.id : msg.author ? msg.author.id : 'unknown user'}> - ${error.message}` });
     if (addtlFields) {
@@ -76,7 +76,7 @@ async function sendDirectOrFallbackToChannel(fields, msg, user, skipDM, urlToLin
         fields = [fields];
     }
     let embed = new MessageEmbed()
-        .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor({ name: 'D&D Vault', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
         .setColor(COLORS.BLUE);
     for (let field of fields) {
         field.name = typeof field.name !== 'undefined' && '' + field.name != '' ? field.name : 'UNSET';
@@ -184,14 +184,14 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
         }
         if (messageSent && sentMessage && msg?.interaction) {
             let interactionEmbed = new MessageEmbed()
-                .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+                .setAuthor({ name: 'D&D Vault', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
                 .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
             // clientWsReply(msg.interaction, interactionEmbed);
             await msg.interaction.reply({ embeds: [interactionEmbed] });
         } else if (!messageSent && msg?.interaction && commsErrorMessage) {
             let interactionEmbed = new MessageEmbed()
-                .setAuthor('D&D Vault', Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+                .setAuthor({ name: 'D&D Vault', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
                 .setColor(COLORS.RED)
                 .addField('Response', commsErrorMessage);
             // clientWsReply(msg.interaction, interactionEmbed);
