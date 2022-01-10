@@ -14,6 +14,7 @@ repos:
     rev: v8.6.0
     hooks:
       - id: eslint
+        name: "Running eslint"
   - repo: https://github.com/thlorenz/doctoc
     rev: v2.1.0
     hooks:
