@@ -424,7 +424,8 @@ async function handleStats(msg) {
                 { name: 'Event count', value: eventCountRows[0].eventCount.toString(), inline: true },
                 { name: 'User count', value: userCountRows[0].userCount.toString(), inline: true },
                 { name: 'Uptime', value: getUptime(), inline: true },
-                { name: 'BOT Version', value: vaultVersion, inline: true },
+                { name: 'BOT Version', value: VaultVersion, inline: true },
+                { name: 'DiscordJS Version', value: DiscordJSVersion, inline: true },
                 { name: 'Node Version', value: process.versions.node, inline: true }
             ], msg);
             await msg.client.shard.broadcastEval((client, { totalGuilds }) => {

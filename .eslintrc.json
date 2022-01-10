@@ -7,7 +7,11 @@
     },
     "globals": {
         "Config": "readonly",
-        "client": "readonly"
+        "client": "readonly",
+        "COMMANDS": "readonly",
+        "GuildCache": "readonly",
+        "VaultVersion": "readonly",
+        "DiscordJSVersion": "readonly"
     },
     "extends": "eslint:recommended",
     "parserOptions": {
