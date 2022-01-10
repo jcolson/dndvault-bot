@@ -1,4 +1,4 @@
-const { MessageEmbed, Permissions, Channel, Constants } = require("discord.js");
+const { MessageEmbed, Permissions, Constants } = require("discord.js");
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
@@ -271,7 +271,7 @@ async function retrieveRoleForName(guild, roleName) {
     console.log('retrieveRoleForName: about to fetch roles cache');
     await guild.roles.fetch();
     // console.log('retrieveRoleForName: roles: ', guild.roles.cache);
-    for (let [key, role] of guild.roles.cache) {
+    for (let [_, role] of guild.roles.cache) {
         // console.log(`retrieveRoleForName: ${key}:${role.name}`);
         if (role.name == roleName || '@' + role.name == roleName) {
             roleForName = role;
@@ -570,7 +570,7 @@ function checkIfCommandsChanged(registeredCommands, commandsToRegister, stopAfte
 
 function transformCommandsToDiscordFormat(commandsToTransform) {
     let commandsToRegister = [];
-    for (let [commandKey, commandValue] of Object.entries(commandsToTransform)) {
+    for (let [_, commandValue] of Object.entries(commandsToTransform)) {
         if (commandValue.slash) {
             commandsToRegister.push(
                 commandValue
