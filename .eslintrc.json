@@ -1,14 +1,24 @@
 {
     "env": {
-        "browser": true,
+        "node": true,
+        "jest": true,
         "commonjs": true,
-        "es2021": true,
-        "node": true
+        "es2021": true
+    },
+    "globals": {
+        "Config": "readonly",
+        "client": "readonly"
     },
     "extends": "eslint:recommended",
     "parserOptions": {
         "ecmaVersion": 13
     },
     "rules": {
+        "no-unused-vars": [
+            "error",
+            {
+                "varsIgnorePattern": "_"
+            }
+        ]
     }
 }
