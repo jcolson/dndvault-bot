@@ -3,6 +3,9 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.0.2 (2022-01-10)](#v202-2022-01-10)
+  - [v2.0.1 (2022-01-10)](#v201-2022-01-10)
+  - [v2.0.0 (2022-01-10)](#v200-2022-01-10)
   - [v1.9.27 (2021-12-22)](#v1927-2021-12-22)
   - [v1.9.26 (2021-12-22)](#v1926-2021-12-22)
   - [v1.9.25 (2021-12-22)](#v1925-2021-12-22)
@@ -15,8 +18,8 @@
   - [v1.9.18 (2021-12-19)](#v1918-2021-12-19)
   - [v1.9.17 (2021-12-19)](#v1917-2021-12-19)
   - [v1.9.16 (2021-12-19)](#v1916-2021-12-19)
-  - [v1.9.15-docker (2021-12-19)](#v1915-docker-2021-12-19)
   - [v1.9.17-docker (2021-12-19)](#v1917-docker-2021-12-19)
+  - [v1.9.15-docker (2021-12-19)](#v1915-docker-2021-12-19)
   - [v1.9.15 (2021-12-19)](#v1915-2021-12-19)
   - [v1.9.14 (2021-12-05)](#v1914-2021-12-05)
   - [v1.9.13 (2021-12-05)](#v1913-2021-12-05)
@@ -145,6 +148,22 @@
 
 # Changelog
 
+## [v2.0.2](https://github.com/jcolson/dndvault-bot/tree/v2.0.2) (2022-01-10)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.0.1...v2.0.2)
+
+## [v2.0.1](https://github.com/jcolson/dndvault-bot/tree/v2.0.1) (2022-01-10)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.0.0...v2.0.1)
+
+## [v2.0.0](https://github.com/jcolson/dndvault-bot/tree/v2.0.0) (2022-01-10)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.27...v2.0.0)
+
+**Fixed bugs:**
+
+- automatically remove users no longer on the server from events when the event is interacted with [\#477](https://github.com/jcolson/dndvault-bot/issues/477)
+
 ## [v1.9.27](https://github.com/jcolson/dndvault-bot/tree/v1.9.27) (2021-12-22)
 
 [Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.26...v1.9.27)
@@ -195,15 +214,15 @@
 
 ## [v1.9.16](https://github.com/jcolson/dndvault-bot/tree/v1.9.16) (2021-12-19)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15-docker...v1.9.16)
-
-## [v1.9.15-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.15-docker) (2021-12-19)
-
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.17-docker...v1.9.15-docker)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.17-docker...v1.9.16)
 
 ## [v1.9.17-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.17-docker) (2021-12-19)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15...v1.9.17-docker)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15-docker...v1.9.17-docker)
+
+## [v1.9.15-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.15-docker) (2021-12-19)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15...v1.9.15-docker)
 
 ## [v1.9.15](https://github.com/jcolson/dndvault-bot/tree/v1.9.15) (2021-12-19)
 
