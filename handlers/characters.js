@@ -7,11 +7,11 @@ const utils = require('../utils/utils.js');
 const { Types } = require('mongoose');
 
 const StatLookup = { 1: 'Strength', 2: 'Dexterity', 3: 'Constitution', 4: 'Intelligence', 5: 'Wisdom', 6: 'Charisma' };
-const SkillLookup = {
-    '3': 'acrobatics', '11': 'animalHandling', '6': 'arcana', '2': 'athletics', '16': 'deception', '7': 'history',
-    '12': 'insight', '17': 'intimidation', '8': 'investigation', '13': 'medicine', '9': 'nature', '14': 'perception',
-    '18': 'performance', '19': 'persuasion', '10': 'religion', '4': 'sleightOfHand', '5': 'stealth', '15': 'survival'
-}
+// const SkillLookup = {
+//     '3': 'acrobatics', '11': 'animalHandling', '6': 'arcana', '2': 'athletics', '16': 'deception', '7': 'history',
+//     '12': 'insight', '17': 'intimidation', '8': 'investigation', '13': 'medicine', '9': 'nature', '14': 'perception',
+//     '18': 'performance', '19': 'persuasion', '10': 'religion', '4': 'sleightOfHand', '5': 'stealth', '15': 'survival'
+// }
 const RacialBonusLookup = {
     1: { 'Mountain Dwarf': 2, 'Dragonborn': 2, 'Half-Orc': 2, 'Human': 1 },
     2: { 'Elf': 2, 'Halfling': 2, 'Forest Gnome': 1, 'Human': 1 },
@@ -949,7 +949,7 @@ function arrayForInventoryChanges(approvedChar, updatedChar, doNotRecurse) {
             let foundItem = false;
             let wrongQty = 0;
             approvedChar.customItems.forEach((appInvArray) => {
-                appInvArray.forEach((updInv) => {
+                appInvArray.forEach((appInv) => {
                     if (updInv.id == appInv.id && updInv.quantity == appInv.quantity) {
                         foundItem = true;
                     } else if (updInv.id == appInv.id && updInv.quantity != appInv.quantity) {
