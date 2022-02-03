@@ -85,8 +85,9 @@ Once a user signs up as an attendee, or creates an event, those events will show
 
 Users can create polls very simply by using the `poll` command.  `!poll "Do you like polling"` will create a default poll that has three options:  👍 (yes) 👎 (no) and 🤷 (I don't know).  A user can also create his own options, which will be automatically numbered by using this syntax: `!poll "Do you like polling" "hell no" "I LOVE polling" "What is polling?"`.
 
-The default polling allows users to cast one vote for any of the specified options. The bot support multi select polls.
-In order to create a multiselect poll you need to type an additional sufix "(Multiple answers allowed)" to the poll question, as is shown in the following example:
+The default polling allows users to cast one vote for any of the specified options. The bot support multi-select polls.  If you use the slash commands (/poll), just use the `allow_multiple: true` option to make the poll with multiple selectable options.
+
+If you are using the prefix commands still (!poll), in order to create a multi-select poll you need to type an additional suffix "(Multiple answers allowed)" to the poll question, as is shown in the following example:
 
 `!poll "Which days do you preffer for the sessions? (Multiple answers allowed)" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" "Sunday"`.
 
