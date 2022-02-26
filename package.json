@@ -36,7 +36,7 @@
         "morgan": "^1.10.0",
         "node-cache": "^5.1.2",
         "node-cron": "^3.0.0",
-        "node-fetch": "2.6.1",
+        "node-fetch": "2.6.7",
         "pug": "^3.0.0",
         "rpg-dice-roller": "^5.0.0",
         "topgg-autoposter": "^2.0.0",
