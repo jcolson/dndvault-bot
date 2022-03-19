@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.0.7 (2022-03-19)](#v207-2022-03-19)
   - [v2.0.6 (2022-02-03)](#v206-2022-02-03)
   - [v2.0.5 (2022-02-03)](#v205-2022-02-03)
   - [v2.0.4 (2022-02-03)](#v204-2022-02-03)
@@ -151,6 +152,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.0.7](https://github.com/jcolson/dndvault-bot/tree/v2.0.7) (2022-03-19)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.0.6...v2.0.7)
+
+**Closed issues:**
+
+- Adding multi selection pull example to docs [\#488](https://github.com/jcolson/dndvault-bot/issues/488)
 
 ## [v2.0.6](https://github.com/jcolson/dndvault-bot/tree/v2.0.6) (2022-02-03)
 
