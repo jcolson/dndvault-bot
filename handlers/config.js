@@ -128,7 +128,7 @@ async function configeventstandby(param, guild, guildConfig) {
 async function configchannelcategory(param, guild, guildConfig) {
     console.debug(`configchannelcategory:`, param);
     if (param.value) {
-        let catTest = guild.channels.cache.find(c => c.name.toLowerCase() == param.value.toLowerCase() && c.type == "category");
+        let catTest = guild.channels.cache.find(c => c.name.toLowerCase() == param.value.toLowerCase() && c.type == 'GUILD_CATEGORY');
         if (!catTest) {
             throw new Error(`Could not locate the channel category: ${param.value}`);
         }
@@ -149,7 +149,7 @@ async function configchannelcategory(param, guild, guildConfig) {
 async function configvoicecategory(param, guild, guildConfig) {
     console.debug(`configvoicecategory:`, param);
     if (param.value) {
-        let catTest = guild.channels.cache.find(c => c.name.toLowerCase() == param.value.toLowerCase() && c.type == "category");
+        let catTest = guild.channels.cache.find(c => c.name.toLowerCase() == param.value.toLowerCase() && c.type == 'GUILD_CATEGORY');
         if (!catTest) {
             throw new Error(`Could not locate the channel category: ${param.value}`);
         }
