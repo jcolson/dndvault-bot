@@ -250,14 +250,20 @@ async function embedForConfig(guild, guildConfig) {
             eventPlanCat = await guild.channels.resolve(guildConfig.eventPlanCat);
         }
     } catch (error) {
-        console.error(`handleConfig: could not retrieve role for id: ${guildConfig.eventPlanCat}`, error);
+        console.error(`handleConfig: could not retrieve channel for id: ${guildConfig.eventPlanCat}`, error);
+    }
+    if (!eventPlanCat) {
+        eventPlanCat = { name: 'Not Set' };
     }
     try {
         if (guildConfig.eventVoiceCat) {
             eventVoiceCat = await guild.channels.resolve(guildConfig.eventVoiceCat);
         }
     } catch (error) {
-        console.error(`handleConfig: could not retrieve role for id: ${guildConfig.eventVoiceCat}`, error);
+        console.error(`handleConfig: could not retrieve channel for id: ${guildConfig.eventVoiceCat}`, error);
+    }
+    if (!eventVoiceCat) {
+        eventVoiceCat = { name: 'Not Set' };
     }
     let configEmbed = new MessageEmbed().addFields(
         { name: 'Config for Guild', value: `${guildConfig.name} (${guildConfig.guildID})` },
