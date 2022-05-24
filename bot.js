@@ -206,8 +206,10 @@ client.on('interactionCreate', async (interaction) => {
         }
         let guildConfig = await config.confirmGuildConfig(msg.guild);
         //let commandPrefix = guildConfig ? guildConfig.prefix : Config.defaultPrefix;
-        await commands.handleCommandExec(guildConfig, command, msg, interaction.options.data);
+        console.debug(`interaction: `, interaction);
+        await commands.handleCommandExec(guildConfig, command, msg, interaction.options?.data);
     } catch (error) {
+        console.error(`wtf`, error);
         console.error(`clientOninteractionCreate: msg NOT processed:${msg.interaction ? 'INTERACTION:' : ''}${msg.guild ? msg.guild.name : "DIRECT"}:${msg.author.tag}${msg.member ? "(" + msg.member.displayName + ")" : ""}:${command}:${error.message}`);
         await utils.sendDirectOrFallbackToChannelError(error, msg);
     }

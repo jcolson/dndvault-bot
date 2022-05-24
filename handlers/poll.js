@@ -28,7 +28,9 @@ async function handlePoll(msg, msgParms, guildConfig) {
         if (guildConfig.channelForPolls) {
             pollChannel = await msg.guild.channels.resolve(guildConfig.channelForPolls);
         }
+        // let rows = utils.getButtonsForEmojis(thePoll.choices.length, thePoll.emojis, true);
         let sentMessage = await pollChannel.send({ embeds: [embedForPoll(msg, thePoll, allowMultiple)] });
+        // let sentMessage = await pollChannel.send({ embeds: [embedForPoll(msg, thePoll, allowMultiple)], components: rows });
         for (let i = 0; i < thePoll.choices.length; i++) {
             sentMessage.react(thePoll.emojis[i]);
         }
@@ -149,7 +151,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                         if (aReaction.users.cache.size == 0) {
                             await aReaction.users.fetch();
                         }
-                        for (let [key, aUser] of aReaction.users.cache) {
+                        for (let [_, aUser] of aReaction.users.cache) {
                             // for (let aUser of aReaction.users.cache.array()) {
                             if (aUser.id == user.id) {
                                 aReaction.users.remove(user.id);

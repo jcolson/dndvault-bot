@@ -1,4 +1,4 @@
-const { MessageEmbed, Permissions, Constants } = require("discord.js");
+const { MessageEmbed, Permissions, Constants, MessageActionRow, MessageButton } = require("discord.js");
 const CharModel = require('../models/Character');
 const UserModel = require('../models/User');
 const EventModel = require('../models/Event');
@@ -279,6 +279,40 @@ async function retrieveRoleForName(guild, roleName) {
     }
     // console.log("found rolename: " + roleForName.id);
     return roleForName;
+}
+
+/**
+ *
+ * @param {*} stringArray
+ * @returns {Array}
+ */
+function getButtonsForEmojis(numberButtons, emojis, trashcan) {
+    let rows = [];
+    let currRow = new MessageActionRow();
+    rows.push(currRow);
+    for (let i = 0; i < numberButtons; i++) {
+        if (currRow.components.length >= 5) {
+            currRow = new MessageActionRow();
+            rows.push(currRow);
+        }
+        currRow.addComponents(new MessageButton()
+            .setCustomId(emojis[i])
+            .setLabel(emojis[i])
+            .setStyle('PRIMARY')
+        );
+    }
+    if (trashcan) {
+        if (currRow.components.length >= 5) {
+            currRow = new MessageActionRow();
+            rows.push(currRow);
+        }
+        currRow.addComponents(new MessageButton()
+            .setCustomId(EMOJIS.TRASH)
+            .setLabel(EMOJIS.TRASH)
+            .setStyle('DANGER')
+        );
+    }
+    return rows;
 }
 
 /**
@@ -642,6 +676,7 @@ function isChannelTypeAndPerms(guild, channel) {
 exports.parseIntOrMakeZero = parseIntOrMakeZero;
 exports.deleteMessage = deleteMessage;
 exports.stringOfSize = stringOfSize;
+exports.getButtonsForEmojis = getButtonsForEmojis;
 exports.sendDirectOrFallbackToChannel = sendDirectOrFallbackToChannel;
 exports.sendDirectOrFallbackToChannelEmbeds = sendDirectOrFallbackToChannelEmbeds;
 exports.sendDirectOrFallbackToChannelError = sendDirectOrFallbackToChannelError;
