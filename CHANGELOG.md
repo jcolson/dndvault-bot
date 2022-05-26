@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.0.10 (2022-05-26)](#v2010-2022-05-26)
   - [v2.0.9 (2022-05-23)](#v209-2022-05-23)
   - [v2.0.8 (2022-04-23)](#v208-2022-04-23)
   - [v2.0.7 (2022-03-19)](#v207-2022-03-19)
@@ -154,6 +155,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.0.10](https://github.com/jcolson/dndvault-bot/tree/v2.0.10) (2022-05-26)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.0.9...v2.0.10)
+
+**Fixed bugs:**
+
+- DeprecationWarning: Passing strings [\#496](https://github.com/jcolson/dndvault-bot/issues/496)
 
 ## [v2.0.9](https://github.com/jcolson/dndvault-bot/tree/v2.0.9) (2022-05-23)
 
