@@ -7,7 +7,7 @@
         "test": "npx cross-env NODE_OPTIONS=--experimental-vm-modules jest roll.test.js --testTimeout=5000 --runInBand && npx cross-env NODE_OPTIONS=--experimental-vm-modules jest commands.test.js --testTimeout=5000 --runInBand && npx cross-env NODE_OPTIONS=--experimental-vm-modules jest --testTimeout=5000 --runInBand --testPathIgnorePatterns roll.test.js --testPathIgnorePatterns commands.test.js",
         "stest": "npx cross-env NODE_OPTIONS=--experimental-vm-modules jest --testTimeout=5000",
         "test:coverage": "npx cross-env NODE_OPTIONS=--experimental-vm-modules jest --testTimeout=5000 --coverage",
-        "dockertest": "docker build --target test .",
+        "dockertest": "docker build --target test . --rm --iidfile dndvaulttestdockerid && docker image rm `cat dndvaulttestdockerid` && rm dndvaulttestdockerid",
         "preinstall": "git lfs update --force && pre-commit install -t pre-commit -t pre-push",
         "preinstall:old": "npx npm-force-resolutions && pre-commit install -t pre-commit -t pre-push"
     },
