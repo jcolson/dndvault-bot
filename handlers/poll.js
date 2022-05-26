@@ -56,7 +56,7 @@ function embedForPoll(msg, thePoll, allowMultiple) {
     }
     let pollEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setAuthor(POLLSTER_AUTHOR, Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor({ name: POLLSTER_AUTHOR, iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
         .setThumbnail(msg.guild.iconURL());
     if (title) {
         pollEmbed.setTitle(title);
@@ -149,7 +149,7 @@ async function handleReactionAdd(reaction, user, guildConfig) {
                         if (aReaction.users.cache.size == 0) {
                             await aReaction.users.fetch();
                         }
-                        for (let [key, aUser] of aReaction.users.cache) {
+                        for (let [_, aUser] of aReaction.users.cache) {
                             // for (let aUser of aReaction.users.cache.array()) {
                             if (aUser.id == user.id) {
                                 aReaction.users.remove(user.id);
