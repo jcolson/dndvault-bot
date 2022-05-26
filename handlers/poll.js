@@ -58,7 +58,7 @@ function embedForPoll(msg, thePoll, allowMultiple) {
     }
     let pollEmbed = new MessageEmbed()
         .setColor(utils.COLORS.BLUE)
-        .setAuthor(POLLSTER_AUTHOR, Config.dndVaultIcon, `${Config.httpServerURL}/?guildID=${msg.guild?.id}`)
+        .setAuthor({ name: POLLSTER_AUTHOR, iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
         .setThumbnail(msg.guild.iconURL());
     if (title) {
         pollEmbed.setTitle(title);
