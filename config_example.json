@@ -23,6 +23,7 @@
     "calendarICSRefreshHours": "6",
     "calendarReminderCron": "0 */10 * * * *",
     "calendarReminderMinutesOut": 50,
+    "gtagId": "G-XXXXXXXXX",
     "defaults": {
         "origin": "https://dndvault.karma.net",
         "transport": "session"
