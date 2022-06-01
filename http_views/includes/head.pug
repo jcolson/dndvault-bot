@@ -3,6 +3,12 @@ head
     title D&amp;D Vault - #{title}
     link(rel='stylesheet' href='/css/site.css' type='text/css')
     link(rel="icon" href="/animated_favicon.gif" type="image/gif")
+    script(async src="https://www.googletagmanager.com/gtag/js?id="+Config.gtagId)
+    script.
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', "#{Config.gtagId}");
     script.
         // POST method implementation:
         async function postData(url = '', data = {}) {
