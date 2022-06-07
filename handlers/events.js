@@ -752,7 +752,7 @@ async function validateEvent(msgParms, guildID, currUser, existingEvent) {
     validatedEvent.number_player_slots = ewith === null ? undefined : (ewith || ewith == 0 ? ewith : validatedEvent.number_player_slots);
     validatedEvent.campaign = ecampaign === null ? undefined : (ecampaign ? ecampaign : validatedEvent.campaign);
     validatedEvent.description = edesc === null ? undefined : (edesc ? edesc : validatedEvent.description);
-    validatedEvent.recurEvery = erecurEvery === null || 0 ? undefined : (erecurEvery ? erecurEvery : validatedEvent.recurEvery);
+    validatedEvent.recurEvery = erecurEvery === null || erecurEvery == 0 ? undefined : (erecurEvery ? erecurEvery : validatedEvent.recurEvery);
     return validatedEvent;
 }
 
