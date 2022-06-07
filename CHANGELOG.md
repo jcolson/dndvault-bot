@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.0.12 (2022-06-07)](#v2012-2022-06-07)
   - [v2.0.11 (2022-06-01)](#v2011-2022-06-01)
   - [v2.0.10 (2022-05-26)](#v2010-2022-05-26)
   - [v2.0.9 (2022-05-23)](#v209-2022-05-23)
@@ -156,6 +157,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.0.12](https://github.com/jcolson/dndvault-bot/tree/v2.0.12) (2022-06-07)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.0.11...v2.0.12)
+
+**Fixed bugs:**
+
+- if recur\_every on an event\_edit is set to 0, it should remove the occurance [\#501](https://github.com/jcolson/dndvault-bot/issues/501)
 
 ## [v2.0.11](https://github.com/jcolson/dndvault-bot/tree/v2.0.11) (2022-06-01)
 
