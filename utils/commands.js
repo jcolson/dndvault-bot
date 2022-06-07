@@ -414,7 +414,7 @@ const COMMANDS = {
             "type": 3
         }, {
             "name": "recur_every",
-            "description": "Recur this event every so many days (ex: 7)",
+            "description": "Recur this event every so many days (ex: 7), 0 disables recurrance",
             "required": false,
             "type": 4 //integer
         }]
