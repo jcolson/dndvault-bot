@@ -510,11 +510,13 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                 }
                 let permissionOverwrites = [{
                     id: guild.me.id,
-                    allow: [Permissions.FLAGS.VIEW_CHANNEL],
+                    allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.CONNECT],
                 }, {
                     id: guild.roles.everyone,
+                    allow: (eventVoicePerms == 'everyone_listen' || eventVoicePerms == 'everyone_speak') ?
+                        [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.CONNECT] : [],
                     deny: (eventVoicePerms != 'everyone_listen' && eventVoicePerms != 'everyone_speak') ?
-                        [Permissions.FLAGS.VIEW_CHANNEL] :
+                        [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.CONNECT] :
                         (eventVoicePerms == 'everyone_listen') ?
                             [Permissions.FLAGS.SPEAK] :
                             [],
