@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.0.14 (2022-07-14)](#v2014-2022-07-14)
   - [v2.0.13 (2022-07-07)](#v2013-2022-07-07)
   - [v2.0.12 (2022-06-07)](#v2012-2022-06-07)
   - [v2.0.11 (2022-06-01)](#v2011-2022-06-01)
@@ -158,6 +159,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.0.14](https://github.com/jcolson/dndvault-bot/tree/v2.0.14) (2022-07-14)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.0.13...v2.0.14)
+
+**Fixed bugs:**
+
+- planning channel permissions are dependant on a 'sane environment' [\#505](https://github.com/jcolson/dndvault-bot/issues/505)
 
 ## [v2.0.13](https://github.com/jcolson/dndvault-bot/tree/v2.0.13) (2022-07-07)
 
