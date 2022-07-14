@@ -510,11 +510,13 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                 }
                 let permissionOverwrites = [{
                     id: guild.me.id,
-                    allow: [Permissions.FLAGS.VIEW_CHANNEL],
+                    allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.CONNECT],
                 }, {
                     id: guild.roles.everyone,
+                    allow: (eventVoicePerms == 'everyone_listen' || eventVoicePerms == 'everyone_speak') ?
+                        [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.CONNECT] : [],
                     deny: (eventVoicePerms != 'everyone_listen' && eventVoicePerms != 'everyone_speak') ?
-                        [Permissions.FLAGS.VIEW_CHANNEL] :
+                        [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.CONNECT] :
                         (eventVoicePerms == 'everyone_listen') ?
                             [Permissions.FLAGS.SPEAK] :
                             [],
@@ -525,7 +527,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                         console.debug(`maintainPlanningChannel: player to add perms: ${playerToAdd}`);
                         permissionOverwrites.push({
                             id: playerMember.id,
-                            allow: [Permissions.FLAGS.VIEW_CHANNEL],
+                            allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.CONNECT, Permissions.FLAGS.SPEAK],
                         });
                     } catch (error) {
                         console.error(`maintainPlanningChannel: could not add player, ${playerToAdd}, due to error: ${error.message}`);
@@ -576,7 +578,7 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
                 console.debug(`maintainPlanningChannel: adding: '${playerAdd}'`, playerAdd);
                 try {
                     let guildMemberAdd = await guild.members.fetch(playerAdd);
-                    await planningChannel.permissionOverwrites.create(guildMemberAdd, { VIEW_CHANNEL: true }, { type: 1 });
+                    await planningChannel.permissionOverwrites.create(guildMemberAdd, { VIEW_CHANNEL: true, CONNECT: true, SPEAK: true }, { type: 1 });
                 } catch (error) {
                     console.error(`maintainPlanningChannel: attendee, ${playerAdd}, may no longer be on server, couldn't maintain them for event ${eventToMaintain._id}: ${error.message}`);
                 }
