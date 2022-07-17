@@ -597,8 +597,8 @@ async function maintainPlanningChannel(guild, eventToMaintain, eventChannel, gui
 async function handleEventList(msg) {
     try {
         let cutOffDate = new Date();
-        cutOffDate.setDate(cutOffDate.getDate() - 3);
-        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate } }).sort({ date_time: 'asc' });
+        cutOffDate.setDate(cutOffDate.getDate() - 365);
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate } }).sort({ date_time: 'desc' });
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild, eventsArray, `ALL Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
@@ -618,8 +618,8 @@ async function handleEventList(msg) {
 async function handleEventListProposed(msg) {
     try {
         let cutOffDate = new Date();
-        cutOffDate.setDate(cutOffDate.getDate() - 1);
-        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: null }).sort({ date_time: 'asc' });
+        cutOffDate.setDate(cutOffDate.getDate() - 365);
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: null }).sort({ date_time: 'desc' });
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild, eventsArray, `PROPOSED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
@@ -639,8 +639,8 @@ async function handleEventListProposed(msg) {
 async function handleEventListDeployed(msg) {
     try {
         let cutOffDate = new Date();
-        cutOffDate.setDate(cutOffDate.getDate() - 1);
-        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $exists: true, $ne: null } }).sort({ date_time: 'asc' });
+        cutOffDate.setDate(cutOffDate.getDate() - 365);
+        let eventsArray = await EventModel.find({ guildID: msg.guild.id, date_time: { $gt: cutOffDate }, deployedByID: { $exists: true, $ne: null } }).sort({ date_time: 'desc' });
         if (eventsArray.length > 0) {
             const embedEvents = await embedForEvent(msg.guild, eventsArray, `DEPLOYED Events`, false);
             await utils.sendDirectOrFallbackToChannelEmbeds(embedEvents, msg);
@@ -1513,7 +1513,7 @@ async function removeOldSessionPlanningChannels(client) {
                 let planningChannel = await guild.channels.resolve(row.planningChannel);
                 await planningChannel.delete();
             } catch (error) {
-                console.error(`Could not remove an old session planning channel (${row.planningChannel}) for event: ${row._id}.`, error);
+                console.error(`removeOldSessionPlanningChannels: Could not remove an old session planning channel (${row.planningChannel}) for event: ${row._id}.`, error);
             }
         }
     } catch (error) {
@@ -1584,11 +1584,103 @@ async function removeOldSessionVoiceChannels(client) {
                 let voiceChannel = await guild.channels.resolve(row.voiceChannel);
                 await voiceChannel.delete();
             } catch (error) {
-                console.error(`Could not remove an old session voice channel (${row.voiceChannel}) for event: ${row._id}.`, error);
+                console.error(`removeOldSessionVoiceChannels: Could not remove an old session voice channel (${row.voiceChannel}) for event: ${row._id}.`, error);
             }
         }
     } catch (error) {
         console.error("removeOldSessionVoiceChannels: ", error);
+    }
+}
+
+/**
+ * removes old event posts
+ */
+async function removeOldEventPosts(client) {
+    try {
+        let guildsToRemovePosts = Array.from(client.guilds.cache.keys());
+        // will need a mongo pipeline to figure out which messages to remove
+        const messagesToRemove = await EventModel.aggregate(
+            [
+                {
+                    '$match': {
+                        '$and': [
+                            {
+                                guildID: {
+                                    $in: guildsToRemovePosts
+                                }
+                            }, {
+                                messageID: {
+                                    $ne: null
+                                }
+                            }, {
+                                channelID: {
+                                    $ne: null
+                                }
+                            }
+                        ]
+                    }
+                }, {
+                    $lookup: {
+                        from: 'guilds',
+                        localField: 'guildID',
+                        foreignField: 'guildID',
+                        as: 'guildDocs'
+                    }
+                }, {
+                    $project: {
+                        date_time: 1,
+                        guildID: 1,
+                        channelID: 1,
+                        messageID: 1,
+                        guildEventPostAuto: {
+                            '$arrayElemAt': [
+                                '$guildDocs.eventPostAuto', 0
+                            ]
+                        },
+                        todayMinusEventPlanDays: {
+                            $toDate: {
+                                $subtract: [Date.now(), {
+                                    $multiply: [1000, 3600, 24, {
+                                        '$arrayElemAt': ['$guildDocs.eventPlanDays', 0]
+                                    }]
+                                }]
+                            }
+                        }
+                    }
+                }, {
+                    $match: {
+                        $expr: {
+                            $lt: ['$date_time', '$todayMinusEventPlanDays']
+                        }
+                    }
+                }, {
+                    $match: {
+                        $expr: {
+                            $eq: [
+                                true, '$guildEventPostAuto'
+                            ]
+                        }
+                    }
+                }
+            ]
+        );
+        console.info("removeOldEventPosts: for %d messages for %d guilds", messagesToRemove.length, guildsToRemovePosts.length);
+        for (let row of messagesToRemove) {
+            try {
+                let existingEvent = await EventModel.findById(row._id);
+                existingEvent.messageID = undefined;
+                existingEvent.channelID = undefined;
+                await existingEvent.save();
+                let guild = await client.guilds.fetch(row.guildID);
+                let eventChannel = await guild.channels.resolve(row.channelID);
+                let messageToRemove = await eventChannel.messages.fetch(row.messageID)
+                await messageToRemove.delete();
+            } catch (error) {
+                console.error(`removeOldEventPosts: Could not remove an old event message (${row.messageID}) for event: ${row._id}.`, error);
+            }
+        }
+    } catch (error) {
+        console.error("removeOldEventPosts: ", error);
     }
 }
 
@@ -1608,9 +1700,11 @@ exports.sendReminders = sendReminders;
 exports.recurEvents = recurEvents;
 exports.removeOldSessionPlanningChannels = removeOldSessionPlanningChannels;
 exports.removeOldSessionVoiceChannels = removeOldSessionVoiceChannels;
+exports.removeOldEventPosts = removeOldEventPosts;
 exports.bc_eventCreate = bc_eventCreate;
 exports.bc_eventEdit = bc_eventEdit;
 exports.SESSION_PLANNING_PERMS = SESSION_PLANNING_PERMS;
+
 //for testing
 exports.testables = {
     embedForEvent: embedForEvent

@@ -648,6 +648,11 @@ const COMMANDS = {
             "required": false,
             "type": 4 // Integer
         }, {
+            "name": "eventpostauto",
+            "description": "Configure if event posts should be automatically removed after channel days param.",
+            "required": false,
+            "type": 5 // boolean
+        }, {
             "name": "characterapproval",
             "description": "Configure if character registration and updates require arole approval?",
             "required": false,

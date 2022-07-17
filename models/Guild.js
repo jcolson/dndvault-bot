@@ -58,6 +58,10 @@ const Guild = Schema({
         type: Number,
         default: 7
     },
+    "eventPostAuto": {
+        type: "Boolean",
+        default: false
+    },
     "eventRequireApprover": {
         type: "Boolean",
         default: false
