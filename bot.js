@@ -94,6 +94,7 @@ client.once('ready', async () => {
         await events.recurEvents(client);
         await events.removeOldSessionPlanningChannels(client);
         await events.removeOldSessionVoiceChannels(client);
+        await events.removeOldEventPosts(client);
     });
 });
 

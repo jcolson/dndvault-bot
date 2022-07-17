@@ -55,6 +55,7 @@ async function configreset(param, guild, guildConfig) {
     guildConfig = await configvoicecategory({ name: 'voicecategory', value: undefined }, guild, guildConfig);
     guildConfig = await configvoiceperms({ name: 'voiceperms', value: 'attendees' }, guild, guildConfig);
     guildConfig = await configchanneldays({ name: 'channeldays', value: DEFAULT_CHANNEL_REMOVE_DAYS }, guild, guildConfig);
+    guildConfig = await configeventpostauto({ name: 'eventpostauto', value: false }, guild, guildConfig);
     guildConfig = await configcharacterapproval({ name: 'characterapproval', value: false }, guild, guildConfig);
     guildConfig = await configcampaign({ name: 'campaign', value: false }, guild, guildConfig);
     guildConfig = await configprefix({ name: 'prefix', value: Config.defaultPrefix }, guild, guildConfig);
@@ -188,6 +189,12 @@ async function configchanneldays(param, guild, guildConfig) {
     return guildConfig;
 }
 
+async function configeventpostauto(param, guild, guildConfig) {
+    console.debug(`configeventpostauto:`, param);
+    guildConfig.eventPostAuto = utils.isTrue(param.value);
+    return guildConfig;
+}
+
 async function configcharacterapproval(param, guild, guildConfig) {
     console.debug(`configcharacterapproval:`, param);
     guildConfig.requireCharacterApproval = utils.isTrue(param.value);
@@ -278,6 +285,7 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Event Voice Channel Category', value: eventVoiceCat.name, inline: true },
         { name: 'Event Voice Permissions', value: eventVoicePerms, inline: true },
         { name: 'Event Planning Channel Delete Days', value: guildConfig.eventPlanDays ? guildConfig.eventPlanDays.toString() : 'Not Set', inline: true },
+        { name: 'Event Post Auto-Removal', value: guildConfig.eventPostAuto.toString(), inline: true },
         { name: 'Event Require Approver', value: guildConfig.eventRequireApprover.toString(), inline: true },
         { name: 'Standby Queuing for Events', value: guildConfig.enableStandbyQueuing.toString(), inline: true }
     );
@@ -535,6 +543,7 @@ exports.configchannelcategory = configchannelcategory;
 exports.configvoicecategory = configvoicecategory;
 exports.configvoiceperms = configvoiceperms;
 exports.configchanneldays = configchanneldays;
+exports.configeventpostauto = configeventpostauto;
 exports.configcharacterapproval = configcharacterapproval;
 exports.configcampaign = configcampaign;
 exports.configprefix = configprefix;
