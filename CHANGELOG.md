@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.1.0 (2022-07-17)](#v210-2022-07-17)
   - [v2.0.14 (2022-07-14)](#v2014-2022-07-14)
   - [v2.0.13 (2022-07-07)](#v2013-2022-07-07)
   - [v2.0.12 (2022-06-07)](#v2012-2022-06-07)
@@ -159,6 +160,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.1.0](https://github.com/jcolson/dndvault-bot/tree/v2.1.0) (2022-07-17)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.0.14...v2.1.0)
+
+**Implemented enhancements:**
+
+- bot to automatically 'remove' expired event posts [\#503](https://github.com/jcolson/dndvault-bot/issues/503)
 
 ## [v2.0.14](https://github.com/jcolson/dndvault-bot/tree/v2.0.14) (2022-07-14)
 
