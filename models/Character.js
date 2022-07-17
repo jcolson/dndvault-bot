@@ -792,5 +792,13 @@ const Character = Schema({
     "providedFrom": {
         "type": "String"
     }
-})
+});
+Character.index({apiVersion: 1});
+Character.index({approvalStatus: 1});
+Character.index({'campaign.id': 1});
+Character.index({campaignOverride: 1});
+Character.index({guildID: 1});
+Character.index({guildUser: 1});
+Character.index({id: 1});
+Character.index({isUpdate: 1});
 module.exports = model('Character', Character);

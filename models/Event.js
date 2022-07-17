@@ -82,4 +82,16 @@ const Event = Schema({
         index: true
     }
 }, { optimisticConcurrency: true });
+Event.index({'attendees.userID': 1});
+Event.index({campaign: 1});
+Event.index({channelID: 1});
+Event.index({date_time: 1});
+Event.index({dm: 1});
+Event.index({guildID: 1});
+Event.index({messageID: 1});
+Event.index({planningChannel: 1});
+Event.index({recurComplete: 1});
+Event.index({recurEvery: 1});
+Event.index({reminderSent: 1});
+Event.index({voiceChannel: 1});
 module.exports = model('Event', Event);

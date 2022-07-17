@@ -66,5 +66,8 @@ const Guild = Schema({
         type: "Boolean",
         default: false
     }
-})
+});
+Guild.index({guildID: 1});
+Guild.index({eventPostAuto: 1});
+Guild.index({eventPlanDays: 1});
 module.exports = model('Guild', Guild);

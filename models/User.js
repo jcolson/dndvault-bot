@@ -18,5 +18,7 @@ const User = Schema({
     "defaultCharacter": {
         type: String
     }
-})
+});
+User.index({guildID: 1});
+User.index({userID: 1});
 module.exports = model('User', User);
