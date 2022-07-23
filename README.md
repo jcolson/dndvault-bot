@@ -81,6 +81,8 @@ Once a user signs up as an attendee, or creates an event, those events will show
 
 [![D&D Vault Bot Event Subscribe Youtube Video](https://i.ytimg.com/vi/CEnUVG9wGwQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=CEnUVG9wGwQ)
 
+![D&D Vault Bot Event Calendar View](/docs/images/dndvaultbot_calendar_view.png)
+
 ## Polling
 
 Users can create polls very simply by using the `poll` command.  `!poll "Do you like polling"` will create a default poll that has three options:  👍 (yes) 👎 (no) and 🤷 (I don't know).  A user can also create his own options, which will be automatically numbered by using this syntax: `!poll "Do you like polling" "hell no" "I LOVE polling" "What is polling?"`.
