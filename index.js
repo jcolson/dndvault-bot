@@ -24,6 +24,8 @@ const morgan = require('morgan');
 const Grant = require('grant').express();
 const grant = new Grant(Config);
 
+const net = require('net')
+
 // am I in the process of shutting down?
 let shutdown = false;
 
@@ -99,7 +101,11 @@ let server = app
     .use(async function (request, response, next) {
         console.log(`HTTP: in middleware checking if I need to update guildID (and channelID), guildID status: ${request.session.guildConfig ? true : false}`);
         try {
-            const requestUrl = new URL(request.url, `${request.protocol}://${request.headers.host}`);
+            // fix for IPv6 literal bug in legacy url
+            let hostname = request.headers.host;
+            if (net.isIPv6(hostname)) hostname = '[' + hostname + ']'
+            const requestUrl = new URL(request.url, `${request.protocol}://${hostname}`);
+            console.debug(`HTTP: the url formed: ${requestUrl}`);
             const guildID = requestUrl.searchParams.get('guildID');
             if (guildID) {
                 if (!request.session.guildConfig || request.session.guildConfig.guildID != guildID) {
@@ -360,7 +366,7 @@ let server = app
                         context: {
                             discordMeId: request.session.discordMe.id,
                             channelIDForEvent: request.session.grant.dynamic.channel,
-                            timezoneToSet: timezoneToSet,
+                            timezoneToSet: 'EST',//timezoneToSet,
                             guildId: request.session.guildConfig.guildID,
                             arole: request.session.guildConfig.arole,
                             eventRequireApprover: request.session.guildConfig.eventRequireApprover,
