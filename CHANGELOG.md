@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.1.1 (2022-07-30)](#v211-2022-07-30)
   - [v2.1.0 (2022-07-17)](#v210-2022-07-17)
   - [v2.0.14 (2022-07-14)](#v2014-2022-07-14)
   - [v2.0.13 (2022-07-07)](#v2013-2022-07-07)
@@ -160,6 +161,15 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.1.1](https://github.com/jcolson/dndvault-bot/tree/v2.1.1) (2022-07-30)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.1.0...v2.1.1)
+
+**Fixed bugs:**
+
+- sendDirectOrFallbackToChannelEmbeds can send to the event channel ... so try the systemchannel FIRST [\#513](https://github.com/jcolson/dndvault-bot/issues/513)
+- invalid\_url on ipv6 addresses [\#512](https://github.com/jcolson/dndvault-bot/issues/512)
 
 ## [v2.1.0](https://github.com/jcolson/dndvault-bot/tree/v2.1.0) (2022-07-17)
 
