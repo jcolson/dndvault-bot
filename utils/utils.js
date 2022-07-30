@@ -186,7 +186,7 @@ async function sendDirectOrFallbackToChannelEmbeds(embedsArray, msg, user, skipD
             let interactionEmbed = new MessageEmbed()
                 .setAuthor({ name: 'D&D Vault', iconURL: Config.dndVaultIcon, url: `${Config.httpServerURL}/?guildID=${msg.guild?.id}` })
                 .setColor(embedsArray[embedsArray.length - 1].color ? embedsArray[embedsArray.length - 1].color : COLORS.GREEN)
-                .addField('Response', `[Check your here](${sentMessage.url}) for response.`);
+                .addField('Response', `[Check here](${sentMessage.url}) for response.`);
             // clientWsReply(msg.interaction, interactionEmbed);
             await msg.interaction.reply({ embeds: [interactionEmbed] });
         } else if (!messageSent && msg?.interaction && commsErrorMessage) {
@@ -615,14 +615,18 @@ function parseIntOrMakeZero(intToParse) {
  * @returns
  */
 async function locateChannelForMessageSend(guild, channel) {
-    if (!isChannelTypeAndPerms(guild, channel)) {
-        // console.debug('finding another channel');
-        if (guild.systemChannelId) {
-            channel = guild.channels.resolve(guild.systemChannelId);
-        }
-        if (!isChannelTypeAndPerms(guild, channel)) {
+    let returnChannel;
+    // try to use systemChannel first
+    if (guild.systemChannelId) {
+        returnChannel = guild.channels.resolve(guild.systemChannelId);
+    }
+    if (!isChannelTypeAndPerms(guild, returnChannel)) {
+        // try the channel passed to us next
+        returnChannel = channel;
+        if (!isChannelTypeAndPerms(guild, returnChannel)) {
             // console.debug('still finding another channel');
-            channel = (await guild.channels.fetch()).find(c => {
+            // find ANY channel that we could send on
+            returnChannel = (await guild.channels.fetch()).find(c => {
                 if (isChannelTypeAndPerms(guild, c)) {
                     return c;
                 }
@@ -630,7 +634,7 @@ async function locateChannelForMessageSend(guild, channel) {
         }
     }
     // console.debug(`locateChannelForMessageSend:`, channel);
-    return channel;
+    return returnChannel;
 }
 
 function isChannelTypeAndPerms(guild, channel) {
