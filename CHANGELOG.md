@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.1.2 (2022-07-31)](#v212-2022-07-31)
   - [v2.1.1 (2022-07-30)](#v211-2022-07-30)
   - [v2.1.0 (2022-07-17)](#v210-2022-07-17)
   - [v2.0.14 (2022-07-14)](#v2014-2022-07-14)
@@ -161,6 +162,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.1.2](https://github.com/jcolson/dndvault-bot/tree/v2.1.2) (2022-07-31)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.1.1...v2.1.2)
+
+**Implemented enhancements:**
+
+- allow !rolls to be disabled via /config [\#515](https://github.com/jcolson/dndvault-bot/issues/515)
 
 ## [v2.1.1](https://github.com/jcolson/dndvault-bot/tree/v2.1.1) (2022-07-30)
 
