@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Changelog](#changelog)
+  - [v2.1.3 (2022-07-31)](#v213-2022-07-31)
   - [v2.1.2 (2022-07-31)](#v212-2022-07-31)
   - [v2.1.1 (2022-07-30)](#v211-2022-07-30)
   - [v2.1.0 (2022-07-17)](#v210-2022-07-17)
@@ -33,8 +34,8 @@
   - [v1.9.18 (2021-12-19)](#v1918-2021-12-19)
   - [v1.9.17 (2021-12-19)](#v1917-2021-12-19)
   - [v1.9.16 (2021-12-19)](#v1916-2021-12-19)
-  - [v1.9.17-docker (2021-12-19)](#v1917-docker-2021-12-19)
   - [v1.9.15-docker (2021-12-19)](#v1915-docker-2021-12-19)
+  - [v1.9.17-docker (2021-12-19)](#v1917-docker-2021-12-19)
   - [v1.9.15 (2021-12-19)](#v1915-2021-12-19)
   - [v1.9.14 (2021-12-05)](#v1914-2021-12-05)
   - [v1.9.13 (2021-12-05)](#v1913-2021-12-05)
@@ -162,6 +163,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Changelog
+
+## [v2.1.3](https://github.com/jcolson/dndvault-bot/tree/v2.1.3) (2022-07-31)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v2.1.2...v2.1.3)
+
+**Implemented enhancements:**
+
+- enable a configurable default channel for bot responses if the bot cannot reach the end user directly [\#516](https://github.com/jcolson/dndvault-bot/issues/516)
 
 ## [v2.1.2](https://github.com/jcolson/dndvault-bot/tree/v2.1.2) (2022-07-31)
 
@@ -330,15 +339,15 @@
 
 ## [v1.9.16](https://github.com/jcolson/dndvault-bot/tree/v1.9.16) (2021-12-19)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.17-docker...v1.9.16)
-
-## [v1.9.17-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.17-docker) (2021-12-19)
-
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15-docker...v1.9.17-docker)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15-docker...v1.9.16)
 
 ## [v1.9.15-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.15-docker) (2021-12-19)
 
-[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15...v1.9.15-docker)
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.17-docker...v1.9.15-docker)
+
+## [v1.9.17-docker](https://github.com/jcolson/dndvault-bot/tree/v1.9.17-docker) (2021-12-19)
+
+[Full Changelog](https://github.com/jcolson/dndvault-bot/compare/v1.9.15...v1.9.17-docker)
 
 ## [v1.9.15](https://github.com/jcolson/dndvault-bot/tree/v1.9.15) (2021-12-19)
 
