@@ -11,12 +11,14 @@ afterEach(() => {
 test('handleDiceRoll static 20', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ 'value': '20' }];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -35,12 +37,14 @@ test('handleDiceRoll static 20', async () => {
 test('handleDiceRoll error', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelError = jest.spyOn(utils, 'sendDirectOrFallbackToChannelError').mockImplementation((error, msg) => {
-        // console.debug('sendDirectOrFallbackToChannelError:', error);
+        console.debug(error, msg);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ 'value': 'x4d' }];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelError).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'Expected "(", "-", "abs", "ceil", "cos", "d", "d%", "dF", "exp", "floor", "log", "max", "min", "pow", "round", "sign", "sin", "sqrt", "tan", "{", [0-9], or [1-9] but "x" found.' })
         , msg
@@ -50,12 +54,14 @@ test('handleDiceRoll error', async () => {
 test('handleDiceRoll 1d20 default', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -74,12 +80,14 @@ test('handleDiceRoll 1d20 default', async () => {
 test('handleDiceRoll 2d100', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ 'value': '2d100' }];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -102,12 +110,14 @@ test('handleDiceRoll 2d100', async () => {
 test('handleDiceRoll soooo many dice', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ 'value': '999d9999999999' }];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -151,12 +161,14 @@ test('handleDiceRoll soooo many dice', async () => {
 test('handleDiceRoll 1d20 with roll_type', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ 'value': '1d20' }, { 'value': 'Dex Check' }];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -180,12 +192,14 @@ test('handleDiceRoll 1d20 with roll_type', async () => {
 test('handleDiceRoll default(1d20) with roll_type', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ 'name': 'roll_type', 'value': 'Dex Check' }];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -209,12 +223,14 @@ test('handleDiceRoll default(1d20) with roll_type', async () => {
 test('handleDiceRoll 1d20 with roll_type using slash', async () => {
     let msg = {};
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ 'name': 'notation', 'value': '1d20' }, { 'name': 'roll_type', 'value': 'Dex Check' }];
-    await testables.handleDiceRoll(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRoll(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -241,12 +257,14 @@ test('handleDiceRollStats', async () => {
         return "https://www.example.com/example.png";
     }
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [];
-    await testables.handleDiceRollStats(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRollStats(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -273,12 +291,14 @@ test('handleDiceRollStats reroll ones', async () => {
         return "https://www.example.com/example.png";
     }
     let sendDirectOrFallbackToChannelEmbeds = jest.spyOn(utils, 'sendDirectOrFallbackToChannelEmbeds').mockImplementation((embedsArray, msg, user, skipDM) => {
-        // console.debug(embedsArray[0].fields, msg, user, skipDM);
+        console.debug(embedsArray[0].fields, msg, user, skipDM);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [{ name: 'reroll_ones', value: true }];
-    await testables.handleDiceRollStats(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRollStats(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelEmbeds).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
@@ -302,12 +322,14 @@ test('handleDiceRollStats reroll ones', async () => {
 test('handleDiceRollStats error', async () => {
     let msg = { guild: 'error' };
     let sendDirectOrFallbackToChannelError = jest.spyOn(utils, 'sendDirectOrFallbackToChannelError').mockImplementation((error, msg) => {
-        // console.debug('sendDirectOrFallbackToChannelError:', error);
+        console.debug(error, msg);
     });
     jest.spyOn(utils, 'deleteMessage').mockImplementation((msg) => {
+        console.debug(msg);
     });
     let diceParam = [];
-    await testables.handleDiceRollStats(msg, diceParam);
+    let guildConfig = { rollsEnabled: true };
+    await testables.handleDiceRollStats(msg, diceParam, guildConfig);
     expect(sendDirectOrFallbackToChannelError).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'msg.guild?.iconURL is not a function' })
         , msg
