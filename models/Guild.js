@@ -36,6 +36,9 @@ const Guild = Schema({
         type: "Boolean",
         default: false
     },
+    "channelForAnon": {
+        type: "String"
+    },
     "channelForPolls": {
         type: "String"
     },

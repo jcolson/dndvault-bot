@@ -620,6 +620,12 @@ async function locateChannelForMessageSend(guild, channel) {
     if (guild.systemChannelId) {
         returnChannel = guild.channels.resolve(guild.systemChannelId);
     }
+    // override systemChannel with anon channel
+    let guildConf = GuildCache.get(guild.id);
+    if (guildConf.channelForAnon) {
+        console.info(`locateChannelForMessageSend: Override returnChannel with ${guildConf.channelForAnon}`);
+        returnChannel = guild.channels.resolve(guildConf.channelForAnon);
+    }
     if (!isChannelTypeAndPerms(guild, returnChannel)) {
         // try the channel passed to us next
         returnChannel = channel;

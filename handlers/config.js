@@ -49,6 +49,7 @@ async function configreset(param, guild, guildConfig) {
     guildConfig = await configprole({ name: 'prole', value: guild.roles.everyone.id }, guild, guildConfig);
     guildConfig = await configarole({ name: 'arole', value: guild.roles.everyone.id }, guild, guildConfig);
     guildConfig = await configrollsenabled({ name: 'rollsenabled', value: true }, guild, guildConfig);
+    guildConfig = await configanonchannel({ name: 'anonchannel', value: undefined }, guild, guildConfig);
     guildConfig = await configpollchannel({ name: 'pollchannel', value: undefined }, guild, guildConfig);
     guildConfig = await configeventchannel({ name: 'eventchannel', value: undefined }, guild, guildConfig);
     guildConfig = await configeventstandby({ name: 'eventstandby', value: false }, guild, guildConfig);
@@ -81,6 +82,21 @@ async function configarole(param, guild, guildConfig) {
         guildConfig.arole = configProle.id;
     } else {
         throw new Error(`could not locate the role for: ${param.value}`);
+    }
+    return guildConfig;
+}
+
+async function configanonchannel(param, guild, guildConfig) {
+    console.debug(`configanonchannel:`, param);
+    if (param.value) {
+        let stringParam = utils.trimTagsFromId(param.value);
+        let channelTest = await guild.channels.resolve(stringParam);
+        if (!channelTest) {
+            throw new Error(`Could not locate channel: ${stringParam}`);
+        }
+        guildConfig.channelForAnon = stringParam;
+    } else {
+        guildConfig.channelForAnon = undefined;
     }
     return guildConfig;
 }
@@ -228,6 +244,7 @@ async function configprefix(param, guild, guildConfig) {
 async function embedForConfig(guild, guildConfig) {
     let channelForEvents = { name: 'Not Set' };
     let channelForPolls = { name: 'Not Set' };
+    let channelForAnon = { name: 'Not Set' };
     let approverRoleName = 'Not Set';
     let playerRoleName = 'Not Set';
     let eventVoicePerms = guildConfig.eventVoicePerms ? guildConfig.eventVoicePerms : 'Not Set';
@@ -247,7 +264,14 @@ async function embedForConfig(guild, guildConfig) {
             channelForPolls = await guild.channels.resolve(guildConfig.channelForPolls);
         }
     } catch (error) {
-        console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForEvents}`, error);
+        console.error(`handleConfig: could not resolve channel for polls: ${guildConfig.channelForPolls}`, error);
+    }
+    try {
+        if (guildConfig.channelForAnon) {
+            channelForAnon = await guild.channels.resolve(guildConfig.channelForAnon);
+        }
+    } catch (error) {
+        console.error(`handleConfig: could not resolve channel for anonymous: ${guildConfig.channelForAnon}`, error);
     }
     try {
         approverRoleName = (await utils.retrieveRoleForID(guild, guildConfig.arole)).name;
@@ -289,6 +313,7 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent.toString(), inline: true },
         { name: 'Event Channel', value: channelForEvents.name, inline: true },
         { name: 'Poll Channel', value: channelForPolls.name, inline: true },
+        { name: 'Aonymous Channel', value: channelForAnon.name, inline: true },
         { name: 'Event Planning Channel Category', value: eventPlanCat.name, inline: true },
         { name: 'Event Voice Channel Category', value: eventVoiceCat.name, inline: true },
         { name: 'Event Voice Permissions', value: eventVoicePerms, inline: true },
@@ -545,6 +570,7 @@ exports.configreset = configreset;
 exports.configprole = configprole;
 exports.configarole = configarole;
 exports.configrollsenabled = configrollsenabled;
+exports.configanonchannel = configanonchannel;
 exports.configpollchannel = configpollchannel;
 exports.configeventchannel = configeventchannel;
 exports.configeventstandby = configeventstandby;
