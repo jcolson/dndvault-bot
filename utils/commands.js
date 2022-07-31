@@ -596,6 +596,11 @@ const COMMANDS = {
             "required": false,
             "type": 9 // 8 role, 9 mentionable
         }, {
+            "name": "rollsenabled",
+            "description": "Enable the rolls functionality of the bot.",
+            "required": false,
+            "type": 5 // boolean
+        }, {
             "name": "pollchannel",
             "description": "Channel to send all polls to.",
             "required": false,
@@ -743,10 +748,10 @@ async function handleCommandExec(guildConfig, messageContentLowercase, msg, msgP
                 }
                 switch (COMMANDS[findCommand].name) {
                     case COMMANDS.rollStats.name:
-                        roll.handleDiceRollStats(msg, msgParms);
+                        roll.handleDiceRollStats(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.roll.name:
-                        roll.handleDiceRoll(msg, msgParms);
+                        roll.handleDiceRoll(msg, msgParms, guildConfig);
                         break;
                     case COMMANDS.registerManual.name:
                         characters.handleRegisterManual(msg, msgParms, guildConfig);

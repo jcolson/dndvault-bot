@@ -48,6 +48,7 @@ async function configreset(param, guild, guildConfig) {
     console.debug(`configreset:`, param);
     guildConfig = await configprole({ name: 'prole', value: guild.roles.everyone.id }, guild, guildConfig);
     guildConfig = await configarole({ name: 'arole', value: guild.roles.everyone.id }, guild, guildConfig);
+    guildConfig = await configrollsenabled({ name: 'rollsenabled', value: true }, guild, guildConfig);
     guildConfig = await configpollchannel({ name: 'pollchannel', value: undefined }, guild, guildConfig);
     guildConfig = await configeventchannel({ name: 'eventchannel', value: undefined }, guild, guildConfig);
     guildConfig = await configeventstandby({ name: 'eventstandby', value: false }, guild, guildConfig);
@@ -117,6 +118,12 @@ async function configeventchannel(param, guild, guildConfig) {
 async function configeventrequireapprover(param, guild, guildConfig) {
     console.debug(`configeventrequireapprover:`, param);
     guildConfig.eventRequireApprover = utils.isTrue(param.value);
+    return guildConfig;
+}
+
+async function configrollsenabled(param, guild, guildConfig) {
+    console.debug(`configrollsenabled:`, param);
+    guildConfig.rollsEnabled = utils.isTrue(param.value);
     return guildConfig;
 }
 
@@ -277,6 +284,7 @@ async function embedForConfig(guild, guildConfig) {
         { name: 'Prefix', value: guildConfig.prefix, inline: true },
         { name: 'Approver Role', value: approverRoleName, inline: true },
         { name: 'Player Role', value: playerRoleName, inline: true },
+        { name: 'Rolls Enabled', value: guildConfig.rollsEnabled.toString(), inline: true },
         { name: 'Approval Required', value: guildConfig.requireCharacterApproval.toString(), inline: true },
         { name: 'Char Campaign For Event Required', value: guildConfig.requireCharacterForEvent.toString(), inline: true },
         { name: 'Event Channel', value: channelForEvents.name, inline: true },
@@ -536,6 +544,7 @@ exports.bc_handleKick = bc_handleKick;
 exports.configreset = configreset;
 exports.configprole = configprole;
 exports.configarole = configarole;
+exports.configrollsenabled = configrollsenabled;
 exports.configpollchannel = configpollchannel;
 exports.configeventchannel = configeventchannel;
 exports.configeventstandby = configeventstandby;

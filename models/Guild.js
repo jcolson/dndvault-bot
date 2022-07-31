@@ -20,6 +20,10 @@ const Guild = Schema({
     "prole": {
         type: "String"
     },
+    "rollsEnabled": {
+        type: "Boolean",
+        default: true
+    },
     "requireCharacterApproval": {
         type: "Boolean",
         default: false
