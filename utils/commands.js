@@ -601,6 +601,11 @@ const COMMANDS = {
             "required": false,
             "type": 5 // boolean
         }, {
+            "name": "anonchannel",
+            "description": "Channel to send bot responses to by default.",
+            "required": false,
+            "type": 7 // channel
+        }, {
             "name": "pollchannel",
             "description": "Channel to send all polls to.",
             "required": false,
